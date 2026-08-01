@@ -1,0 +1,89 @@
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: SCANNING
+2026-08-01 00:54:49 [INFO] [TESTSYM] Sinal de COMPRA detectado (Setup 9.1).
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=4 symbol=TESTSYM volume=0.01 price=1.25001 sl=1.04999 ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Ordem BUY STOP colocada (9.1). Ticket=12345 Entry=1.25001 SL=1.04999
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: SCANNING
+2026-08-01 00:54:49 [INFO] [TESTSYM] Sinal de VENDA detectado (Setup 9.1).
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=5 symbol=TESTSYM volume=0.01 price=0.89999 sl=1.15001 ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Ordem SELL STOP colocada (9.1). Ticket=12345 Entry=0.8999900000000001 SL=1.15001
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: SIGNAL_READY
+2026-08-01 00:54:49 [INFO] [TESTSYM] EMA9 virou contra. Cancelando ordem 10001.
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=None symbol=None volume=None price=None sl=None ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Ordem 10001 cancelada.
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: SIGNAL_READY
+2026-08-01 00:54:49 [INFO] [TESTSYM] Ordem acionada! IN_POSITION (9.1). Posicao=67890
+2026-08-01 00:54:49 [DEBUG] [Tracker] Entrada registrada: TESTSYM BUY 9.1 @ 1.10001
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:49 [INFO] [TESTSYM] Alvo parcial BUY atingido (1.30001, mult=1.0). Fechando 0.005 lote.
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:49 [INFO] [TESTSYM] EMA9 virou contra posicao. Fechando 67890.
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Posicao fechada. Lucro: False
+2026-08-01 00:54:49 [INFO] [Tracker] Saida: TESTSYM BUY PnL=-0.18001 pips (loss)
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:49 [INFO] [TESTSYM] EMA9 virou contra posicao. Fechando 67890.
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Posicao fechada. Lucro: True
+2026-08-01 00:54:49 [INFO] [TESTSYM] Saida com lucro. Entrando em WATCHING_92 (BUY).
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: WATCHING_92
+2026-08-01 00:54:49 [INFO] [TESTSYM] Timeout WATCHING_92 (11 candles). Voltando a SCANNING.
+2026-08-01 00:54:49 [DEBUG] [TESTSYM] Avaliando no estado: WATCHING_92
+2026-08-01 00:54:49 [INFO] [TESTSYM] Setup 9.2 detectado! Pullback a EMA9 com direcao favoravel.
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=4 symbol=TESTSYM volume=0.01 price=1.19501 sl=1.11499 ticket=12345
+2026-08-01 00:54:49 [INFO] [TESTSYM] Ordem BUY STOP colocada (9.2). Ticket=12345 Entry=1.1950100000000001 SL=1.1149900000000004
+2026-08-01 00:54:49 [INFO] [TESTSYM] Stop alargado por ATR (ratio=1.59). SL original=1.05000 → SL ajustado=1.03622
+2026-08-01 00:54:49 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:49 [WARNING] Posicao 99999 nao encontrada para fechamento total.
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: SCANNING
+2026-08-01 00:54:57 [INFO] [TESTSYM] Sinal de COMPRA detectado (Setup 9.1).
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=4 symbol=TESTSYM volume=0.01 price=1.25001 sl=1.04999 ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Ordem BUY STOP colocada (9.1). Ticket=12345 Entry=1.25001 SL=1.04999
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: SCANNING
+2026-08-01 00:54:57 [INFO] [TESTSYM] Sinal de VENDA detectado (Setup 9.1).
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=5 symbol=TESTSYM volume=0.01 price=0.89999 sl=1.15001 ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Ordem SELL STOP colocada (9.1). Ticket=12345 Entry=0.8999900000000001 SL=1.15001
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: SIGNAL_READY
+2026-08-01 00:54:57 [INFO] [TESTSYM] EMA9 virou contra. Cancelando ordem 10001.
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=None symbol=None volume=None price=None sl=None ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Ordem 10001 cancelada.
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: SIGNAL_READY
+2026-08-01 00:54:57 [INFO] [TESTSYM] Ordem acionada! IN_POSITION (9.1). Posicao=67890
+2026-08-01 00:54:57 [DEBUG] [Tracker] Entrada registrada: TESTSYM BUY 9.1 @ 1.10001
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:57 [INFO] [TESTSYM] Alvo parcial BUY atingido (1.30001, mult=1.0). Fechando 0.005 lote.
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:57 [INFO] [TESTSYM] EMA9 virou contra posicao. Fechando 67890.
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Posicao fechada. Lucro: False
+2026-08-01 00:54:57 [INFO] [Tracker] Saida: TESTSYM BUY PnL=-0.18001 pips (loss)
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: IN_POSITION
+2026-08-01 00:54:57 [INFO] [TESTSYM] EMA9 virou contra posicao. Fechando 67890.
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Posicao fechada. Lucro: True
+2026-08-01 00:54:57 [INFO] [TESTSYM] Saida com lucro. Entrando em WATCHING_92 (BUY).
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: WATCHING_92
+2026-08-01 00:54:57 [INFO] [TESTSYM] Timeout WATCHING_92 (11 candles). Voltando a SCANNING.
+2026-08-01 00:54:57 [DEBUG] [TESTSYM] Avaliando no estado: WATCHING_92
+2026-08-01 00:54:57 [INFO] [TESTSYM] Setup 9.2 detectado! Pullback a EMA9 com direcao favoravel.
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=4 symbol=TESTSYM volume=0.01 price=1.19501 sl=1.11499 ticket=12345
+2026-08-01 00:54:57 [INFO] [TESTSYM] Ordem BUY STOP colocada (9.2). Ticket=12345 Entry=1.1950100000000001 SL=1.1149900000000004
+2026-08-01 00:54:57 [INFO] [TESTSYM] Stop alargado por ATR (ratio=1.59). SL original=1.05000 → SL ajustado=1.03622
+2026-08-01 00:54:57 [INFO] Ordem enviada: type=1 symbol=TESTSYM volume=0.01 price=1.12345 sl=None ticket=12345
+2026-08-01 00:54:57 [WARNING] Posicao 99999 nao encontrada para fechamento total.
+2026-08-01 00:56:49 [INFO] === INICIANDO BOT MT5 ===
+2026-08-01 00:56:49 [INFO] Ativos: ['HK50']
+2026-08-01 00:56:49 [INFO] Volume: 0.01
+2026-08-01 00:56:49 [INFO] Timeframe: H1
+2026-08-01 00:56:49 [INFO] Arquivo de estado nao encontrado. Iniciando do zero.
+2026-08-01 00:56:49 [INFO] Bot iniciado. Monitorando candles H1...
+2026-08-01 00:56:49 [INFO] Pressione Ctrl+C para encerrar.
+2026-08-01 00:56:50 [INFO] [HK50] Novo candle H1 fechado: 2026-07-31 20:00:00+00:00
+2026-08-01 00:56:50 [DEBUG] [HK50] Avaliando no estado: SCANNING
+2026-08-01 00:56:52 [DEBUG] [HK50] Candle 2026-07-31 20:00:00+00:00 ja processado.
+2026-08-01 00:56:54 [DEBUG] [HK50] Candle 2026-07-31 20:00:00+00:00 ja processado.
+2026-08-01 00:56:56 [INFO] Encerrando bot...
+2026-08-01 00:56:56 [INFO] Bot encerrado.
+2026-08-01 00:57:59 [INFO] Arquivo de estado nao encontrado. Iniciando do zero.
+2026-08-01 00:58:00 [DEBUG] [HK50] Avaliando no estado: SCANNING

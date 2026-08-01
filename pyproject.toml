@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mt5bot"
+version = "1.0.0"
+description = "Bot de trading automatizado para MetaTrader 5 — Setups 9.1 e 9.2 (Palex/Larry Williams)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Fabio Dornele"}
+]
+
+dependencies = [
+    "MetaTrader5>=5.0.45",
+    "pytz>=2023.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+mt5bot = "main:main"
+
+[tool.setuptools]
+py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "tui", "dashboard", "tracker"]
