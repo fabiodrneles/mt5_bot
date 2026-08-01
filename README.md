@@ -2,6 +2,8 @@
 
 ### Lucros consistentes. Zero emocao.
 
+<!-- Teste de pipeline de CI/CD -->
+
 Bot de trading automatizado para MetaTrader 5 que opera com disciplina absoluta enquanto voce foca no que importa. Baseado nos Setups 9.1 e 9.2 de Palex (Larry Williams), com inteligencia de volatilidade que adapta cada operacao ao momento real do mercado.
 
 ---
