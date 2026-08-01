@@ -1,0 +1,14 @@
+# Ignorar ficheiros gerados pelo bot
+trades.json
+state.json
+logs/
+__pycache__/
+
+# Ignorar ambientes virtuais
+.venv/
+env/
+venv/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
