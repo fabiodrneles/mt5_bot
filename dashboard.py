@@ -101,6 +101,15 @@ def _html_footer():
 </html>"""
 
 
+def _build_timeframe_options():
+    """Gera as <option> HTML para o seletor de timeframe."""
+    options = []
+    for tf_name, tf_value in config.AVAILABLE_TIMEFRAMES.items():
+        selected = "selected" if tf_name == config.TIMEFRAME_NAME else ""
+        options.append(f'<option value="{tf_name}" {selected}>{tf_name}</option>')
+    return "\n".join(options)
+
+
 def _page_config():
     """Pagina de configuracao."""
     html = _html_head("MT5Bot — Configuracao")
@@ -124,6 +133,12 @@ def _page_config():
 <label>Volume por operacao (lotes)</label>
 <input type="number" name="volume" value="{volume}" step="0.01" min="0.01">
 </div>
+</div>
+<div>
+<label>Timeframe</label>
+<select name="timeframe">
+{timeframe_options}
+</select>
 </div>
 </div>
 
@@ -225,6 +240,7 @@ def _page_config():
 """.format(
         symbols=", ".join(config.AVAILABLE_SYMBOLS),
         volume=config.VOLUME_INITIAL,
+        timeframe_options=_build_timeframe_options(),
         ema_period=config.EMA_PERIOD,
         ema_filter=config.EMA_FILTER_PERIOD,
         s92_on="selected" if config.SETUP_92_ENABLED else "",
