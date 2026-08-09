@@ -429,6 +429,7 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "scan_interval": max(5, int(params.get("scan_interval", ["10"])[0])),
                     "retry_interval": max(10, int(params.get("retry_interval", ["30"])[0])),
                     "rates_count": max(50, int(params.get("rates_count", ["100"])[0])),
+                    "timeframe": params.get("timeframe", ["H1"])[0],
                 }
             except (ValueError, TypeError):
                 # Se dados do formulario forem invalidos, usar defaults
@@ -439,6 +440,7 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "partial_exit": True, "partial_pct": 0.5, "partial_target": 1.0,
                     "adaptive_target": True, "atr_threshold": 1.5, "tick_offset": 1,
                     "scan_interval": 10, "retry_interval": 30, "rates_count": 100,
+                    "timeframe": "H1",
                 }
 
             # Aplicar ao config
@@ -481,6 +483,12 @@ def _apply_config(data):
     config.SCAN_INTERVAL_SECONDS = data.get("scan_interval", 10)
     config.RETRY_INTERVAL_SECONDS = data.get("retry_interval", 30)
     config.RATES_COUNT = data.get("rates_count", 100)
+
+    # Timeframe — valida contra lista de timeframes disponiveis
+    tf_name = data.get("timeframe", "H1")
+    if tf_name in config.AVAILABLE_TIMEFRAMES:
+        config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
+        config.TIMEFRAME_NAME = tf_name
 
 
 def open_config():
