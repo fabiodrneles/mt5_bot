@@ -215,9 +215,10 @@ def main():
 
   USO:
     mt5bot              Menu principal (recomendado no primeiro uso)
-    mt5bot --quick      Conecta e opera direto, sem menus
+    mt5bot --quick      Conecta e opera direto, sem alterar nada
     mt5bot --report     Relatorio de performance no terminal
     mt5bot --dashboard  Relatorio visual no navegador
+    mt5bot --timeframe <TF>  Define o timeframe (ex: M1, M5, H1)
     mt5bot --version    Versao instalada
     mt5bot --help       Esta ajuda
 
@@ -232,6 +233,28 @@ def main():
     - Python 3.10+
     - MetaTrader 5 instalado com conta ativa
 """)
+        return
+
+    # Processar argumento --timeframe
+    if "--timeframe" in sys.argv:
+        try:
+            tf_index = sys.argv.index("--timeframe")
+            if tf_index + 1 < len(sys.argv):
+                tf_name = sys.argv[tf_index + 1].upper()
+                if tf_name in config.AVAILABLE_TIMEFRAMES:
+                    config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
+                    config.TIMEFRAME_NAME = tf_name
+                    logger.info(f"Timeframe definido via CLI: {tf_name}")
+                else:
+                    logger.warning(f"Timeframe '{tf_name}' invalido. Usando padrao: {config.TIMEFRAME_NAME}")
+            else:
+                logger.warning("Argumento --timeframe requer um valor (ex: --timeframe H1). Usando padrao.")
+        except ValueError:
+            pass # Nao deveria acontecer pois ja verificamos "--timeframe" in sys.argv
+
+
+    if "--report" in sys.argv:
+        tracker.print_report()
         return
 
     if "--report" in sys.argv:
