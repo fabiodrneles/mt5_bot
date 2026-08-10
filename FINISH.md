@@ -10,7 +10,7 @@ Este arquivo descreve o que ainda falta para fechar todos os pontos do projeto, 
 - `README.md` ampliado com uso e comandos principais.
 - `CHANGELOG.md` e `DEVELOPER_GUIDE.md` já existem.
 - Branch de trabalho atual: `testes`.
-- Tag de release local ainda nao criada.
+- Tag de release `v1.1.0` criada e exportada para remoto.
 
 ## O que falta terminar
 

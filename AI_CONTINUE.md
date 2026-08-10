@@ -20,7 +20,24 @@ py -3 -m pip install -U pytest coverage
 py -3 -m pytest -q
 ```
 
-5. Se precisar executar testes que manipulam `%APPDATA%`, use `monkeypatch.setenv('APPDATA', '<path>')` nos testes (exemplo em `test_persistence.py`).
+5. Validar cobertura atual:
+
+```powershell
+py -3 -m coverage run -m pytest -q
+py -3 -m coverage report
+```
+
+6. Se precisar executar testes que manipulam `%APPDATA%`, use `monkeypatch.setenv('APPDATA', '<path>')` nos testes (exemplo em `test_persistence.py`).
+
+## Estado atual exato
+
+- Suíte de testes passa: `25 passed`.
+- Cobertura atual: 55%.
+- Tag `v1.1.0` criada e publicada no remoto.
+- Branch de trabalho: `testes`.
+- Arquivos de handoff: `AI_CONTINUE.md` e `FINISH.md` presentes.
+
+Use este arquivo se perder contato com o assistente: ele contém o plano completo de continuidade.
 
 Arquivos importantes
 
