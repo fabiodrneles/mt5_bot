@@ -116,6 +116,7 @@ def run_bot():
     timezone = pytz.timezone("Etc/UTC")
     logger.info(f"Bot iniciado | Ativos: {', '.join(config.SYMBOLS)} | "
                 f"Volume: {config.VOLUME_INITIAL} | "
+                f"Timeframe: {config.TIMEFRAME_NAME} | "
                 f"Setups: 9.1" + (" + 9.2" if config.SETUP_92_ENABLED else ""))
 
     # Inicializar estados (com persistencia)
@@ -165,7 +166,7 @@ def run_bot():
                 candle_dt = datetime.fromtimestamp(current_closed_candle[0], timezone)
 
                 if last_candle_time[symbol] is None or candle_dt > last_candle_time[symbol]:
-                    logger.info(f"[{symbol}] Novo candle H1 fechado: {candle_dt}")
+                    logger.info(f"[{symbol}] Novo candle {config.TIMEFRAME_NAME} fechado: {candle_dt}")
                     last_candle_time[symbol] = candle_dt
                     strategy.evaluate(symbol, current_closed_candle, rates)
                 else:
@@ -215,9 +216,10 @@ def main():
 
   USO:
     mt5bot              Menu principal (recomendado no primeiro uso)
-    mt5bot --quick      Conecta e opera direto, sem menus
+    mt5bot --quick      Conecta e opera direto, sem alterar nada
     mt5bot --report     Relatorio de performance no terminal
     mt5bot --dashboard  Relatorio visual no navegador
+    mt5bot --timeframe <TF>  Define o timeframe (ex: M1, M5, H1)
     mt5bot --version    Versao instalada
     mt5bot --help       Esta ajuda
 
@@ -232,6 +234,28 @@ def main():
     - Python 3.10+
     - MetaTrader 5 instalado com conta ativa
 """)
+        return
+
+    # Processar argumento --timeframe
+    if "--timeframe" in sys.argv:
+        try:
+            tf_index = sys.argv.index("--timeframe")
+            if tf_index + 1 < len(sys.argv):
+                tf_name = sys.argv[tf_index + 1].upper()
+                if tf_name in config.AVAILABLE_TIMEFRAMES:
+                    config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
+                    config.TIMEFRAME_NAME = tf_name
+                    logger.info(f"Timeframe definido via CLI: {tf_name}")
+                else:
+                    logger.warning(f"Timeframe '{tf_name}' invalido. Usando padrao: {config.TIMEFRAME_NAME}")
+            else:
+                logger.warning("Argumento --timeframe requer um valor (ex: --timeframe H1). Usando padrao.")
+        except ValueError:
+            pass # Nao deveria acontecer pois ja verificamos "--timeframe" in sys.argv
+
+
+    if "--report" in sys.argv:
+        tracker.print_report()
         return
 
     if "--report" in sys.argv:

@@ -7,6 +7,21 @@ AVAILABLE_SYMBOLS = ["HK50", "EURUSD", "US500"]
 SYMBOLS = []  # Preenchido pela TUI no startup
 TIMEFRAME = mt5.TIMEFRAME_H1
 
+# Timeframes disponiveis para selecao do usuario
+# Mapeia nome amigavel -> constante do MT5
+AVAILABLE_TIMEFRAMES = {
+    "M1":  mt5.TIMEFRAME_M1,
+    "M5":  mt5.TIMEFRAME_M5,
+    "M15": mt5.TIMEFRAME_M15,
+    "M30": mt5.TIMEFRAME_M30,
+    "H1":  mt5.TIMEFRAME_H1,
+    "H4":  mt5.TIMEFRAME_H4,
+    "D1":  mt5.TIMEFRAME_D1,
+}
+
+# Nome do timeframe atualmente selecionado (para exibicao)
+TIMEFRAME_NAME = "H1"
+
 # --- EMAs ---
 EMA_PERIOD = 9
 EMA_FILTER_PERIOD = 21

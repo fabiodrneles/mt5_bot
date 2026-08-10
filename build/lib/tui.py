@@ -339,6 +339,42 @@ def configure_timing_tui():
 
 
 # ============================================================
+# TIMEFRAME
+# ============================================================
+
+def configure_timeframe_tui():
+    """Configuracao de timeframe."""
+    print_section("TIMEFRAME")
+    print()
+    print_param("Timeframe atual", config.TIMEFRAME_NAME)
+    print(f"    {DIM}Selecione um timeframe da lista abaixo.{RESET}")
+    print()
+
+    tf_list = list(config.AVAILABLE_TIMEFRAMES.keys())
+    for i, tf_name in enumerate(tf_list, 1):
+        current = " (atual)" if tf_name == config.TIMEFRAME_NAME else ""
+        print(f"    {BOLD}{i}.{RESET} {tf_name}{f'{DIM}{current}{RESET}' if current else ''}")
+
+    print(f"    {BOLD}0.{RESET} Manter atual ({config.TIMEFRAME_NAME})")
+    print()
+
+    while True:
+        opcao = input_prompt("Selecione")
+
+        if opcao == "0" or opcao == "":
+            break
+
+        if opcao.isdigit() and 1 <= int(opcao) <= len(tf_list):
+            tf_name = tf_list[int(opcao) - 1]
+            config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
+            config.TIMEFRAME_NAME = tf_name
+            print(f"\n    {DIM}Timeframe selecionado:{RESET} {GREEN}{tf_name}{RESET}")
+            break
+        else:
+            print(f"    {RED}Opcao invalida.{RESET}")
+
+
+# ============================================================
 # RESUMO E FLOWS
 # ============================================================
 
@@ -353,7 +389,7 @@ def show_summary():
 
     print_param("Ativos", ", ".join(config.SYMBOLS))
     print_param("Volume", f"{config.VOLUME_INITIAL} lote")
-    print_param("Timeframe", "H1")
+    print_param("Timeframe", config.TIMEFRAME_NAME)
     print_param("Setup 9.1", "Ativado")
     print_param("Setup 9.2", "Ativado" if config.SETUP_92_ENABLED else "Desativado")
     print_param("Saida parcial",
@@ -383,16 +419,19 @@ def run_tui():
         print(f"    {RED}Nenhum ativo disponivel. Encerrando.{RESET}")
         return False
 
-    # 3. Volume
+    # 3. Timeframe
+    configure_timeframe_tui()
+
+    # 4. Volume
     configure_volume_tui()
 
-    # 4. Estrategia
+    # 5. Estrategia
     configure_strategy_tui()
 
-    # 5. Risco
+    # 6. Risco
     configure_risk_tui()
 
-    # 6. Intervalos
+    # 7. Intervalos
     configure_timing_tui()
 
     # Resumo final

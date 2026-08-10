@@ -101,6 +101,15 @@ def _html_footer():
 </html>"""
 
 
+def _build_timeframe_options():
+    """Gera as <option> HTML para o seletor de timeframe."""
+    options = []
+    for tf_name, tf_value in config.AVAILABLE_TIMEFRAMES.items():
+        selected = "selected" if tf_name == config.TIMEFRAME_NAME else ""
+        options.append(f'<option value="{tf_name}" {selected}>{tf_name}</option>')
+    return "\n".join(options)
+
+
 def _page_config():
     """Pagina de configuracao."""
     html = _html_head("MT5Bot — Configuracao")
@@ -124,6 +133,12 @@ def _page_config():
 <label>Volume por operacao (lotes)</label>
 <input type="number" name="volume" value="{volume}" step="0.01" min="0.01">
 </div>
+</div>
+<div>
+<label>Timeframe</label>
+<select name="timeframe">
+{timeframe_options}
+</select>
 </div>
 </div>
 
@@ -225,6 +240,7 @@ def _page_config():
 """.format(
         symbols=", ".join(config.AVAILABLE_SYMBOLS),
         volume=config.VOLUME_INITIAL,
+        timeframe_options=_build_timeframe_options(),
         ema_period=config.EMA_PERIOD,
         ema_filter=config.EMA_FILTER_PERIOD,
         s92_on="selected" if config.SETUP_92_ENABLED else "",
@@ -413,6 +429,7 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "scan_interval": max(5, int(params.get("scan_interval", ["10"])[0])),
                     "retry_interval": max(10, int(params.get("retry_interval", ["30"])[0])),
                     "rates_count": max(50, int(params.get("rates_count", ["100"])[0])),
+                    "timeframe": params.get("timeframe", ["H1"])[0],
                 }
             except (ValueError, TypeError):
                 # Se dados do formulario forem invalidos, usar defaults
@@ -423,6 +440,7 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "partial_exit": True, "partial_pct": 0.5, "partial_target": 1.0,
                     "adaptive_target": True, "atr_threshold": 1.5, "tick_offset": 1,
                     "scan_interval": 10, "retry_interval": 30, "rates_count": 100,
+                    "timeframe": "H1",
                 }
 
             # Aplicar ao config
@@ -465,6 +483,12 @@ def _apply_config(data):
     config.SCAN_INTERVAL_SECONDS = data.get("scan_interval", 10)
     config.RETRY_INTERVAL_SECONDS = data.get("retry_interval", 30)
     config.RATES_COUNT = data.get("rates_count", 100)
+
+    # Timeframe — valida contra lista de timeframes disponiveis
+    tf_name = data.get("timeframe", "H1")
+    if tf_name in config.AVAILABLE_TIMEFRAMES:
+        config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
+        config.TIMEFRAME_NAME = tf_name
 
 
 def open_config():

@@ -25,9 +25,9 @@ def _format_price(price, symbol_info):
 def _get_filling_type(symbol_info):
     """Determina o filling type suportado pelo simbolo."""
     filling = symbol_info.filling_mode
-    if filling & mt5.SYMBOL_FILLING_FOK:
+    if filling & mt5.ORDER_FILLING_FOK:
         return mt5.ORDER_FILLING_FOK
-    elif filling & mt5.SYMBOL_FILLING_IOC:
+    elif filling & mt5.ORDER_FILLING_IOC:
         return mt5.ORDER_FILLING_IOC
     return mt5.ORDER_FILLING_RETURN
 

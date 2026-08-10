@@ -116,6 +116,7 @@ def run_bot():
     timezone = pytz.timezone("Etc/UTC")
     logger.info(f"Bot iniciado | Ativos: {', '.join(config.SYMBOLS)} | "
                 f"Volume: {config.VOLUME_INITIAL} | "
+                f"Timeframe: {config.TIMEFRAME_NAME} | "
                 f"Setups: 9.1" + (" + 9.2" if config.SETUP_92_ENABLED else ""))
 
     # Inicializar estados (com persistencia)
@@ -165,7 +166,7 @@ def run_bot():
                 candle_dt = datetime.fromtimestamp(current_closed_candle[0], timezone)
 
                 if last_candle_time[symbol] is None or candle_dt > last_candle_time[symbol]:
-                    logger.info(f"[{symbol}] Novo candle H1 fechado: {candle_dt}")
+                    logger.info(f"[{symbol}] Novo candle {config.TIMEFRAME_NAME} fechado: {candle_dt}")
                     last_candle_time[symbol] = candle_dt
                     strategy.evaluate(symbol, current_closed_candle, rates)
                 else:
