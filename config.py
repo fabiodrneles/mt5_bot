@@ -1,6 +1,10 @@
 """Parametros de configuracao do MT5Bot."""
 
+import logging
 import MetaTrader5 as mt5
+
+# --- Logging ---
+LOG_LEVEL = logging.INFO
 
 # --- Simbolos e Timeframe ---
 AVAILABLE_SYMBOLS = ["HK50", "EURUSD", "US500"]

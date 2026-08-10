@@ -158,7 +158,8 @@ def evaluate(symbol, candle_fechado, all_rates):
         logger.error(f"[{symbol}] Estado nao inicializado. Abortando avaliacao.")
         return
 
-    logger.debug(f"[{symbol}] Avaliando no estado: {s_state.state.name}")
+    current_close = candle_fechado[4]
+    logger.info(f"[{symbol}] Estado atual: {s_state.state.name} | Close={current_close:.5f}")
 
     # Verificar dados suficientes
     min_required = max(config.EMA_PERIOD, config.EMA_FILTER_PERIOD) + 2
@@ -239,8 +240,8 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
     elif not virou_para_cima and not virou_para_baixo:
         slopes = indicators.get_ema9_slopes(ema9_values)
         slope_str = f"{slopes[0]:.6f}" if slopes else "N/A"
-        logger.debug(f"[{s_state.symbol}] Sinal rejeitado: EMA9 sem virada "
-                     f"(slope atual: {slope_str})")
+        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 sem virada "
+                    f"(slope atual: {slope_str})")
 
 
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):
@@ -482,6 +483,7 @@ def _handle_watching_92(s_state, candle_fechado, ema9_values, filtro_compra_ok, 
     """
     s_state.watching_92_candles += 1
     is_long = (s_state.position_type == TradeSide.BUY)
+    logger.info(f"[{s_state.symbol}] WATCHING_92 candle {s_state.watching_92_candles} | is_long={is_long}")
 
     # Timeout: se passou muitos candles sem sinal 9.2, voltar a SCANNING
     if s_state.watching_92_candles > config.SETUP_92_MAX_CANDLES_WATCHING:
@@ -519,3 +521,5 @@ def _handle_watching_92(s_state, candle_fechado, ema9_values, filtro_compra_ok, 
         logger.info(f"[{s_state.symbol}] Setup 9.2 detectado! Pullback a EMA9 com direcao favoravel.")
         tick_size = executor.get_tick_size(symbol_info)
         _place_entry_order(s_state, candle_fechado, s_state.position_type, tick_size, symbol_info, all_rates, "9.2")
+    else:
+        logger.info(f"[{s_state.symbol}] WATCHING_92 continuando: pullback={pullback} ema9_favoravel={ema9_favoravel}")

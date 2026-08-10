@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+import config
 
 
 def setup_logger():
@@ -12,7 +13,7 @@ def setup_logger():
 
     # Console handler (sempre funciona)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(config.LOG_LEVEL)
     console_handler.setFormatter(
         logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "%H:%M:%S")
     )
