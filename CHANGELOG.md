@@ -1,6 +1,25 @@
 # Changelog
 
+## v1.3.0 — 2026-08-10
+
+Principais mudanças:
+
+- **Filtro de Tendência Multi-Timeframe (MTF)** (`indicators.py` / `strategy.py`):
+  - Valida se a inclinação da EMA9/EMA21 no timeframe superior (ex: H1 quando operando em M15) confirma o sinal antes de enviar a ordem.
+  - Evita entradas contra a tendência primária do mercado.
+- **Setup 9.3 de Larry Williams** (`indicators.py` / `strategy.py`):
+  - Implementa detecção e disparo automático para o Setup 9.3 (recuo técnico de 2 velas consecutivas mantendo a EMA9 na direção principal).
+- **Filtro de Volume Relativo (RVOL)** (`indicators.py` / `strategy.py`):
+  - Consulta dinamicamente `real_volume` (B3) ou `tick_volume` (Forex).
+  - Bloqueia a entrada se a vela de gatilho não possuir no mínimo 15% a mais de volume em relação à média das últimas 20 velas (`RVOL_THRESHOLD = 1.15`).
+- **Dashboard Web UI**:
+  - Painel de configuração no navegador atualizado com controles para Filtro MTF, Setup 9.3 e RVOL.
+- **Suíte de Testes Unitários**:
+  - Adição de 6 novos testes em `test_phase2_strategy.py`, elevando o total para **49 testes unitários** passando com 100% de sucesso.
+- Bump de versão para `1.3.0`.
+
 ## v1.2.0 — 2026-08-10
+
 
 Principais mudanças:
 

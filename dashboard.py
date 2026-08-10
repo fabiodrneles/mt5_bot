@@ -167,11 +167,37 @@ def _page_config():
 <select name="flat_filter">
 <option value="1" {flat_on}>Ativado</option>
 <option value="0" {flat_off}>Desativado</option>
+<div class="row-3">
+<div>
+<label>Setup 9.3 (Larry Williams)</label>
+<select name="setup_93">
+<option value="1" {s93_on}>Ativado</option>
+<option value="0" {s93_off}>Desativado</option>
 </select>
 </div>
 <div>
-<label>Flat Threshold (ticks)</label>
-<input type="number" name="flat_threshold" value="{flat_threshold}" min="1" max="20">
+<label>Filtro MTF (Timeframe Maior)</label>
+<select name="mtf_filter">
+<option value="1" {mtf_on}>Ativado</option>
+<option value="0" {mtf_off}>Desativado</option>
+</select>
+</div>
+<div>
+<label>Filtro de Volume (RVOL)</label>
+<select name="rvol_filter">
+<option value="1" {rvol_on}>Ativado</option>
+<option value="0" {rvol_off}>Desativado</option>
+</select>
+</div>
+</div>
+<div class="row">
+<div>
+<label>RVOL Limiar Minimo (ex: 1.15 = 15% acima)</label>
+<input type="number" name="rvol_threshold" value="{rvol_threshold}" step="0.05" min="1.0" max="3.0">
+</div>
+<div>
+<label>RVOL Periodos Média (Lookback)</label>
+<input type="number" name="rvol_lookback" value="{rvol_lookback}" min="5" max="50">
 </div>
 </div>
 </div>
@@ -291,11 +317,17 @@ def _page_config():
         timeframe_options=_build_timeframe_options(),
         ema_period=config.EMA_PERIOD,
         ema_filter=config.EMA_FILTER_PERIOD,
-        s92_on="selected" if config.SETUP_92_ENABLED else "",
-        s92_off="" if config.SETUP_92_ENABLED else "selected",
         flat_on="selected" if config.FLAT_FILTER_ENABLED else "",
         flat_off="" if config.FLAT_FILTER_ENABLED else "selected",
         flat_threshold=config.FLAT_THRESHOLD_TICKS,
+        s93_on="selected" if getattr(config, "SETUP_93_ENABLED", True) else "",
+        s93_off="" if getattr(config, "SETUP_93_ENABLED", True) else "selected",
+        mtf_on="selected" if getattr(config, "MTF_FILTER_ENABLED", True) else "",
+        mtf_off="" if getattr(config, "MTF_FILTER_ENABLED", True) else "selected",
+        rvol_on="selected" if getattr(config, "RVOL_FILTER_ENABLED", True) else "",
+        rvol_off="" if getattr(config, "RVOL_FILTER_ENABLED", True) else "selected",
+        rvol_threshold=getattr(config, "RVOL_THRESHOLD", 1.15),
+        rvol_lookback=getattr(config, "RVOL_LOOKBACK", 20),
         max_risk_pct=config.MAX_RISK_PER_TRADE_PERCENT,
         abs_max_risk_pct=config.ABSOLUTE_MAX_TRADE_RISK_PERCENT,
         max_daily_loss_pct=config.MAX_DAILY_LOSS_PERCENT,
@@ -476,6 +508,11 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "ema_period": max(3, int(params.get("ema_period", ["9"])[0])),
                     "ema_filter": max(10, int(params.get("ema_filter", ["21"])[0])),
                     "setup_92": params.get("setup_92", ["1"])[0] == "1",
+                    "setup_93": params.get("setup_93", ["1"])[0] == "1",
+                    "mtf_filter": params.get("mtf_filter", ["1"])[0] == "1",
+                    "rvol_filter": params.get("rvol_filter", ["1"])[0] == "1",
+                    "rvol_threshold": max(1.0, float(params.get("rvol_threshold", ["1.15"])[0])),
+                    "rvol_lookback": max(5, int(params.get("rvol_lookback", ["20"])[0])),
                     "flat_filter": params.get("flat_filter", ["1"])[0] == "1",
                     "flat_threshold": max(1, int(params.get("flat_threshold", ["5"])[0])),
                     "max_risk_pct": max(0.1, float(params.get("max_risk_pct", ["1.0"])[0])),
@@ -502,7 +539,9 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                 _configured_data = {
                     "symbols": ", ".join(config.AVAILABLE_SYMBOLS),
                     "volume": 0.01, "ema_period": 9, "ema_filter": 21,
-                    "setup_92": True, "flat_filter": True, "flat_threshold": 5,
+                    "setup_92": True, "setup_93": True, "mtf_filter": True,
+                    "rvol_filter": True, "rvol_threshold": 1.15, "rvol_lookback": 20,
+                    "flat_filter": True, "flat_threshold": 5,
                     "max_risk_pct": 1.0, "abs_max_risk_pct": 1.5, "max_daily_loss_pct": 2.0,
                     "max_spread": 50, "enable_breakeven": True, "trading_hours_enabled": True,
                     "trading_start_time": "09:15", "trading_end_time": "16:45",
@@ -541,6 +580,11 @@ def _apply_config(data):
     config.EMA_PERIOD = data.get("ema_period", 9)
     config.EMA_FILTER_PERIOD = data.get("ema_filter", 21)
     config.SETUP_92_ENABLED = data.get("setup_92", True)
+    config.SETUP_93_ENABLED = data.get("setup_93", True)
+    config.MTF_FILTER_ENABLED = data.get("mtf_filter", True)
+    config.RVOL_FILTER_ENABLED = data.get("rvol_filter", True)
+    config.RVOL_THRESHOLD = data.get("rvol_threshold", 1.15)
+    config.RVOL_LOOKBACK = data.get("rvol_lookback", 20)
     config.FLAT_FILTER_ENABLED = data.get("flat_filter", True)
     config.FLAT_THRESHOLD_TICKS = data.get("flat_threshold", 5)
     config.MAX_RISK_PER_TRADE_PERCENT = data.get("max_risk_pct", 1.0)

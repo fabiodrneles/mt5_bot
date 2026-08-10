@@ -28,7 +28,7 @@ def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 
 def print_header():

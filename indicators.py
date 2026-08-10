@@ -1,4 +1,7 @@
 import config
+import logger
+
+
 
 
 def close_prices(rates):
@@ -274,3 +277,130 @@ def count_ema9_against(ema9_history, is_long, max_look_back=5):
         else:
             break  # Para de contar ao encontrar candle a favor
     return count
+
+
+# --- RVOL (Volume Relativo) ---
+
+def calculate_rvol(all_rates, lookback=None):
+    """Calcula o RVOL (Volume Relativo) comparando o volume da vela atual com a media de N velas anteriores.
+    Usa real_volume se disponivel (B3), senao tick_volume (Forex).
+    Retorna (rvol_ratio, current_vol, avg_vol).
+    """
+    if lookback is None:
+        lookback = getattr(config, "RVOL_LOOKBACK", 20)
+
+    if len(all_rates) < lookback + 1:
+        return (1.0, 0.0, 0.0)
+
+    # Extrair volumes (indice 6 = real_volume, indice 5 = tick_volume)
+    volumes = []
+    for r in all_rates:
+        real_vol = r[6] if len(r) > 6 else 0
+        tick_vol = r[5] if len(r) > 5 else 0
+        vol = float(real_vol) if real_vol > 0 else float(tick_vol)
+        volumes.append(vol)
+
+    current_vol = volumes[-1]
+    past_volumes = volumes[-lookback - 1:-1]
+    avg_vol = sum(past_volumes) / len(past_volumes) if past_volumes else 0.0
+
+    if avg_vol == 0:
+        return (1.0, current_vol, 0.0)
+
+    rvol_ratio = current_vol / avg_vol
+    return (rvol_ratio, current_vol, avg_vol)
+
+
+# --- Setup 9.3 (Larry Williams) ---
+
+def check_setup_93_buy(all_rates, ema9_values):
+    """Verifica se ocorreu o gatilho do Setup 9.3 de Compra.
+    EMA9 apontando para cima, seguida de recuo de velas sem virar EMA9 para baixo,
+    e a vela atual rompe a maxima da vela anterior.
+    """
+    if not ema9_values or len(ema9_values) < 3 or len(all_rates) < 4:
+        return False
+
+    # EMA9 deve estar apontando para cima ou em retomada
+    if not check_apontando_para_cima(ema9_values):
+        return False
+
+    max_pullback = getattr(config, "SETUP_93_MAX_PULLBACK_CANDLES", 2)
+    # Verificar se as N velas anteriores tiveram fechamentos recuando
+    # ex: candle[-2] close < candle[-3] close
+    prev_close = all_rates[-2][4]
+    ref_close = all_rates[-3][4]
+    
+    if prev_close < ref_close:
+        # Vela atual (candle[-1]) deve romper a maxima da vela de recuo anterior (candle[-2][2])
+        current_high = all_rates[-1][2]
+        prev_high = all_rates[-2][2]
+        if current_high > prev_high:
+            return True
+
+    return False
+
+
+def check_setup_93_sell(all_rates, ema9_values):
+    """Verifica se ocorreu o gatilho do Setup 9.3 de Venda.
+    EMA9 apontando para baixo, seguida de recuo de velas sem virar EMA9 para cima,
+    e a vela atual rompe a minima da vela anterior.
+    """
+    if not ema9_values or len(ema9_values) < 3 or len(all_rates) < 4:
+        return False
+
+    if not check_apontando_para_baixo(ema9_values):
+        return False
+
+    prev_close = all_rates[-2][4]
+    ref_close = all_rates[-3][4]
+
+    if prev_close > ref_close:
+        current_low = all_rates[-1][3]
+        prev_low = all_rates[-2][3]
+        if current_low < prev_low:
+            return True
+
+    return False
+
+
+# --- Filtro Multi-Timeframe (MTF) ---
+
+def check_mtf_trend(symbol, current_tf_name, side_name):
+    """Valida se a tendencia no timeframe superior (MTF) confirma a direcao da operacao."""
+    if not getattr(config, "MTF_FILTER_ENABLED", True):
+        return True
+
+    try:
+        import MetaTrader5 as mt5
+
+        tf_map = getattr(config, "MTF_TIMEFRAME_MAP", {})
+        mtf_tf_name = tf_map.get(current_tf_name, "H1")
+        mtf_tf_const = config.AVAILABLE_TIMEFRAMES.get(mtf_tf_name, mt5.TIMEFRAME_H1)
+
+        rates_count = getattr(config, "RATES_COUNT", 100)
+        mtf_rates = mt5.copy_rates_from_pos(symbol, mtf_tf_const, 0, rates_count)
+
+        if mtf_rates is None or len(mtf_rates) < 30:
+            logger.warning(f"[{symbol}] Dados insuficientes para filtro MTF em {mtf_tf_name}.")
+            return True  # Fallback permissivo
+
+        ema9_mtf = get_ema9(mtf_rates)
+        ema21_mtf = get_ema21(mtf_rates)
+
+        if ema9_mtf is None or ema21_mtf is None:
+            return True
+
+        last_ema9 = ema9_mtf[-1]
+        last_ema21 = ema21_mtf[-1]
+
+        if side_name == "BUY":
+            # Para compra, EMA9 no MTF deve estar acima da EMA21 e apontando para cima
+            return (last_ema9 >= last_ema21) and check_apontando_para_cima(ema9_mtf)
+        else:
+            # Para venda, EMA9 no MTF deve estar abaixo da EMA21 e apontando para baixo
+            return (last_ema9 <= last_ema21) and check_apontando_para_baixo(ema9_mtf)
+
+    except Exception as e:
+        logger.error(f"Erro ao checar filtro MTF para {symbol}: {e}")
+        return True

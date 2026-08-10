@@ -101,4 +101,26 @@ BREAKEVEN_ATR_RATIO = 1.0              # Mover para Breakeven ao atingir 1x ATR 
 TRADING_HOURS_ENABLED = True
 TRADING_START_TIME = "09:15"
 TRADING_END_TIME = "16:45"
-FORCE_CLOSE_TIME = "17:30"
+FORCE_CLOSE_TIME = "17:30"
+
+# --- Filtro Multi-Timeframe (MTF) ---
+MTF_FILTER_ENABLED = True
+MTF_TIMEFRAME_MAP = {
+    "M1":  "M5",
+    "M5":  "M30",
+    "M15": "H1",
+    "M30": "H4",
+    "H1":  "D1",
+    "H4":  "D1",
+    "D1":  "D1",
+}
+
+# --- Setup 9.3 (Larry Williams) ---
+SETUP_93_ENABLED = True
+SETUP_93_MAX_PULLBACK_CANDLES = 2
+
+# --- Filtro de Volume Relativo (RVOL) ---
+RVOL_FILTER_ENABLED = True
+RVOL_LOOKBACK = 20
+RVOL_THRESHOLD = 1.15
+

@@ -247,6 +247,15 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
         logger.info(f"[{s_state.symbol}] Sinal de VENDA detectado (Setup 9.1).")
         _place_entry_order(s_state, candle_fechado, TradeSide.SELL, tick_size, symbol_info, all_rates, "9.1")
 
+    # --- SETUP 9.3 (Larry Williams) ---
+    elif config.SETUP_93_ENABLED and indicators.check_setup_93_buy(all_rates, ema9_values) and filtro_compra_ok:
+        logger.info(f"[{s_state.symbol}] Sinal de COMPRA detectado (Setup 9.3).")
+        _place_entry_order(s_state, candle_fechado, TradeSide.BUY, tick_size, symbol_info, all_rates, "9.3")
+
+    elif config.SETUP_93_ENABLED and indicators.check_setup_93_sell(all_rates, ema9_values) and filtro_venda_ok:
+        logger.info(f"[{s_state.symbol}] Sinal de VENDA detectado (Setup 9.3).")
+        _place_entry_order(s_state, candle_fechado, TradeSide.SELL, tick_size, symbol_info, all_rates, "9.3")
+
     elif virou_para_cima and ema9_was_pointing_down and not filtro_compra_ok:
         logger.info(
             f"[{s_state.symbol}] Rejeitado: EMA9 virou para cima, mas a tendência maior "
@@ -280,7 +289,26 @@ def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_ra
         )
         return
 
-    # 2. FILTRO DE PERDA MAXIMA DIARIA (DAILY MAX LOSS):
+    # 2. FILTRO DE TENDENCIA MULTI-TIMEFRAME (MTF):
+    if getattr(config, "MTF_FILTER_ENABLED", True):
+        if not indicators.check_mtf_trend(s_state.symbol, config.TIMEFRAME_NAME, side.name):
+            logger.warning(
+                f"[{s_state.symbol}] [MTF REJECTED] Operacao de {side.name} nao confirmada "
+                f"pela tendencia no timeframe superior."
+            )
+            return
+
+    # 3. FILTRO DE VOLUME RELATIVO (RVOL):
+    if getattr(config, "RVOL_FILTER_ENABLED", True):
+        rvol_ratio, curr_v, avg_v = indicators.calculate_rvol(all_rates, config.RVOL_LOOKBACK)
+        if rvol_ratio < config.RVOL_THRESHOLD:
+            logger.warning(
+                f"[{s_state.symbol}] [RVOL REJECTED] Volume da vela (RVOL {rvol_ratio:.2f}x) "
+                f"abaixo do limiar minimo de {config.RVOL_THRESHOLD}x a media ({avg_v:.0f})."
+            )
+            return
+
+    # 4. FILTRO DE PERDA MAXIMA DIARIA (DAILY MAX LOSS):
     balance = risk_calculator.get_account_balance()
     if config.MAX_DAILY_LOSS_PERCENT is not None:
         daily_pnl = tracker.get_daily_pnl()

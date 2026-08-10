@@ -14,7 +14,7 @@ Este documento registra o planejamento e o status de implementação das melhori
 | Fase | Descrição | Status |
 | :--- | :--- | :---: |
 | **Fase 1 (Opção A)** | **Gestão de Risco Avançada, Calculadora de Capital & Proteção Total** | 🟢 **CONCLUÍDO** |
-| **Fase 2 (Opção C)** | **Expansão de Estratégia & Filtros de Entrada Rigorosos** | ⏳ PENDENTE |
+| **Fase 2 (Opção C)** | **Expansão de Estratégia & Filtros de Entrada Rigorosos** | 🟢 **CONCLUÍDO** |
 | **Fase 3 (Opção D)** | **Infraestrutura, CI/CD & Automação de Testes** | ⏳ PENDENTE |
 | **Fase 4 (Opção B)** | **Telemetria & Notificações (Telegram / Discord)** | ⏳ PENDENTE (Pausado por opção do usuário) |
 
@@ -49,12 +49,13 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 ## 📈 Fase 2: Expansão de Estratégias & Filtros Operacionais (Opção C)
 
-- [ ] **2.1 Filtro de Tendência Multi-Timeframe (MTF)**
+- [x] **2.1 Filtro de Tendência Multi-Timeframe (MTF)**
   - Validar inclinação da EMA 9/21 no timeframe superior (ex: H1 quando operando em M15).
-- [ ] **2.2 Setup 9.3 (Larry Williams)**
+- [x] **2.2 Setup 9.3 (Larry Williams)**
   - Implementar lógica de dois candles consecutivos de correção sem virada de média.
-- [ ] **2.3 Filtro de Volume Relativo (RVOL)**
-  - Validar volume acima da média das últimas $N$ velas antes da entrada.
+- [x] **2.3 Filtro de Volume Relativo (RVOL)**
+  - Validar volume acima da média das últimas $N$ velas antes da entrada (`RVOL_THRESHOLD = 1.15`).
+
 
 ---
 

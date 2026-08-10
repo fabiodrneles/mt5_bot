@@ -64,11 +64,16 @@ if 'MetaTrader5' not in sys.modules:
 import pytest
 import tracker
 import risk_calculator
+import config
 
 @pytest.fixture(autouse=True)
 def isolate_trades(tmp_path, monkeypatch):
     test_trades_file = tmp_path / "test_trades.json"
     monkeypatch.setattr(tracker, "_TRADES_FILE", str(test_trades_file))
     monkeypatch.setattr(risk_calculator, "is_within_trading_hours", lambda *args, **kwargs: True)
+    monkeypatch.setattr(config, "MTF_FILTER_ENABLED", False)
+    monkeypatch.setattr(config, "RVOL_FILTER_ENABLED", False)
+
+
 
 

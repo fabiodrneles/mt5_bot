@@ -185,6 +185,19 @@ Detecta o momento exato em que a tendencia de curto prazo muda de direcao (EMA9 
 
 Quando o 9.1 fecha com lucro e o mercado continua favoravel, o bot identifica o primeiro retorno a EMA9 (pullback) e entra novamente. E como surfar a mesma onda duas vezes.
 
+### Setup 9.3 (Larry Williams) — Recuo Técnico de Consolidação
+
+Identifica quando o mercado está em tendência definida (EMA9 inclinada) e faz um recuo de 2 velas consecutivas sem virar a EMA9 para baixo. O bot posiciona a ordem de entrada no rompimento da máxima da vela de recuo.
+
+### Filtro Multi-Timeframe (MTF) — Confirmação no Timeframe Maior
+
+Antes de autorizar qualquer entrada, o bot consulta automaticamente o gráfico de timeframe superior (ex: analisa H1 quando operando no M15). A ordem só é disparada se a tendência no gráfico maior estiver 100% alinhada com a operação.
+
+### Filtro de Volume Relativo (RVOL) — Filtro Anti-Falso Rompimento
+
+Calcula o volume relativo em tempo real comparando a vela de gatilho com a média móvel das últimas 20 velas. Se o ativo for de bolsa (B3), usa o `real_volume`; se for Forex, usa o `tick_volume`. Entradas só são liberadas se o volume for pelo menos **15% superior à média** (`RVOL_THRESHOLD = 1.15`).
+
+
 ### Alvo Adaptativo — Lucra o que o mercado esta pagando
 
 O bot calcula a *amplitude mediana dos ultimos 20 candles*. Se o candle de referencia for muito maior que a media, o alvo e reduzido (o mercado ja esticou). Se for menor, o alvo e aumentado. Resultado: *lucros menores mas muito mais frequentes*.
