@@ -208,12 +208,12 @@ def main():
     """Entry point da CLI."""
     # Flags de linha de comando
     if "--version" in sys.argv or "-v" in sys.argv:
-        print("MT5Bot v1.0.0 — Lucros consistentes. Zero emocao.")
+        print("MT5Bot v1.1.0 — Measured, disciplined execution — performance varies with market conditions.")
         return
 
     if "--help" in sys.argv or "-h" in sys.argv:
         print("""
-  MT5Bot — Lucros consistentes. Zero emocao.
+  MT5Bot — Measured, disciplined execution — performance varies with market conditions.
 
   USO:
     mt5bot              Menu principal (recomendado no primeiro uso)

@@ -28,20 +28,53 @@ def _json_default(obj):
 
 def save_states(symbol_states):
     """Salva o estado de todos os simbolos em JSON."""
+    # Construir dicionario de estados e garantir que todos os valores sejam
+    # nativos do Python (int, float, str, list, dict) para evitar erros do
+    # json.dump com tipos como numpy.int64 provenientes do MetaTrader5.
+    def _convert_value(v):
+        try:
+            import numpy as _np
+        except Exception:
+            _np = None
+
+        # Tipos numpy
+        if _np is not None:
+            if isinstance(v, _np.integer):
+                return int(v)
+            if isinstance(v, _np.floating):
+                return float(v)
+            if isinstance(v, _np.ndarray):
+                return v.tolist()
+
+        # Tipos compostos
+        if isinstance(v, dict):
+            return {k: _convert_value(val) for k, val in v.items()}
+        if isinstance(v, (list, tuple)):
+            return [_convert_value(x) for x in v]
+
+        # Datetimes -> isoformat
+        if hasattr(v, "isoformat"):
+            try:
+                return v.isoformat()
+            except Exception:
+                pass
+
+        return v
+
     data = {}
     for symbol, s_state in symbol_states.items():
         data[symbol] = {
-            "state": s_state.state.name,
-            "pending_order_ticket": s_state.pending_order_ticket,
-            "position_ticket": s_state.position_ticket,
-            "position_type": s_state.position_type.name if s_state.position_type else None,
-            "candle_referencia": list(s_state.candle_referencia) if s_state.candle_referencia else None,
-            "entry_price": s_state.entry_price,
-            "sl_price": s_state.sl_price,
-            "partial_exit_done": s_state.partial_exit_done,
-            "watching_92_candles": getattr(s_state, "watching_92_candles", 0),
-            "setup_type": getattr(s_state, "setup_type", "9.1"),
-            "exit_profit": getattr(s_state, "exit_profit", None),
+            "state": _convert_value(s_state.state.name),
+            "pending_order_ticket": _convert_value(s_state.pending_order_ticket),
+            "position_ticket": _convert_value(s_state.position_ticket),
+            "position_type": _convert_value(s_state.position_type.name if s_state.position_type else None),
+            "candle_referencia": _convert_value(list(s_state.candle_referencia) if s_state.candle_referencia else None),
+            "entry_price": _convert_value(s_state.entry_price),
+            "sl_price": _convert_value(s_state.sl_price),
+            "partial_exit_done": _convert_value(s_state.partial_exit_done),
+            "watching_92_candles": _convert_value(getattr(s_state, "watching_92_candles", 0)),
+            "setup_type": _convert_value(getattr(s_state, "setup_type", "9.1")),
+            "exit_profit": _convert_value(getattr(s_state, "exit_profit", None)),
         }
 
     try:

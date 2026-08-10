@@ -1,7 +1,7 @@
 import MetaTrader5 as mt5
 import config
 import logger
-from decimal import Decimal, ROUND_UP
+from decimal import Decimal, ROUND_DOWN
 
 
 def get_symbol_info(symbol):
@@ -33,8 +33,8 @@ def _get_filling_type(symbol_info):
 
 
 def _normalize_volume(volume, symbol_info):
-    """Arredonda o volume para o volume_step do simbolo.
-    Ex: se volume_step = 0.01, volume 0.005 vira 0.01 (arredonda para cima no step).
+    """Ajusta o volume para o múltiplo do step do símbolo.
+    Ex: se volume_step = 0.01, volume 0.015 vira 0.01 (trunca para baixo).
     """
     step = symbol_info.volume_step
     if step <= 0:
@@ -43,10 +43,10 @@ def _normalize_volume(volume, symbol_info):
     dec_step = Decimal(str(step))
     dec_volume = Decimal(str(volume))
 
-    # Arredondar para cima ao próximo múltiplo de step
-    normalized_dec = (dec_volume / dec_step).to_integral_value(rounding=ROUND_UP) * dec_step
+    # Truncar para o múltiplo de step mais próximo abaixo do volume
+    normalized_dec = (dec_volume / dec_step).to_integral_value(rounding=ROUND_DOWN) * dec_step
 
-    # Garantir volume minimo e maximo usando Decimal
+    # Garantir volume mínimo e máximo usando Decimal
     dec_min = Decimal(str(symbol_info.volume_min))
     dec_max = Decimal(str(symbol_info.volume_max))
 

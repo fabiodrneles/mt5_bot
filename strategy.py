@@ -159,7 +159,10 @@ def evaluate(symbol, candle_fechado, all_rates):
         return
 
     current_close = candle_fechado[4]
-    logger.info(f"[{symbol}] Estado atual: {s_state.state.name} | Close={current_close:.5f}")
+    logger.info(
+        f"[{symbol}] Estado atual: {s_state.state.name} | Close={current_close:.5f} | "
+        f"Buscando Setup 9.1{'/9.2' if s_state.state == State.WATCHING_92 else ''}."
+    )
 
     # Verificar dados suficientes
     min_required = max(config.EMA_PERIOD, config.EMA_FILTER_PERIOD) + 2
@@ -187,10 +190,16 @@ def evaluate(symbol, candle_fechado, all_rates):
             diff_ticks = abs(ema9_values[-1] - ema9_values[-5]) / (symbol_info.trade_tick_size or symbol_info.point)
             multiplier = config.FLAT_THRESHOLD_MULTIPLIERS.get(config.TIMEFRAME_NAME, 1.0)
             threshold = config.FLAT_THRESHOLD_TICKS * multiplier
-            logger.info(f"[{symbol}] Sinal rejeitado: EMA9 FLAT "
-                        f"(variação {diff_ticks:.1f} ticks < threshold {threshold:.1f})")
+            logger.info(
+                f"[{symbol}] Sinal rejeitado: mercado lateral (EMA9 FLAT). "
+                f"A variação foi {diff_ticks:.1f} ticks, abaixo do threshold {threshold:.1f}. "
+                "Buscando uma virada clara de EMA9 para 9.1."
+            )
             if s_state.state == State.SIGNAL_READY and s_state.pending_order_ticket:
-                logger.info(f"[{symbol}] Cancelando ordem {s_state.pending_order_ticket} por EMA9 FLAT.")
+                logger.info(
+                    f"[{symbol}] Cancelando ordem {s_state.pending_order_ticket} porque o mercado está lateral "
+                    f"e não há virada clara de EMA9."
+                )
                 executor.cancel_order(s_state.pending_order_ticket)
                 _reset_to_scanning(s_state)
                 _save_states()
@@ -230,18 +239,26 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
         _place_entry_order(s_state, candle_fechado, TradeSide.SELL, tick_size, symbol_info, all_rates, "9.1")
 
     elif virou_para_cima and ema9_was_pointing_down and not filtro_compra_ok:
-        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 virou para cima mas "
-                    f"filtro EMA21 contra (close={candle_fechado[4]:.5f} < EMA21)")
+        logger.info(
+            f"[{s_state.symbol}] Rejeitado: EMA9 virou para cima, mas a tendência maior "
+            f"(EMA21) ainda está contra. Close={candle_fechado[4]:.5f} < EMA21. "
+            "Buscando um sinal 9.1 com EMA21 de compra confirmando."
+        )
 
     elif virou_para_baixo and ema9_was_pointing_up and not filtro_venda_ok:
-        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 virou para baixo mas "
-                    f"filtro EMA21 contra (close={candle_fechado[4]:.5f} > EMA21)")
+        logger.info(
+            f"[{s_state.symbol}] Rejeitado: EMA9 virou para baixo, mas a tendência maior "
+            f"(EMA21) ainda está contra. Close={candle_fechado[4]:.5f} > EMA21. "
+            "Buscando um sinal 9.1 com EMA21 de venda confirmando."
+        )
 
     elif not virou_para_cima and not virou_para_baixo:
         slopes = indicators.get_ema9_slopes(ema9_values)
         slope_str = f"{slopes[0]:.6f}" if slopes else "N/A"
-        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 sem virada "
-                    f"(slope atual: {slope_str})")
+        logger.info(
+            f"[{s_state.symbol}] Rejeitado: nenhuma virada clara de EMA9. "
+            f"Slope atual={slope_str}. Buscando uma reversão definida para 9.1."
+        )
 
 
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):
@@ -511,15 +528,32 @@ def _handle_watching_92(s_state, candle_fechado, ema9_values, filtro_compra_ok, 
     if pullback and ema9_favoravel:
         # Aplicar filtro EMA21
         if is_long and not filtro_compra_ok:
-            logger.info(f"[{s_state.symbol}] Pullback 9.2 detectado mas filtro EMA21 compra nao OK.")
+            logger.info(
+                f"[{s_state.symbol}] Pullback 9.2 detectado mas EMA21 nao valida para compra. "
+                "Aguarda confirmação de tendencia maior antes de entrar."
+            )
             return
         if not is_long and not filtro_venda_ok:
-            logger.info(f"[{s_state.symbol}] Pullback 9.2 detectado mas filtro EMA21 venda nao OK.")
+            logger.info(
+                f"[{s_state.symbol}] Pullback 9.2 detectado mas EMA21 nao valida para venda. "
+                "Aguarda confirmação de tendencia maior antes de entrar."
+            )
             return
 
-        # Sinal 9.2 detectado!
-        logger.info(f"[{s_state.symbol}] Setup 9.2 detectado! Pullback a EMA9 com direcao favoravel.")
+        logger.info(
+            f"[{s_state.symbol}] Setup 9.2 detectado: pullback à EMA9 + EMA9 favorável. "
+            "Preparando ordem de entrada 9.2."
+        )
         tick_size = executor.get_tick_size(symbol_info)
         _place_entry_order(s_state, candle_fechado, s_state.position_type, tick_size, symbol_info, all_rates, "9.2")
     else:
-        logger.info(f"[{s_state.symbol}] WATCHING_92 continuando: pullback={pullback} ema9_favoravel={ema9_favoravel}")
+        if pullback:
+            logger.info(
+                f"[{s_state.symbol}] Pullback 9.2 detectado, mas EMA9 ainda nao retomou a direcao favoravel. "
+                f"EMA9 favoravel={ema9_favoravel}."
+            )
+        else:
+            logger.info(
+                f"[{s_state.symbol}] WATCHING_92 ativo: aguardando pullback à EMA9. "
+                f"Pullback detectado={pullback}, EMA9 favoravel={ema9_favoravel}."
+            )

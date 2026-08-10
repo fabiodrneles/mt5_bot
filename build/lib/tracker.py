@@ -4,7 +4,7 @@ Salva historico em trades.json para relatorio financeiro.
 """
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import logger
 
@@ -43,7 +43,7 @@ def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket
         "sl_price": sl_price,
         "volume": volume,
         "ticket": ticket,
-        "entry_time": datetime.utcnow().isoformat(),
+        "entry_time": datetime.now(tz=timezone.utc).isoformat(),
         "exit_price": None,
         "exit_time": None,
         "pnl": None,
@@ -103,7 +103,7 @@ def record_exit(ticket, exit_price, result="win"):
     for trade in reversed(trades):
         if trade.get("ticket") == ticket and trade["result"] == "open":
             trade["exit_price"] = exit_price
-            trade["exit_time"] = datetime.utcnow().isoformat()
+            trade["exit_time"] = datetime.now(tz=timezone.utc).isoformat()
 
             # Calcular P&L em pips (diferenca de preco)
             if trade["side"] == "BUY":

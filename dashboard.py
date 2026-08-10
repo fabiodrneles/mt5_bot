@@ -115,7 +115,7 @@ def _page_config():
     html = _html_head("MT5Bot — Configuracao")
     html += f"""
 <h1>MT5Bot</h1>
-<p class="tagline">Lucros consistentes. Zero emocao.</p>
+    <p class="tagline">Measured, disciplined execution — performance varies with market conditions.</p>
 <p class="subtitle">Configure os parametros abaixo e clique em "Salvar e Iniciar".</p>
 """
     html += _html_nav("config")

@@ -26,7 +26,7 @@ def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 def print_header():
@@ -35,7 +35,7 @@ def print_header():
     ╔══════════════════════════════════════════════════╗
     ║                                                  ║
     ║   MT5Bot  {DIM}v{VERSION}{BOLD}{WHITE}                               ║
-    ║   {CYAN}Lucros consistentes. Zero emocao.{WHITE}              ║
+    ║   {CYAN}Measured, disciplined execution — performance varies with market conditions.{WHITE}              ║
     ║                                                  ║
     ╚══════════════════════════════════════════════════╝{RESET}
 """)
