@@ -17,18 +17,62 @@ import executor
 import tracker
 import tui
 import dashboard
+import threading
 
 # Namedtuple para candles
 Candle = namedtuple("Candle", ["time", "open", "high", "low", "close", "tick_vol", "spread", "real_vol"])
 
 # Flag para graceful shutdown
 _shutdown_requested = False
+# shutdown action: 'save-only' (default), 'wait-flat', 'cancel-open'
+_shutdown_action = None
 
 
 def _signal_handler(sig, frame):
     global _shutdown_requested
     _shutdown_requested = True
     logger.info("Shutdown solicitado (Ctrl+C). Finalizando apos cleanup...")
+
+
+def parse_shutdown_action(argv):
+    """Parseia `--shutdown-action` de uma lista argv e retorna o valor valido ou None.
+
+    Retorna uma das: 'save-only', 'wait-flat', 'cancel-open', ou None se nao definido/valido.
+    """
+    try:
+        if "--shutdown-action" in argv:
+            idx = argv.index("--shutdown-action")
+            if idx + 1 < len(argv):
+                val = argv[idx + 1].lower()
+                if val in ("save-only", "wait-flat", "cancel-open"):
+                    return val
+    except Exception:
+        pass
+    return None
+
+
+def wait_until_flat(max_seconds):
+    """Aguarda até que nao haja posicoes nem ordens pendentes do bot.
+
+    Retorna True se ficou flat antes do timeout, False se timeout expirou.
+    Usa `executor.get_current_positions` e `executor.get_current_orders`.
+    """
+    start = time.time()
+    while True:
+        any_positions = False
+        any_orders = False
+        for symbol in config.SYMBOLS:
+            positions = executor.get_current_positions(symbol)
+            orders = executor.get_current_orders(symbol)
+            if any([p for p in positions if getattr(p, 'magic', None) == config.MAGIC]):
+                any_positions = True
+            if any([o for o in orders if getattr(o, 'magic', None) == config.MAGIC]):
+                any_orders = True
+        if not any_positions and not any_orders:
+            return True
+        if time.time() - start > max_seconds:
+            return False
+        time.sleep(0.05)
 
 
 def _cancel_pending_orders():
@@ -86,6 +130,7 @@ def _validate_symbols_on_broker():
 def run_bot():
     """Loop principal do bot."""
     global _shutdown_requested
+    global _shutdown_action
 
     # Registrar handler para graceful shutdown
     signal.signal(signal.SIGINT, _signal_handler)
@@ -129,6 +174,39 @@ def run_bot():
     _consecutive_failures = 0
 
     # Loop principal
+    # Start console watcher thread to accept interactive 'exit' command for immediate shutdown
+    def _console_watcher():
+        global _shutdown_requested
+        global _shutdown_action
+        try:
+            while not _shutdown_requested:
+                try:
+                    line = sys.stdin.readline()
+                except Exception:
+                    break
+                if not line:
+                    break
+                cmd = line.strip().lower()
+                if cmd in ('exit', 'quit', 'q'):
+                    _shutdown_action = config.SHUTDOWN_DEFAULT_ACTION
+                    _shutdown_requested = True
+                    logger.info(f"Shutdown solicitado via console input ('exit'). Acao: {_shutdown_action}")
+                    break
+                if cmd in ('exit now', 'exit cancel', 'exit cancel-open'):
+                    _shutdown_action = 'cancel-open'
+                    _shutdown_requested = True
+                    logger.info("Shutdown solicitado (cancel-open) via console input. Cancelando ordens pendentes e saindo.")
+                    break
+                if cmd in ('exit when flat', 'exit when-flat', 'exit flat'):
+                    _shutdown_action = 'wait-flat'
+                    _shutdown_requested = True
+                    logger.info("Shutdown solicitado (wait-flat) via console input. Aguardando posicoes fecharem antes de encerrar.")
+                    break
+        except Exception:
+            pass
+
+    watcher = threading.Thread(target=_console_watcher, daemon=True)
+    watcher.start()
     while not _shutdown_requested:
         try:
             # --- RECONNECT: verificar se MT5 ainda esta conectado ---
@@ -182,7 +260,37 @@ def run_bot():
 
     # Graceful shutdown
     logger.info("Executando shutdown...")
-    _cancel_pending_orders()
+    # Determine action
+    action = _shutdown_action or config.SHUTDOWN_DEFAULT_ACTION
+    logger.info(f"Shutdown action: {action}")
+    if action == 'cancel-open':
+        _cancel_pending_orders()
+    elif action == 'wait-flat':
+        # Wait until no positions and no pending orders for our magic, or timeout
+        logger.info(f'Aguardando posicoes/ordens encerrarem (wait-flat)... max {config.SHUTDOWN_WAIT_SECONDS}s')
+        start_wait = time.time()
+        while True:
+            any_positions = False
+            any_orders = False
+            for symbol in config.SYMBOLS:
+                positions = executor.get_current_positions(symbol)
+                orders = executor.get_current_orders(symbol)
+                # consider only our positions/orders by magic tag when available
+                if any([p for p in positions if getattr(p, 'magic', getattr(p, 'ticket', None)) == config.MAGIC or getattr(p, 'magic', None) == config.MAGIC]):
+                    any_positions = True
+                if any([o for o in orders if getattr(o, 'magic', getattr(o, 'ticket', None)) == config.MAGIC or getattr(o, 'magic', None) == config.MAGIC]):
+                    any_orders = True
+            if not any_positions and not any_orders:
+                logger.info('Sem posicoes nem ordens pendentes. Prosseguindo com shutdown.')
+                break
+            if time.time() - start_wait > config.SHUTDOWN_WAIT_SECONDS:
+                logger.warning('Timeout aguardando posicoes/ordens. Salvando estado e encerrando mesmo assim.')
+                break
+            time.sleep(5)
+    else:
+        # save-only (default) — do not cancel orders, just persist state
+        logger.info('Shutdown default (save-only): nao sera cancelada ordens pendentes.')
+    strategy._save_states()
     mt5.shutdown()
     logger.info("Bot encerrado.")
 
@@ -265,6 +373,21 @@ def main():
     if "--dashboard" in sys.argv:
         dashboard.open_report()
         return
+
+    # Shutdown action CLI (save-only | wait-flat | cancel-open)
+    if "--shutdown-action" in sys.argv:
+        try:
+            idx = sys.argv.index("--shutdown-action")
+            if idx + 1 < len(sys.argv):
+                val = sys.argv[idx + 1].lower()
+                if val in ("save-only", "wait-flat", "cancel-open"):
+                    global _shutdown_action
+                    _shutdown_action = val
+                    logger.info(f"Shutdown action definido via CLI: {val}")
+                else:
+                    logger.warning(f"Valor invalido para --shutdown-action: {val}. Usando padrao.")
+        except ValueError:
+            pass
 
     # Modo rapido: apenas conecta MT5 e usa config default
     if "--quick" in sys.argv or "-q" in sys.argv:

@@ -1,6 +1,10 @@
 """Parametros de configuracao do MT5Bot."""
 
+import logging
 import MetaTrader5 as mt5
+
+# --- Logging ---
+LOG_LEVEL = logging.INFO
 
 # --- Simbolos e Timeframe ---
 AVAILABLE_SYMBOLS = ["HK50", "EURUSD", "US500"]
@@ -37,6 +41,15 @@ PARTIAL_EXIT_TARGET = 1.00
 # --- Filtro Flat ---
 FLAT_FILTER_ENABLED = True
 FLAT_THRESHOLD_TICKS = 5
+FLAT_THRESHOLD_MULTIPLIERS = {
+    "M1":  0.5,   # 5 * 0.5 = 2.5 ticks (mais sensivel)
+    "M5":  0.7,   # 5 * 0.7 = 3.5 ticks
+    "M15": 1.0,   # 5 * 1.0 = 5 ticks (padrao atual)
+    "M30": 1.0,   # 5 * 1.0 = 5 ticks
+    "H1":  1.5,   # 5 * 1.5 = 7.5 ticks (menos sensivel)
+    "H4":  2.0,   # 5 * 2.0 = 10 ticks
+    "D1":  3.0,   # 5 * 3.0 = 15 ticks
+}
 
 # --- Offsets ---
 TICK_OFFSET = 1
@@ -68,3 +81,9 @@ SETUP_92_EMA_AGAINST_LIMIT = 2
 
 # --- Persistencia ---
 STATE_FILE = "state.json"
+ 
+# --- Shutdown behavior ---
+# Default action on interactive shutdown: 'save-only' | 'wait-flat' | 'cancel-open'
+SHUTDOWN_DEFAULT_ACTION = 'save-only'
+# Maximum seconds to wait when using 'wait-flat' before forcing save and exit
+SHUTDOWN_WAIT_SECONDS = 600

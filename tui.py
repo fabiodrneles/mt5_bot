@@ -32,39 +32,29 @@ VERSION = "1.1.0"
 
 
 def print_header():
-    print(f"""
-{BOLD}{WHITE}
-    ╔══════════════════════════════════════════════════╗
-    ║                                                  ║
-        # Construir header responsivo: calcula largura do terminal e envolve
-        # o slogan para que ele não quebre a caixa. Usa largura máxima de 54.
-        term_w = shutil.get_terminal_size((80, 20)).columns
-        box_w = min(54, max(40, term_w - 10))
-        inner_w = box_w - 4
+    term_w = shutil.get_terminal_size((80, 20)).columns
+    max_box_w = min(64, max(50, term_w - 10))
 
-        title = f"MT5Bot  {DIM}v{VERSION}{BOLD}{WHITE}"
-        slogan = "Measured, disciplined execution — performance varies with market conditions."
-        slogan_lines = textwrap.wrap(slogan, width=inner_w)
+    title_text = f"MT5Bot v{VERSION}"
+    slogan = "Measured, disciplined execution — performance varies with market conditions."
+    slogan_lines = textwrap.wrap(slogan, width=max_box_w - 6)
 
-        top = f"{BOLD}{WHITE}" + "    ╔" + "═" * box_w + "╗\n"
-        blank = "    ║" + " " * box_w + "║\n"
+    content_width = max(len(title_text), *(len(line) for line in slogan_lines))
+    inner_w = min(max_box_w - 4, max(40, content_width))
+    box_w = inner_w + 4
 
-        # linha do titulo, centralizada
-        title_line = title.center(inner_w)
-        title_row = f"    ║  {title_line}  ║\n"
+    top = f"{BOLD}{WHITE}    ╔" + "═" * box_w + "╗\n"
+    blank = f"    ║{' ' * box_w}║\n"
 
-        # montar linhas do slogan centralizadas
-        slogan_rows = ""
-        for ln in slogan_lines:
-            slogan_rows += f"    ║  {ln.center(inner_w)}  ║\n"
+    title_line = title_text.center(inner_w)
+    title_row = f"    ║  {BOLD}{WHITE}{title_line}{RESET}  ║\n"
 
-        bottom = "    ╚" + "═" * box_w + "╝{RESET}\n"
+    slogan_rows = ""
+    for ln in slogan_lines:
+        slogan_rows += f"    ║  {ln.center(inner_w)}  ║\n"
 
-        # imprimir com cores e reset no final
-        print(f"{top}{blank}{title_row}{slogan_rows}{blank}{bottom}" + RESET)
-    ║                                                  ║
-    ╚══════════════════════════════════════════════════╝{RESET}
-""")
+    bottom = f"    ╚" + "═" * box_w + "╝\n"
+    print(top + blank + title_row + slogan_rows + blank + bottom + RESET)
 
 
 def print_section(title):
