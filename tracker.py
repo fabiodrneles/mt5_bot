@@ -25,8 +25,35 @@ def _load_trades():
 def _save_trades(trades):
     """Salva historico de trades."""
     try:
+        # Garantir que todos os valores sejam serializaveis por JSON
+        def _convert(v):
+            try:
+                import numpy as _np
+            except Exception:
+                _np = None
+
+            if _np is not None:
+                if isinstance(v, _np.integer):
+                    return int(v)
+                if isinstance(v, _np.floating):
+                    return float(v)
+                if isinstance(v, _np.ndarray):
+                    return v.tolist()
+
+            if isinstance(v, dict):
+                return {k: _convert(val) for k, val in v.items()}
+            if isinstance(v, (list, tuple)):
+                return [_convert(x) for x in v]
+            if hasattr(v, "isoformat"):
+                try:
+                    return v.isoformat()
+                except Exception:
+                    pass
+            return v
+
+        safe_trades = [_convert(t) for t in trades]
         with open(_TRADES_FILE, "w", encoding="utf-8") as f:
-            json.dump(trades, f, indent=2, ensure_ascii=False)
+            json.dump(safe_trades, f, indent=2, ensure_ascii=False)
     except IOError as e:
         logger.error(f"Erro ao salvar trades: {e}", exc_info=True)
 
