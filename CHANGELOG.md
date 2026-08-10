@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.2.0 — 2026-08-10
+
+Principais mudanças:
+
+- **Módulo de Proteção de Capital (`risk_calculator.py`)**:
+  - Consulta o saldo atual da conta MT5 via `account_info().balance`.
+  - **Dimensionamento Dinâmico de Lotes (*Position Sizer*)**: Calcula o volume ideal para arriscar exatamente 1.0% do saldo por operação (`config.MAX_RISK_PER_TRADE_PERCENT`).
+  - **Escudo de Proteção contra Risco Absoluto (*Risk Shield*)**: Bloqueia e cancela a ordem no ato se o Stop Loss no lote mínimo exigir um risco financeiro superior a 1.5% do saldo (`config.ABSOLUTE_MAX_TRADE_RISK_PERCENT`).
+- **Trava Diária de Perda Máxima (*Daily Max Loss*)**: Bloqueia a abertura de novas posições no dia se as perdas acumuladas atingirem 2.0% do saldo total da conta (`config.MAX_DAILY_LOSS_PERCENT`).
+- **Filtro de Spread Máximo (*Max Spread Filter*)**: Valida o spread em tempo real e rejeita ordens se o spread ultrapassar 50 pontos (`config.MAX_SPREAD_POINTS`).
+- **Breakeven Automático**: Ajusta o Stop Loss para o preço de entrada assim que a posição atinge 1x ATR de lucro a favor (`config.ENABLE_BREAKEVEN`).
+- **Filtro de Janela de Horário**: Valida o horário operacional permitido (`09:15` às `16:45`).
+- **Testes Unitários**: Expansão da suíte para 43 testes unitários com 100% de aprovação.
+- Bump de versão para `1.2.0`.
+
 ## v1.1.0 — 2026-08-10
 
 Principais mudanças:

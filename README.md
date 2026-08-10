@@ -72,7 +72,7 @@ Ao executar mt5bot, voce ve o menu principal:
 
     ╔══════════════════════════════════════════════════╗
     ║                                                  ║
-    ║   MT5Bot  v1.1.0                                 ║
+    ║   MT5Bot  v1.2.0                                 ║
     ║   Measured, disciplined execution — performance varies with market conditions.              ║
     ║                                                  ║
     ╚══════════════════════════════════════════════════╝

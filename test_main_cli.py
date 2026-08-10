@@ -9,7 +9,7 @@ def test_main_version(capsys, monkeypatch):
     monkeypatch.setattr(sys, 'argv', ['mt5bot', '--version'])
     main.main()
     captured = capsys.readouterr()
-    assert 'MT5Bot v1.1.0' in captured.out
+    assert 'MT5Bot v1.2.0' in captured.out
 
 
 def test_main_help(capsys, monkeypatch):
