@@ -272,6 +272,49 @@ python main.py
 
 ---
 
+## Exemplos de Cenários de Uso
+
+### 1. Iniciar o bot rapidamente com configuração padrão
+Use quando você quer entrar em operação sem ajustar nada.
+
+```bash
+mt5bot --quick
+```
+
+O bot conecta ao MetaTrader 5, carrega todos os ativos configurados e começa a operar com os parâmetros de risco padrão.
+
+### 2. Consultar o relatório de performance depois de uma sessão
+Use este comando se você quer ver o resultado das operações fechadas sem abrir o dashboard.
+
+```bash
+mt5bot --report
+```
+
+### 3. Abrir o dashboard visual no navegador
+Use quando quiser uma visão gráfica das métricas, ativos e desempenho por setup.
+
+```bash
+mt5bot --dashboard
+```
+
+### 4. Encerrar o bot com comportamento seguro
+Enquanto o bot está rodando, digite no mesmo terminal:
+
+- `exit` ou `quit` — salva estado e encerra sem cancelar ordens abertas.
+- `exit when flat` — espera o fechamento de posições/ordens e encerra quando o mercado ficar flat.
+- `exit now` ou `exit cancel` — cancela ordens pendentes e encerra.
+
+### 5. Usar shutdown explícito ao iniciar
+Escolha o comportamento de desligamento antes de iniciar o bot. Exemplo:
+
+```bash
+mt5bot --shutdown-action wait-flat
+```
+
+Isso configura o shutdown para `wait-flat` antes mesmo do bot começar.
+
+---
+
 ## Configuracao Padrao (funciona sem alterar nada)
 
 O bot ja vem com esses valores — otimizados para operacao conservadora:
