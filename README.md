@@ -1,10 +1,12 @@
 # MT5Bot
 
-### Lucros consistentes. Zero emocao.
+### Lucros consistentes. Zero emoção.
 
-<!-- Teste de pipeline de CI/CD -->
+> [!IMPORTANT]
+> **Filosofia de Proteção ao Capital**:
+> *"O bot não busca ganhos desmedidos; o objetivo central é proteger o patrimônio, perder cada vez menos e autorizar ordens somente quando o risco for estritamente controlado e proporcional ao saldo da conta."*
 
-Bot de trading automatizado para MetaTrader 5 que opera com disciplina absoluta enquanto voce foca no que importa. Baseado nos Setups 9.1 e 9.2 de Palex (Larry Williams), com inteligencia de volatilidade que adapta cada operacao ao momento real do mercado.
+Bot de trading automatizado para MetaTrader 5 que opera com disciplina absoluta enquanto você foca no que importa. Baseado nos Setups 9.1 e 9.2 de Palex (Larry Williams), com inteligência de volatilidade que adapta cada operação ao momento real do mercado.
 
 ---
 
