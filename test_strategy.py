@@ -89,9 +89,13 @@ config.ADAPTIVE_TARGET_ENABLED = True
 config.ADAPTIVE_TARGET_LOOKBACK = 20
 config.MAGIC = 20260731
 
-# Desabilitar persistencia real nos testes
-persistence.save_states = lambda x: None
-persistence.load_states = lambda: None
+import pytest
+
+@pytest.fixture(autouse=True)
+def disable_persistence(monkeypatch):
+    monkeypatch.setattr(persistence, 'save_states', lambda x: None)
+    monkeypatch.setattr(persistence, 'load_states', lambda: None)
+    yield
 
 
 def make_rates(n=30, base_close=1.0, trend=0.01):
