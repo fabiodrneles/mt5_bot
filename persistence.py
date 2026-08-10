@@ -10,6 +10,20 @@ state_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), confi
 def _get_path():
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), config.STATE_FILE)
 
+def _json_default(obj):
+    """Converte tipos numpy para tipos nativos do Python (serializaveis por JSON)."""
+    try:
+        import numpy as np
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+    except ImportError:
+        pass
+    return str(obj)
+
 
 def save_states(symbol_states):
     """Salva o estado de todos os simbolos em JSON."""
@@ -32,7 +46,7 @@ def save_states(symbol_states):
     try:
         path = _get_path()
         with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, default=_json_default)
         logger.debug(f"Estados salvos em {path}")
     except Exception as e:
         logger.error(f"Erro ao salvar estados: {e}", exc_info=True)
