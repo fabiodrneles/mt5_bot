@@ -150,6 +150,33 @@ Se o MT5 nao estiver logado, informe suas credenciais:
 
 ## O que o Bot Faz por Voce
 
+### 🛡️ Módulo de Proteção de Capital & Calculadora de Risco (Risk Shield Engine)
+
+O **MT5Bot** é fundamentado na filosofia de **Preservação de Capital e Proteção Máxima contra Perdas**. O bot não busca operações arriscadas para tentar lucros desmedidos; o objetivo primário é gerenciar estritamente o risco, fazendo o trader **perder cada vez menos** e só autorizar ordens **100% alinhadas ao saldo da conta**.
+
+#### 1. 🧮 Calculadora de Lote Dinâmico (*Position Sizer*)
+Em vez de operar com lotes fixos arbitrários, o bot consulta o saldo da sua conta no MT5 em tempo real (`account_info().balance`) e calcula o tamanho exato do lote para que o risco financeiro do Stop Loss seja de exatamente **1.0% do seu saldo** (`MAX_RISK_PER_TRADE_PERCENT`).
+
+#### 2. 🚨 Escudo de Proteção do Patrimônio (*Absolute Risk Shield*)
+Se o mercado apresentar um Stop Loss muito longo onde a execução do lote mínimo do ativo (ex: 1 contrato ou 0.01 lote) resulte em uma perda financeira superior a **1.5% do seu saldo** (`ABSOLUTE_MAX_TRADE_RISK_PERCENT`), o bot **REJEITA A OPERAÇÃO IMEDIATAMENTE** antes de enviar a ordem para a corretora.
+
+- **Exemplo**: Se você possui R$ 1.000,00 de saldo e o limite de corte é 1.5% (R$ 15,00), caso uma entrada exija um Stop Loss de R$ 25,00 no lote mínimo, o bot cancela o envio da ordem e registra o aviso:
+  `[RISK SHIELD REJECTED] Operação cancelada: Risco do Stop Loss (R$ 25.00) excede o limite seguro de 1.5% do saldo (R$ 15.00).`
+
+#### 3. 🛑 Trava de Perda Diária Dinâmica (*Daily Max Loss*)
+O bot calcula continuamente o PnL líquido das operações encerradas no dia atual. Se as perdas acumuladas no dia atingirem **2.0% do saldo total da conta** (`MAX_DAILY_LOSS_PERCENT`), a abertura de novas posições é bloqueada no dia, protegendo a banca contra *overtrading* ou dias atípicos.
+
+#### 4. 📐 Filtro de Spread Máximo (*Max Spread Filter*)
+Antes de enviar qualquer ordem pendente (`BUY_STOP` / `SELL_STOP`), o bot verifica o spread atual do ativo no MT5 em tempo real. Se o spread ultrapassar **50 pontos** (`MAX_SPREAD_POINTS`), a ordem é abortada para evitar custos desfavoráveis (*slippage*).
+
+#### 5. 🎯 Breakeven Automático
+Assim que uma operação aberta atinge **1x ATR** (`BREAKEVEN_ATR_RATIO = 1.0`) de lucro a favor, o bot ajusta automaticamente o Stop Loss no MT5 para o preço de entrada (*Entry Price*). A partir deste momento, a operação torna-se **livre de risco financeiro**.
+
+#### 6. ⏰ Janela de Horário de Negociação
+O bot valida a hora do sistema contra a janela operacional configurada (`09:15` às `16:45`). Nenhuma nova entrada é permitida fora desse horário.
+
+---
+
 ### Setup 9.1 — Captura a virada do mercado
 
 Detecta o momento exato em que a tendencia de curto prazo muda de direcao (EMA9 vira), confirma com a tendencia maior (EMA21), e entra com ordem stop no ponto tecnico ideal.
