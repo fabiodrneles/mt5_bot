@@ -177,6 +177,54 @@ def _page_config():
 </div>
 
 <div class="card">
+<h2>Proteção de Capital & Escudo de Risco</h2>
+<div class="row-3">
+<div>
+<label>Risco por Trade (% saldo)</label>
+<input type="number" name="max_risk_pct" value="{max_risk_pct}" step="0.1" min="0.1" max="5.0">
+</div>
+<div>
+<label>Corte Absoluto (% saldo)</label>
+<input type="number" name="abs_max_risk_pct" value="{abs_max_risk_pct}" step="0.1" min="0.5" max="10.0">
+</div>
+<div>
+<label>Perda Diaria Max (% saldo)</label>
+<input type="number" name="max_daily_loss_pct" value="{max_daily_loss_pct}" step="0.1" min="0.5" max="20.0">
+</div>
+</div>
+<div class="row-3">
+<div>
+<label>Spread Maximo (pontos)</label>
+<input type="number" name="max_spread" value="{max_spread}" min="5" max="500">
+</div>
+<div>
+<label>Breakeven Automatico</label>
+<select name="enable_breakeven">
+<option value="1" {be_on}>Ativado</option>
+<option value="0" {be_off}>Desativado</option>
+</select>
+</div>
+<div>
+<label>Filtro de Horario</label>
+<select name="trading_hours_enabled">
+<option value="1" {th_on}>Ativado</option>
+<option value="0" {th_off}>Desativado</option>
+</select>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Horario de Inicio (HH:MM)</label>
+<input type="text" name="trading_start_time" value="{trading_start_time}" placeholder="09:15">
+</div>
+<div>
+<label>Horario de Fim (HH:MM)</label>
+<input type="text" name="trading_end_time" value="{trading_end_time}" placeholder="16:45">
+</div>
+</div>
+</div>
+
+<div class="card">
 <h2>Gestao de Risco</h2>
 <div class="row-3">
 <div>
@@ -248,6 +296,16 @@ def _page_config():
         flat_on="selected" if config.FLAT_FILTER_ENABLED else "",
         flat_off="" if config.FLAT_FILTER_ENABLED else "selected",
         flat_threshold=config.FLAT_THRESHOLD_TICKS,
+        max_risk_pct=config.MAX_RISK_PER_TRADE_PERCENT,
+        abs_max_risk_pct=config.ABSOLUTE_MAX_TRADE_RISK_PERCENT,
+        max_daily_loss_pct=config.MAX_DAILY_LOSS_PERCENT,
+        max_spread=config.MAX_SPREAD_POINTS or 50,
+        be_on="selected" if config.ENABLE_BREAKEVEN else "",
+        be_off="" if config.ENABLE_BREAKEVEN else "selected",
+        th_on="selected" if getattr(config, "TRADING_HOURS_ENABLED", True) else "",
+        th_off="" if getattr(config, "TRADING_HOURS_ENABLED", True) else "selected",
+        trading_start_time=getattr(config, "TRADING_START_TIME", "09:15"),
+        trading_end_time=getattr(config, "TRADING_END_TIME", "16:45"),
         pe_on="selected" if config.PARTIAL_EXIT_ENABLED else "",
         pe_off="" if config.PARTIAL_EXIT_ENABLED else "selected",
         partial_pct=config.PARTIAL_EXIT_PERCENT,
@@ -420,6 +478,14 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "setup_92": params.get("setup_92", ["1"])[0] == "1",
                     "flat_filter": params.get("flat_filter", ["1"])[0] == "1",
                     "flat_threshold": max(1, int(params.get("flat_threshold", ["5"])[0])),
+                    "max_risk_pct": max(0.1, float(params.get("max_risk_pct", ["1.0"])[0])),
+                    "abs_max_risk_pct": max(0.5, float(params.get("abs_max_risk_pct", ["1.5"])[0])),
+                    "max_daily_loss_pct": max(0.5, float(params.get("max_daily_loss_pct", ["2.0"])[0])),
+                    "max_spread": max(5, int(params.get("max_spread", ["50"])[0])),
+                    "enable_breakeven": params.get("enable_breakeven", ["1"])[0] == "1",
+                    "trading_hours_enabled": params.get("trading_hours_enabled", ["1"])[0] == "1",
+                    "trading_start_time": params.get("trading_start_time", ["09:15"])[0],
+                    "trading_end_time": params.get("trading_end_time", ["16:45"])[0],
                     "partial_exit": params.get("partial_exit", ["1"])[0] == "1",
                     "partial_pct": min(0.9, max(0.1, float(params.get("partial_pct", ["0.5"])[0]))),
                     "partial_target": max(0.3, float(params.get("partial_target", ["1.0"])[0])),
@@ -437,6 +503,9 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "symbols": ", ".join(config.AVAILABLE_SYMBOLS),
                     "volume": 0.01, "ema_period": 9, "ema_filter": 21,
                     "setup_92": True, "flat_filter": True, "flat_threshold": 5,
+                    "max_risk_pct": 1.0, "abs_max_risk_pct": 1.5, "max_daily_loss_pct": 2.0,
+                    "max_spread": 50, "enable_breakeven": True, "trading_hours_enabled": True,
+                    "trading_start_time": "09:15", "trading_end_time": "16:45",
                     "partial_exit": True, "partial_pct": 0.5, "partial_target": 1.0,
                     "adaptive_target": True, "atr_threshold": 1.5, "tick_offset": 1,
                     "scan_interval": 10, "retry_interval": 30, "rates_count": 100,
@@ -474,6 +543,14 @@ def _apply_config(data):
     config.SETUP_92_ENABLED = data.get("setup_92", True)
     config.FLAT_FILTER_ENABLED = data.get("flat_filter", True)
     config.FLAT_THRESHOLD_TICKS = data.get("flat_threshold", 5)
+    config.MAX_RISK_PER_TRADE_PERCENT = data.get("max_risk_pct", 1.0)
+    config.ABSOLUTE_MAX_TRADE_RISK_PERCENT = data.get("abs_max_risk_pct", 1.5)
+    config.MAX_DAILY_LOSS_PERCENT = data.get("max_daily_loss_pct", 2.0)
+    config.MAX_SPREAD_POINTS = data.get("max_spread", 50)
+    config.ENABLE_BREAKEVEN = data.get("enable_breakeven", True)
+    config.TRADING_HOURS_ENABLED = data.get("trading_hours_enabled", True)
+    config.TRADING_START_TIME = data.get("trading_start_time", "09:15")
+    config.TRADING_END_TIME = data.get("trading_end_time", "16:45")
     config.PARTIAL_EXIT_ENABLED = data.get("partial_exit", True)
     config.PARTIAL_EXIT_PERCENT = data.get("partial_pct", 0.5)
     config.PARTIAL_EXIT_TARGET = data.get("partial_target", 1.0)
