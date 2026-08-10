@@ -151,7 +151,9 @@ def evaluate(symbol, candle_fechado, all_rates):
     # Filtro flat (aplica para SCANNING e SIGNAL_READY)
     if config.FLAT_FILTER_ENABLED and s_state.state in (State.SCANNING, State.SIGNAL_READY):
         if indicators.check_flat(ema9_values, symbol_info):
-            logger.info(f"[{symbol}] EMA9 FLAT detectada.")
+            diff_ticks = abs(ema9_values[-1] - ema9_values[-5]) / (symbol_info.trade_tick_size or symbol_info.point)
+            logger.info(f"[{symbol}] Sinal rejeitado: EMA9 FLAT "
+                        f"(variação {diff_ticks:.1f} ticks < threshold {config.FLAT_THRESHOLD_TICKS})")
             if s_state.state == State.SIGNAL_READY and s_state.pending_order_ticket:
                 logger.info(f"[{symbol}] Cancelando ordem {s_state.pending_order_ticket} por EMA9 FLAT.")
                 executor.cancel_order(s_state.pending_order_ticket)
@@ -191,6 +193,20 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
     elif virou_para_baixo and ema9_was_pointing_up and filtro_venda_ok:
         logger.info(f"[{s_state.symbol}] Sinal de VENDA detectado (Setup 9.1).")
         _place_entry_order(s_state, candle_fechado, TradeSide.SELL, tick_size, symbol_info, all_rates, "9.1")
+
+    elif virou_para_cima and ema9_was_pointing_down and not filtro_compra_ok:
+        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 virou para cima mas "
+                    f"filtro EMA21 contra (close={candle_fechado[4]:.5f} < EMA21)")
+
+    elif virou_para_baixo and ema9_was_pointing_up and not filtro_venda_ok:
+        logger.info(f"[{s_state.symbol}] Sinal rejeitado: EMA9 virou para baixo mas "
+                    f"filtro EMA21 contra (close={candle_fechado[4]:.5f} > EMA21)")
+
+    elif not virou_para_cima and not virou_para_baixo:
+        slopes = indicators.get_ema9_slopes(ema9_values)
+        slope_str = f"{slopes[0]:.6f}" if slopes else "N/A"
+        logger.debug(f"[{s_state.symbol}] Sinal rejeitado: EMA9 sem virada "
+                     f"(slope atual: {slope_str})")
 
 
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):
