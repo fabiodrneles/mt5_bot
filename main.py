@@ -315,7 +315,7 @@ def main():
     """Entry point da CLI."""
     # Flags de linha de comando
     if "--version" in sys.argv or "-v" in sys.argv:
-        print("MT5Bot v1.3.0 — Measured, disciplined execution — performance varies with market conditions.")
+        print("MT5Bot v1.4.0 — Measured, disciplined execution — performance varies with market conditions.")
         return
 
     if "--help" in sys.argv or "-h" in sys.argv:

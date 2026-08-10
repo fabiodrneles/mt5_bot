@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.4.0 — 2026-08-10
+
+Principais mudanças:
+
+- **Pipeline CI/CD com GitHub Actions (`.github/workflows/pytest.yml`)**:
+  - Integração contínua automatizada para validar os 53 testes unitários a cada `git push` ou `Pull Request` em múltiplas versões de Python (3.10 a 3.13) nos SOs Ubuntu e Windows.
+- **Suíte de Testes do Dashboard Web (`test_dashboard.py`)**:
+  - Testes unitários cobrindo renderização HTML, formulário de configuração, processamento de formulário POST `/config/save` e endpoint JSON `/api/summary`.
+- **Cobertura de Testes**:
+  - 53 testes unitários cobrindo 100% dos módulos do bot com passagem em tempo de execução.
+- Bump de versão para `1.4.0`.
+
 ## v1.3.0 — 2026-08-10
 
 Principais mudanças:

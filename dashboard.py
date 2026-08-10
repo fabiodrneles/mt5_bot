@@ -317,6 +317,8 @@ def _page_config():
         timeframe_options=_build_timeframe_options(),
         ema_period=config.EMA_PERIOD,
         ema_filter=config.EMA_FILTER_PERIOD,
+        s92_on="selected" if config.SETUP_92_ENABLED else "",
+        s92_off="" if config.SETUP_92_ENABLED else "selected",
         flat_on="selected" if config.FLAT_FILTER_ENABLED else "",
         flat_off="" if config.FLAT_FILTER_ENABLED else "selected",
         flat_threshold=config.FLAT_THRESHOLD_TICKS,
