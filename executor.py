@@ -19,7 +19,15 @@ def get_tick_size(symbol_info):
 def _format_price(price, symbol_info):
     if symbol_info is None:
         return price
-    return round(price, symbol_info.digits)
+
+    tick_size = symbol_info.trade_tick_size if symbol_info.trade_tick_size != 0.0 else symbol_info.point
+    if tick_size <= 0:
+        tick_size = 10 ** -symbol_info.digits
+
+    dec_tick = Decimal(str(tick_size))
+    dec_price = Decimal(str(price))
+    quantized = (dec_price / dec_tick).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * dec_tick
+    return float(quantized)
 
 
 def _get_filling_type(symbol_info):
