@@ -24,6 +24,7 @@ class MockMT5Module:
     TIMEFRAME_D1 = 16392
     SYMBOL_TRADE_MODE_DISABLED = 0
     SYMBOL_FILLING_FOK = 1
+    SYMBOL_FILLING_IOC = 2
 
     _mock_positions = []
     _mock_orders = []
@@ -59,3 +60,12 @@ class MockMT5Module:
 # Install into sys.modules if not present
 if 'MetaTrader5' not in sys.modules:
     sys.modules['MetaTrader5'] = MockMT5Module()
+
+import pytest
+import tracker
+
+@pytest.fixture(autouse=True)
+def isolate_trades(tmp_path, monkeypatch):
+    test_trades_file = tmp_path / "test_trades.json"
+    monkeypatch.setattr(tracker, "_TRADES_FILE", str(test_trades_file))
+

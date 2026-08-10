@@ -366,10 +366,6 @@ def main():
         tracker.print_report()
         return
 
-    if "--report" in sys.argv:
-        tracker.print_report()
-        return
-
     if "--dashboard" in sys.argv:
         dashboard.open_report()
         return

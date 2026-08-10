@@ -13,3 +13,5 @@ venv/
 .pytest_cache/
 .ruff_cache/
 build/
+.coverage
+coverage_html/

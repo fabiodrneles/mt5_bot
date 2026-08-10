@@ -1,3 +1,9 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:system"
+    "python.defaultInterpreterPath": "C:\\Users\\Gamer\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}"
+    ]
 }

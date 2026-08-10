@@ -1,8 +1,8 @@
+
 import MetaTrader5 as mt5
 import config
 import logger
-from decimal import Decimal, ROUND_DOWN
-
+from decimal import Decimal, ROUND_HALF_UP, ROUND_DOWN
 
 def get_symbol_info(symbol):
     info = mt5.symbol_info(symbol)
@@ -33,9 +33,9 @@ def _format_price(price, symbol_info):
 def _get_filling_type(symbol_info):
     """Determina o filling type suportado pelo simbolo."""
     filling = symbol_info.filling_mode
-    if filling & mt5.ORDER_FILLING_FOK:
+    if hasattr(mt5, "SYMBOL_FILLING_FOK") and (filling & mt5.SYMBOL_FILLING_FOK):
         return mt5.ORDER_FILLING_FOK
-    elif filling & mt5.ORDER_FILLING_IOC:
+    elif hasattr(mt5, "SYMBOL_FILLING_IOC") and (filling & mt5.SYMBOL_FILLING_IOC):
         return mt5.ORDER_FILLING_IOC
     return mt5.ORDER_FILLING_RETURN
 
@@ -87,7 +87,8 @@ def _send_order(request):
     return result
 
 
-def place_buy_stop(symbol, entry_price, sl_price):
+def _place_stop_order(symbol, entry_price, sl_price, order_type, comment):
+    """Função auxiliar centralizada para colocar ordens pendentes (BUY/SELL STOP)."""
     symbol_info = get_symbol_info(symbol)
     if symbol_info is None:
         return None
@@ -99,90 +100,34 @@ def place_buy_stop(symbol, entry_price, sl_price):
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
         "volume": volume,
-        "type": mt5.ORDER_TYPE_BUY_STOP,
+        "type": order_type,
         "price": _format_price(entry_price, symbol_info),
         "sl": _format_price(sl_price, symbol_info),
         "deviation": 20,
         "type_filling": filling,
-        "comment": "Setup 9.1 Buy Stop",
+        "comment": comment,
         "magic": config.MAGIC,
         "expiration": 0,
     }
     return _send_order(request)
+
+
+def place_buy_stop(symbol, entry_price, sl_price):
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.1 Buy Stop")
 
 
 def place_sell_stop(symbol, entry_price, sl_price):
-    symbol_info = get_symbol_info(symbol)
-    if symbol_info is None:
-        return None
-
-    volume = _normalize_volume(config.VOLUME_INITIAL, symbol_info)
-    filling = _get_filling_type(symbol_info)
-
-    request = {
-        "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": symbol,
-        "volume": volume,
-        "type": mt5.ORDER_TYPE_SELL_STOP,
-        "price": _format_price(entry_price, symbol_info),
-        "sl": _format_price(sl_price, symbol_info),
-        "deviation": 20,
-        "type_filling": filling,
-        "comment": "Setup 9.1 Sell Stop",
-        "magic": config.MAGIC,
-        "expiration": 0,
-    }
-    return _send_order(request)
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.1 Sell Stop")
 
 
 def place_buy_stop_92(symbol, entry_price, sl_price):
     """Coloca ordem BUY STOP para Setup 9.2."""
-    symbol_info = get_symbol_info(symbol)
-    if symbol_info is None:
-        return None
-
-    volume = _normalize_volume(config.VOLUME_INITIAL, symbol_info)
-    filling = _get_filling_type(symbol_info)
-
-    request = {
-        "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": symbol,
-        "volume": volume,
-        "type": mt5.ORDER_TYPE_BUY_STOP,
-        "price": _format_price(entry_price, symbol_info),
-        "sl": _format_price(sl_price, symbol_info),
-        "deviation": 20,
-        "type_filling": filling,
-        "comment": "Setup 9.2 Buy Stop",
-        "magic": config.MAGIC,
-        "expiration": 0,
-    }
-    return _send_order(request)
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.2 Buy Stop")
 
 
 def place_sell_stop_92(symbol, entry_price, sl_price):
     """Coloca ordem SELL STOP para Setup 9.2."""
-    symbol_info = get_symbol_info(symbol)
-    if symbol_info is None:
-        return None
-
-    volume = _normalize_volume(config.VOLUME_INITIAL, symbol_info)
-    filling = _get_filling_type(symbol_info)
-
-    request = {
-        "action": mt5.TRADE_ACTION_PENDING,
-        "symbol": symbol,
-        "volume": volume,
-        "type": mt5.ORDER_TYPE_SELL_STOP,
-        "price": _format_price(entry_price, symbol_info),
-        "sl": _format_price(sl_price, symbol_info),
-        "deviation": 20,
-        "type_filling": filling,
-        "comment": "Setup 9.2 Sell Stop",
-        "magic": config.MAGIC,
-        "expiration": 0,
-    }
-    return _send_order(request)
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.2 Sell Stop")
 
 
 def cancel_order(order_ticket):
@@ -243,8 +188,7 @@ def close_partial_position(position_ticket, symbol, volume_to_close):
 
 def close_full_position(position_ticket, symbol, position_type):
     """Fecha posicao inteira.
-    position_type: TradeSide enum (BUY ou SELL) da strategy.
-    Converte internamente para comparacao com mt5 constants.
+    position_type: TradeSide enum (BUY ou SELL) da strategy ou constante MT5.
     """
     symbol_info = get_symbol_info(symbol)
     if symbol_info is None:
@@ -264,9 +208,11 @@ def close_full_position(position_ticket, symbol, position_type):
         logger.error(f"Sem dados de tick para {symbol}. Impossivel fechar posicao.")
         return None
 
-    # position_type e TradeSide enum; comparar pelo valor ou nome
-    # TradeSide.BUY.value == 1, TradeSide.SELL.value == 2
-    is_buy = (hasattr(position_type, 'value') and position_type.value == 1) or position_type == mt5.ORDER_TYPE_BUY
+    is_buy = (
+        (hasattr(position_type, "name") and position_type.name == "BUY")
+        or (hasattr(position_type, "value") and position_type.value == 1)
+        or position_type in (mt5.ORDER_TYPE_BUY, getattr(mt5, "POSITION_TYPE_BUY", 0))
+    )
     if is_buy:
         type_deal = mt5.ORDER_TYPE_SELL
         price = tick.bid
