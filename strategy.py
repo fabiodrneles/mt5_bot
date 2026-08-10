@@ -152,8 +152,10 @@ def evaluate(symbol, candle_fechado, all_rates):
     if config.FLAT_FILTER_ENABLED and s_state.state in (State.SCANNING, State.SIGNAL_READY):
         if indicators.check_flat(ema9_values, symbol_info):
             diff_ticks = abs(ema9_values[-1] - ema9_values[-5]) / (symbol_info.trade_tick_size or symbol_info.point)
+            multiplier = config.FLAT_THRESHOLD_MULTIPLIERS.get(config.TIMEFRAME_NAME, 1.0)
+            threshold = config.FLAT_THRESHOLD_TICKS * multiplier
             logger.info(f"[{symbol}] Sinal rejeitado: EMA9 FLAT "
-                        f"(variação {diff_ticks:.1f} ticks < threshold {config.FLAT_THRESHOLD_TICKS})")
+                        f"(variação {diff_ticks:.1f} ticks < threshold {threshold:.1f})")
             if s_state.state == State.SIGNAL_READY and s_state.pending_order_ticket:
                 logger.info(f"[{symbol}] Cancelando ordem {s_state.pending_order_ticket} por EMA9 FLAT.")
                 executor.cancel_order(s_state.pending_order_ticket)

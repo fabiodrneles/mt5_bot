@@ -84,7 +84,9 @@ def check_flat(ema9, symbol_info):
         return False
     tick_size = symbol_info.trade_tick_size or symbol_info.point
     diff = abs(ema9[-1] - ema9[-5])
-    return diff < config.FLAT_THRESHOLD_TICKS * tick_size
+    multiplier = config.FLAT_THRESHOLD_MULTIPLIERS.get(config.TIMEFRAME_NAME, 1.0)
+    threshold = config.FLAT_THRESHOLD_TICKS * multiplier
+    return diff < threshold * tick_size
 
 
 def check_filtro_ema21(close, ema21):

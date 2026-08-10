@@ -37,6 +37,15 @@ PARTIAL_EXIT_TARGET = 1.00
 # --- Filtro Flat ---
 FLAT_FILTER_ENABLED = True
 FLAT_THRESHOLD_TICKS = 5
+FLAT_THRESHOLD_MULTIPLIERS = {
+    "M1":  0.5,   # 5 * 0.5 = 2.5 ticks (mais sensivel)
+    "M5":  0.7,   # 5 * 0.7 = 3.5 ticks
+    "M15": 1.0,   # 5 * 1.0 = 5 ticks (padrao atual)
+    "M30": 1.0,   # 5 * 1.0 = 5 ticks
+    "H1":  1.5,   # 5 * 1.5 = 7.5 ticks (menos sensivel)
+    "H4":  2.0,   # 5 * 2.0 = 10 ticks
+    "D1":  3.0,   # 5 * 3.0 = 15 ticks
+}
 
 # --- Offsets ---
 TICK_OFFSET = 1
