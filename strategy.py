@@ -58,6 +58,7 @@ def initialize_symbol_states():
     for symbol in config.SYMBOLS:
         s_state = symbol_states[symbol]
         _validate_state_against_mt5(s_state)
+        _check_orphaned_mt5_state(s_state)
 
     return True
 
@@ -97,6 +98,37 @@ def _validate_state_against_mt5(s_state):
     elif s_state.state == State.WATCHING_92:
         # WATCHING_92 nao tem ordem/posicao ativa, so manter estado
         pass
+
+
+def _check_orphaned_mt5_state(s_state):
+    """Verifica posicoes ou ordens no MT5 que nao estao no state.json."""
+    if s_state.state != State.SCANNING:
+        return
+
+    symbol = s_state.symbol
+    orders = executor.get_current_orders(symbol)
+    our_orders = [o for o in orders if o.magic == config.MAGIC]
+    if our_orders:
+        order = our_orders[0]
+        logger.warning(f"[{symbol}] ORDEM ORFA detectada! Ticket={order.ticket}")
+        logger.warning(f"[{symbol}] Restaurando estado SIGNAL_READY para ordem orfa.")
+        s_state.state = State.SIGNAL_READY
+        s_state.pending_order_ticket = order.ticket
+        return
+
+    positions = executor.get_current_positions(symbol)
+    our_positions = [p for p in positions if p.magic == config.MAGIC]
+    if our_positions:
+        position = our_positions[0]
+        logger.warning(f"[{symbol}] POSICAO ORFA detectada! "
+                       f"Ticket={position.ticket} "
+                       f"Tipo={'BUY' if position.type == mt5.POSITION_TYPE_BUY else 'SELL'} "
+                       f"Volume={position.volume}")
+        logger.warning(f"[{symbol}] Restaurando estado IN_POSITION para posicao orfa.")
+        s_state.state = State.IN_POSITION
+        s_state.position_ticket = position.ticket
+        s_state.position_type = TradeSide.BUY if position.type == mt5.POSITION_TYPE_BUY else TradeSide.SELL
+        s_state.partial_exit_done = (position.volume < config.VOLUME_INITIAL)
 
 
 def _reset_to_scanning(s_state):

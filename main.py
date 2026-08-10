@@ -183,6 +183,7 @@ def run_bot():
     # Graceful shutdown
     logger.info("Executando shutdown...")
     _cancel_pending_orders()
+    strategy._save_states()
     mt5.shutdown()
     logger.info("Bot encerrado.")
 

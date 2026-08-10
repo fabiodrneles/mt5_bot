@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import logger
 import config
 
@@ -45,8 +46,10 @@ def save_states(symbol_states):
 
     try:
         path = _get_path()
-        with open(path, "w", encoding="utf-8") as f:
+        tmp_path = path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=_json_default)
+        os.replace(tmp_path, path)
         logger.debug(f"Estados salvos em {path}")
     except Exception as e:
         logger.error(f"Erro ao salvar estados: {e}", exc_info=True)
@@ -65,6 +68,13 @@ def load_states():
         logger.info(f"Estados carregados de {path}")
         return data
     except (json.JSONDecodeError, IOError) as e:
+        backup_path = path + f".corrupt.{int(time.time())}"
+        try:
+            os.replace(path, backup_path)
+            logger.warning(f"Arquivo de estado corrompido. Backup salvo em {backup_path}")
+            logger.warning("Verifique posicoes abertas no MT5 manualmente antes de reiniciar o bot.")
+        except Exception as backup_error:
+            logger.error(f"Falha ao criar backup do state corrompido: {backup_error}", exc_info=True)
         logger.error(f"Erro ao carregar estados: {e}", exc_info=True)
         return None
 
