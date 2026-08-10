@@ -5,6 +5,8 @@ Interface limpa e neutra para configurar todos os parametros antes de operar.
 import os
 import sys
 import getpass
+import shutil
+import textwrap
 
 import MetaTrader5 as mt5
 import config
@@ -34,8 +36,32 @@ def print_header():
 {BOLD}{WHITE}
     ╔══════════════════════════════════════════════════╗
     ║                                                  ║
-    ║   MT5Bot  {DIM}v{VERSION}{BOLD}{WHITE}                               ║
-    ║   {CYAN}Measured, disciplined execution — performance varies with market conditions.{WHITE}              ║
+        # Construir header responsivo: calcula largura do terminal e envolve
+        # o slogan para que ele não quebre a caixa. Usa largura máxima de 54.
+        term_w = shutil.get_terminal_size((80, 20)).columns
+        box_w = min(54, max(40, term_w - 10))
+        inner_w = box_w - 4
+
+        title = f"MT5Bot  {DIM}v{VERSION}{BOLD}{WHITE}"
+        slogan = "Measured, disciplined execution — performance varies with market conditions."
+        slogan_lines = textwrap.wrap(slogan, width=inner_w)
+
+        top = f"{BOLD}{WHITE}" + "    ╔" + "═" * box_w + "╗\n"
+        blank = "    ║" + " " * box_w + "║\n"
+
+        # linha do titulo, centralizada
+        title_line = title.center(inner_w)
+        title_row = f"    ║  {title_line}  ║\n"
+
+        # montar linhas do slogan centralizadas
+        slogan_rows = ""
+        for ln in slogan_lines:
+            slogan_rows += f"    ║  {ln.center(inner_w)}  ║\n"
+
+        bottom = "    ╚" + "═" * box_w + "╝{RESET}\n"
+
+        # imprimir com cores e reset no final
+        print(f"{top}{blank}{title_row}{slogan_rows}{blank}{bottom}" + RESET)
     ║                                                  ║
     ╚══════════════════════════════════════════════════╝{RESET}
 """)

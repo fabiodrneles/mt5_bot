@@ -230,6 +230,14 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
 
     tick_size = executor.get_tick_size(symbol_info)
 
+    # Log de debug com flags utilizadas na decisao para facilitar analise
+    logger.debug(
+        f"[{s_state.symbol}] scan flags: virou_up={virou_para_cima} virou_down={virou_para_baixo} "
+        f"was_up={ema9_was_pointing_up} was_down={ema9_was_pointing_down} "
+        f"filtro_compra_ok={filtro_compra_ok} filtro_venda_ok={filtro_venda_ok} "
+        f"close={candle_fechado[4]:.5f} ema9_last={ema9_values[-1]:.5f}"
+    )
+
     if virou_para_cima and ema9_was_pointing_down and filtro_compra_ok:
         logger.info(f"[{s_state.symbol}] Sinal de COMPRA detectado (Setup 9.1).")
         _place_entry_order(s_state, candle_fechado, TradeSide.BUY, tick_size, symbol_info, all_rates, "9.1")

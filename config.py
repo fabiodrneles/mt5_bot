@@ -81,3 +81,9 @@ SETUP_92_EMA_AGAINST_LIMIT = 2
 
 # --- Persistencia ---
 STATE_FILE = "state.json"
+ 
+# --- Shutdown behavior ---
+# Default action on interactive shutdown: 'save-only' | 'wait-flat' | 'cancel-open'
+SHUTDOWN_DEFAULT_ACTION = 'save-only'
+# Maximum seconds to wait when using 'wait-flat' before forcing save and exit
+SHUTDOWN_WAIT_SECONDS = 600

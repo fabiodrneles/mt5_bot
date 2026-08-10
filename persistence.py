@@ -5,11 +5,26 @@ import logger
 import config
 
 
-state_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.STATE_FILE)
+def _get_data_dir():
+    """Retorna o diretório onde salvar arquivos de estado/trades.
+    Por padrão usa '%APPDATA%/mt5bot' no Windows ou '~/.mt5bot' em outros sistemas.
+    Isso evita gravar em site-packages onde o usuário não tem controle fácil e onde
+    arquivos podem ficar corrompidos após reinstalação.
+    """
+    appdata = os.getenv('APPDATA') or os.getenv('LOCALAPPDATA')
+    if appdata:
+        base = os.path.join(appdata, 'mt5bot')
+    else:
+        base = os.path.join(os.path.expanduser('~'), '.mt5bot')
+    try:
+        os.makedirs(base, exist_ok=True)
+    except Exception:
+        base = os.path.dirname(os.path.abspath(__file__))
+    return base
 
 
 def _get_path():
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), config.STATE_FILE)
+    return os.path.join(_get_data_dir(), config.STATE_FILE)
 
 def _json_default(obj):
     """Converte tipos numpy para tipos nativos do Python (serializaveis por JSON)."""
