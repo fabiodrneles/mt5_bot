@@ -72,7 +72,7 @@ TODO priorizado (próxima IA/humano)
 4. Configurar CI (GitHub Actions) para rodar `pytest` e lint (pre-commit).
 5. Gerar coverage e mirar >95% (usar `coverage run -m pytest` + `coverage html`).
 6. Expandir `README.md` com exemplos por comando e cenários.
-7. Publicar release v1.1.0 (tag + criar release no GitHub).
+7. Publicar release v1.1.0 (tag + criar release no GitHub) — feito.
 
 Notas de contexto rápido
 
