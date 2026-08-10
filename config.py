@@ -87,3 +87,18 @@ STATE_FILE = "state.json"
 SHUTDOWN_DEFAULT_ACTION = 'save-only'
 # Maximum seconds to wait when using 'wait-flat' before forcing save and exit
 SHUTDOWN_WAIT_SECONDS = 600
+
+# --- Gestao de Risco & Protecao de Capital ---
+DEFAULT_ACCOUNT_BALANCE = 10000.0
+MAX_RISK_PER_TRADE_PERCENT = 1.0       # Risco recomendado por operacao (1% do saldo)
+ABSOLUTE_MAX_TRADE_RISK_PERCENT = 1.5  # Corte absoluto: rejeita a ordem se exigir > 1.5% do saldo
+MAX_DAILY_LOSS_PERCENT = 2.0           # Perda maxima diaria (2% do saldo)
+MAX_SPREAD_POINTS = 50                 # Spread maximo permitido em pontos
+ENABLE_BREAKEVEN = True                # Ativar ajuste automatico para Breakeven
+BREAKEVEN_ATR_RATIO = 1.0              # Mover para Breakeven ao atingir 1x ATR de lucro
+
+# --- Horarios de Negociacao ---
+TRADING_HOURS_ENABLED = True
+TRADING_START_TIME = "09:15"
+TRADING_END_TIME = "16:45"
+FORCE_CLOSE_TIME = "17:30"

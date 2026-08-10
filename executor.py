@@ -87,13 +87,38 @@ def _send_order(request):
     return result
 
 
-def _place_stop_order(symbol, entry_price, sl_price, order_type, comment):
+def get_current_spread(symbol):
+    """Calcula o spread atual do símbolo em pontos."""
+    info = get_symbol_info(symbol)
+    if info is None:
+        return None
+    tick = mt5.symbol_info_tick(symbol)
+    if tick is None or tick.ask == 0 or tick.bid == 0:
+        return None
+    point = info.point if info.point > 0 else 0.00001
+    spread_points = int(round(abs(tick.ask - tick.bid) / point))
+    return spread_points
+
+
+def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume=None):
     """Função auxiliar centralizada para colocar ordens pendentes (BUY/SELL STOP)."""
     symbol_info = get_symbol_info(symbol)
     if symbol_info is None:
         return None
 
-    volume = _normalize_volume(config.VOLUME_INITIAL, symbol_info)
+    # FILTRO DE SPREAD:
+    if config.MAX_SPREAD_POINTS is not None:
+        current_spread = get_current_spread(symbol)
+        if current_spread is not None and current_spread > config.MAX_SPREAD_POINTS:
+            logger.warning(
+                f"[SPREAD FILTER REJECTED] Simbolo {symbol}: Spread atual ({current_spread} pts) "
+                f"excede o limite maximo de {config.MAX_SPREAD_POINTS} pontos."
+            )
+            return None
+
+    if volume is None:
+        volume = config.VOLUME_INITIAL
+    volume = _normalize_volume(volume, symbol_info)
     filling = _get_filling_type(symbol_info)
 
     request = {
@@ -112,22 +137,39 @@ def _place_stop_order(symbol, entry_price, sl_price, order_type, comment):
     return _send_order(request)
 
 
-def place_buy_stop(symbol, entry_price, sl_price):
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.1 Buy Stop")
+def place_buy_stop(symbol, entry_price, sl_price, volume=None):
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.1 Buy Stop", volume=volume)
 
 
-def place_sell_stop(symbol, entry_price, sl_price):
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.1 Sell Stop")
+def place_sell_stop(symbol, entry_price, sl_price, volume=None):
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.1 Sell Stop", volume=volume)
 
 
-def place_buy_stop_92(symbol, entry_price, sl_price):
+def place_buy_stop_92(symbol, entry_price, sl_price, volume=None):
     """Coloca ordem BUY STOP para Setup 9.2."""
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.2 Buy Stop")
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.2 Buy Stop", volume=volume)
 
 
-def place_sell_stop_92(symbol, entry_price, sl_price):
+def place_sell_stop_92(symbol, entry_price, sl_price, volume=None):
     """Coloca ordem SELL STOP para Setup 9.2."""
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.2 Sell Stop")
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.2 Sell Stop", volume=volume)
+
+
+def modify_position_sl(position_ticket, symbol, new_sl):
+    """Ajusta o Stop Loss de uma posição aberta existente (ex: para Breakeven)."""
+    symbol_info = get_symbol_info(symbol)
+    if symbol_info is None:
+        return None
+
+    request = {
+        "action": mt5.TRADE_ACTION_SLTP,
+        "position": position_ticket,
+        "symbol": symbol,
+        "sl": _format_price(new_sl, symbol_info),
+        "magic": config.MAGIC,
+    }
+    return _send_order(request)
+
 
 
 def cancel_order(order_ticket):

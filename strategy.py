@@ -5,6 +5,7 @@ import indicators
 import executor
 import persistence
 import tracker
+import risk_calculator
 from enum import Enum
 
 
@@ -270,7 +271,28 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
 
 
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):
-    """Coloca ordem de entrada (BUY ou SELL STOP) com ajuste ATR se necessario."""
+    """Coloca ordem de entrada (BUY ou SELL STOP) com ajuste ATR se necessario e controle de risco."""
+    # 1. FILTRO DE HORARIO DE NEGOCIACAO:
+    if not risk_calculator.is_within_trading_hours():
+        logger.warning(
+            f"[{s_state.symbol}] [TRADING HOURS REJECTED] Fora da janela operacional permitida "
+            f"({config.TRADING_START_TIME} as {config.TRADING_END_TIME}). Ordem nao enviada."
+        )
+        return
+
+    # 2. FILTRO DE PERDA MAXIMA DIARIA (DAILY MAX LOSS):
+    balance = risk_calculator.get_account_balance()
+    if config.MAX_DAILY_LOSS_PERCENT is not None:
+        daily_pnl = tracker.get_daily_pnl()
+        max_daily_loss_curr = balance * (config.MAX_DAILY_LOSS_PERCENT / 100.0)
+        if daily_pnl <= -max_daily_loss_curr:
+            logger.warning(
+                f"[{s_state.symbol}] [DAILY MAX LOSS SHIELD] Limite de perda diaria (R$ {abs(daily_pnl):.2f}) "
+                f"atingiu o teto maximo de {config.MAX_DAILY_LOSS_PERCENT}% do saldo (R$ {max_daily_loss_curr:.2f}). "
+                f"Novas ordens bloqueadas hoje."
+            )
+            return
+
     s_state.candle_referencia = candle_ref
     s_state.partial_exit_done = False  # Reset para nova entrada (importante para 9.2)
 
@@ -284,31 +306,46 @@ def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_ra
     # Ajuste ATR dinamico no stop
     sl_price = _apply_atr_adjustment(s_state.symbol, entry_price, sl_price, all_rates)
 
+    # 3. CALCULADORA DE RISCO & DIMENSIONAMENTO DINAMICO DE LOTE:
+    volume, risk_curr, is_safe, reason = risk_calculator.calculate_position_size(
+        symbol=s_state.symbol,
+        entry_price=entry_price,
+        sl_price=sl_price,
+        balance=balance,
+    )
+    if not is_safe:
+        logger.warning(f"[{s_state.symbol}] {reason}")
+        return
+
     s_state.entry_price = entry_price
     s_state.sl_price = sl_price
 
     if side == TradeSide.BUY:
         if setup_type == "9.2":
-            result = executor.place_buy_stop_92(s_state.symbol, entry_price, sl_price)
+            result = executor.place_buy_stop_92(s_state.symbol, entry_price, sl_price, volume=volume)
         else:
-            result = executor.place_buy_stop(s_state.symbol, entry_price, sl_price)
+            result = executor.place_buy_stop(s_state.symbol, entry_price, sl_price, volume=volume)
     else:
         if setup_type == "9.2":
-            result = executor.place_sell_stop_92(s_state.symbol, entry_price, sl_price)
+            result = executor.place_sell_stop_92(s_state.symbol, entry_price, sl_price, volume=volume)
         else:
-            result = executor.place_sell_stop(s_state.symbol, entry_price, sl_price)
+            result = executor.place_sell_stop(s_state.symbol, entry_price, sl_price, volume=volume)
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
         s_state.pending_order_ticket = result.order
         s_state.state = State.SIGNAL_READY
         s_state.position_type = side
         s_state.setup_type = setup_type
-        logger.info(f"[{s_state.symbol}] Ordem {side.name} STOP colocada ({setup_type}). "
-                    f"Ticket={result.order} Entry={entry_price} SL={sl_price}")
+        logger.info(
+            f"[{s_state.symbol}] Ordem {side.name} STOP colocada ({setup_type}). "
+            f"Ticket={result.order} Entry={entry_price} SL={sl_price} Volume={volume} (Risco: R$ {risk_curr:.2f})"
+        )
         _save_states()
     else:
-        logger.error(f"[{s_state.symbol}] Falha ao colocar ordem {side.name} STOP. "
-                     f"Retcode: {result.retcode if result else 'N/A'}")
+        logger.error(
+            f"[{s_state.symbol}] Falha ao colocar ordem {side.name} STOP. "
+            f"Retcode: {result.retcode if result else 'N/A'}"
+        )
 
 
 def _apply_atr_adjustment(symbol, entry_price, sl_price, all_rates):
@@ -405,6 +442,32 @@ def _handle_in_position(s_state, ema9_values, current_close, candle_fechado, sym
 
     position = our_positions[0]
     current_volume = position.volume
+
+    # --- BREAKEVEN AUTOMATICO ---
+    if config.ENABLE_BREAKEVEN and s_state.entry_price and s_state.position_ticket:
+        atr_data = indicators.get_atr_ratio(all_rates)
+        if atr_data:
+            atr_val = atr_data[0]
+            trigger_distance = atr_val * config.BREAKEVEN_ATR_RATIO
+            current_sl = getattr(position, "sl", 0.0) or 0.0
+
+            if s_state.position_type == TradeSide.BUY:
+                gain = current_close - s_state.entry_price
+                if gain >= trigger_distance and current_sl < s_state.entry_price:
+                    logger.info(
+                        f"[{s_state.symbol}] [BREAKEVEN ACTIVATED] Ganho de {gain:.5f} atingiu {config.BREAKEVEN_ATR_RATIO}x ATR ({trigger_distance:.5f}). "
+                        f"Ajustando SL para preco de entrada ({s_state.entry_price:.5f})."
+                    )
+                    executor.modify_position_sl(s_state.position_ticket, s_state.symbol, s_state.entry_price)
+            elif s_state.position_type == TradeSide.SELL:
+                gain = s_state.entry_price - current_close
+                if gain >= trigger_distance and (current_sl > s_state.entry_price or current_sl == 0.0):
+                    logger.info(
+                        f"[{s_state.symbol}] [BREAKEVEN ACTIVATED] Ganho de {gain:.5f} atingiu {config.BREAKEVEN_ATR_RATIO}x ATR ({trigger_distance:.5f}). "
+                        f"Ajustando SL para preco de entrada ({s_state.entry_price:.5f})."
+                    )
+                    executor.modify_position_sl(s_state.position_ticket, s_state.symbol, s_state.entry_price)
+
 
     # --- SAIDA PARCIAL ---
     if config.PARTIAL_EXIT_ENABLED and not s_state.partial_exit_done and s_state.candle_referencia and s_state.entry_price:

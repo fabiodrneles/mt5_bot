@@ -2,6 +2,7 @@
 Rastreador de operacoes — registra todas as entradas/saidas e calcula performance.
 Salva historico em trades.json para relatorio financeiro.
 """
+from typing import Optional
 import json
 import os
 from datetime import datetime, timezone
@@ -174,6 +175,27 @@ def record_exit(ticket, exit_price, result="win"):
 def get_all_trades():
     """Retorna todos os trades."""
     return _load_trades()
+
+
+def get_daily_pnl(target_date: Optional[str] = None) -> float:
+    """Calcula o PnL liquido acumulado em dinheiro das operacoes encerradas no dia especifico (YYYY-MM-DD)."""
+    if target_date is None:
+        target_date = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
+        
+    trades = _load_trades()
+    daily_pnl = 0.0
+    
+    for trade in trades:
+        exit_time = trade.get("exit_time")
+        if exit_time and str(exit_time).startswith(target_date):
+            pnl_money = trade.get("pnl_money")
+            if pnl_money is not None:
+                daily_pnl += float(pnl_money)
+            else:
+                pnl_pips = trade.get("pnl_pips", 0.0) or 0.0
+                daily_pnl += float(pnl_pips)
+                
+    return round(daily_pnl, 2)
 
 
 def get_open_trades():

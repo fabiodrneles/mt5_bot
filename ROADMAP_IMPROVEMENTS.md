@@ -13,7 +13,7 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 | Fase | Descrição | Status |
 | :--- | :--- | :---: |
-| **Fase 1 (Opção A)** | **Gestão de Risco Avançada, Calculadora de Capital & Proteção Total** | 🟡 **Em Progresso** |
+| **Fase 1 (Opção A)** | **Gestão de Risco Avançada, Calculadora de Capital & Proteção Total** | 🟢 **CONCLUÍDO** |
 | **Fase 2 (Opção C)** | **Expansão de Estratégia & Filtros de Entrada Rigorosos** | ⏳ PENDENTE |
 | **Fase 3 (Opção D)** | **Infraestrutura, CI/CD & Automação de Testes** | ⏳ PENDENTE |
 | **Fase 4 (Opção B)** | **Telemetria & Notificações (Telegram / Discord)** | ⏳ PENDENTE (Pausado por opção do usuário) |
@@ -22,27 +22,27 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 ## 🛡️ Fase 1: Gestão de Risco Avançada & Calculadora de Capital (Opção A)
 
-- [ ] **1.1 Calculadora Interna de Proteção de Capital (*Dynamic Risk & Lot Sizer*)**
+- [x] **1.1 Calculadora Interna de Proteção de Capital (*Dynamic Risk & Lot Sizer*)**
   - Consulta o saldo em tempo real no MT5 (`account_info().balance`).
-  - Calcula o risco máximo seguro por operação em percentual do saldo (`RISK_PER_TRADE_PERCENT`, ex: 1.0%).
+  - Calcula o risco máximo seguro por operação em percentual do saldo (`MAX_RISK_PER_TRADE_PERCENT`, ex: 1.0%).
   - Calcula o lote/volume ideal dinamicamente baseado na distância do Stop Loss.
   - **Filtro de Segurança Máxima**: Se a distância do Stop Loss exigir um risco superior ao limite seguro do capital (ex: > 1.5% do saldo), a operação é **bloqueada imediatamente**.
 
-- [ ] **1.2 Trava de Perda Máxima Diária Dinâmica (*Daily Max Loss*)**
-  - Adicionar configuração `MAX_DAILY_LOSS_PERCENT` em `config.py` (ex: 2.0% ou 3.0% do saldo total).
+- [x] **1.2 Trava de Perda Máxima Diária Dinâmica (*Daily Max Loss*)**
+  - Adicionar configuração `MAX_DAILY_LOSS_PERCENT` em `config.py` (ex: 2.0% do saldo total).
   - Calcular PnL acumulado do dia atual no `tracker.py`.
   - Bloquear abertura de novas posições quando o limite diário em R$ / % for atingido.
 
-- [ ] **1.3 Filtro de Spread Máximo (*Max Spread Filter*)**
+- [x] **1.3 Filtro de Spread Máximo (*Max Spread Filter*)**
   - Adicionar configuração `MAX_SPREAD_POINTS` em `config.py`.
   - Validar o spread do símbolo em `executor.py` antes de posicionar ordens pendentes.
 
-- [ ] **1.4 Breakeven Automático**
+- [x] **1.4 Breakeven Automático**
   - Adicionar configuração `ENABLE_BREAKEVEN` e `BREAKEVEN_ATR_RATIO` em `config.py`.
   - Atualizar o Stop Loss em `strategy.py` / `executor.py` para o preço de entrada assim que atingir a meta parcial/ATR.
 
-- [ ] **1.5 Filtro de Horário de Negociação (*Trading Session Filter*)**
-  - Adicionar `START_TIME` ("09:15"), `END_TIME` ("16:45") e `FORCE_CLOSE_TIME` ("17:30") em `config.py`.
+- [x] **1.5 Filtro de Horário de Negociação (*Trading Session Filter*)**
+  - Adicionar `TRADING_HOURS_ENABLED`, `START_TIME` ("09:15"), `END_TIME` ("16:45") e `FORCE_CLOSE_TIME` ("17:30") em `config.py`.
   - Impedir novas entradas fora do horário permitido.
 
 ---
