@@ -28,4 +28,4 @@ dev = [
 mt5bot = "main:main"
 
 [tool.setuptools]
-py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "tui", "dashboard", "tracker"]
+py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "tui", "dashboard", "tracker", "risk_calculator"]
