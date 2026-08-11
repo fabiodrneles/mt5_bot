@@ -7,7 +7,8 @@ Este arquivo contém passos claros, comandos e um TODO priorizado para que outra
 Passos iniciais mínimos
 
 1. Abrir o workspace em `c:\Users\Gamer\mt5_bot-main`.
-2. Garantir Python 3.10+ instalado. Recomendado usar o mesmo interpretador usado localmente.
+2. **PRIMEIRO, ler `AGENTS.md` e `memoria/README.md`** — eles explicam o projeto e a memória permanente RAG.
+3. Garantir Python 3.10+ instalado. Recomendado usar o mesmo interpretador usado localmente.
 3. Instalar dependências de dev:
 
 ```powershell
@@ -41,6 +42,9 @@ Use este arquivo se perder contato com o assistente: ele contém o plano complet
 
 Arquivos importantes
 
+- `AGENTS.md` — ponto de entrada canônico para IA (leia primeiro).
+- `memoria/README.md` — memória permanente RAG (como consultar/atualizar).
+- `memoria/wiki/` — conhecimento destilado (setups Palex, arquitetura).
 - `README.md` — guia de usuário e comandos principais.
 - `ARCHITECTURE.md` — documentação técnica completa.
 - `ARCHITECTURE_RECENT.md` — mudanças recentes v1.1.0 (resumo técnico).

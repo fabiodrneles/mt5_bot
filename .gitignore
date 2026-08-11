@@ -15,3 +15,5 @@ venv/
 build/
 .coverage
 coverage_html/
+# Indice RAG gerado (regenera via build_memory.py)
+memoria/index/

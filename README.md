@@ -6,6 +6,12 @@
 > **Filosofia de Proteção ao Capital**:
 > *"O bot não busca ganhos desmedidos; o objetivo central é proteger o patrimônio, perder cada vez menos e autorizar ordens somente quando o risco for estritamente controlado e proporcional ao saldo da conta."*
 
+> [!TIP]
+> **Para IAs e desenvolvedores que estudam o projeto**: o repositório mantém uma **memória permanente RAG** (`memoria/`) com os livros do Palex, a conversa de arquitetura e o conhecimento destilado dos setups. Comece por [`AGENTS.md`](AGENTS.md) e [`memoria/README.md`](memoria/README.md). Consulte via:
+> ```powershell
+> python memoria\scripts\query_memory.py "regras do setup 9.4 falso recuo"
+> ```
+
 Bot de trading automatizado para MetaTrader 5 que opera com disciplina absoluta enquanto você foca no que importa. Baseado nos Setups 9.1 e 9.2 de Palex (Larry Williams), com inteligência de volatilidade que adapta cada operação ao momento real do mercado.
 
 ---
