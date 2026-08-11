@@ -75,8 +75,8 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 - [x] **3.1 GitHub Actions CI/CD Pipeline**
   - Workflow único `.github/workflows/ci.yml`: job `test-python` (pytest com numpy/pandas, sem instalar MetaTrader5) + job `test-go` (`go vet` + `go test` no `maestro/`). Dispara em push (main/develop/feat/**) e PRs. Workflows legados `pytest.yml`/`test_pipeline.yml` removidos (quebrados/duplicados).
-- [ ] **3.2 Expansão de Cobertura de Testes**
-  - Criar novos testes unitários para `tracker.py` e `dashboard.py` visando >85% de cobertura total.
+- [x] **3.2 Expansão de Cobertura de Testes**
+  - Novos testes unitários para `tracker.py` e `dashboard.py`. `tracker.py` subiu de 37% → **94%** (18 testes: `_load_trades` com arquivo ausente/JSON corrompido, `record_partial_exit`, `record_exit` loss/breakeven/SELL, `_calculate_pnl_money` com e sem MT5, `get_open_trades`, `get_daily_pnl` por data, `get_performance_summary` completo/vazio/profit_factor infinito, `print_report`, `_save_trades` com datetime). `dashboard.py` subiu de 59% → **100%** (16 testes: handler GET report/api/404, POST save válido/inválido, `_page_config_saved`, loops por símbolo/setup, histórico, `_find_free_port` com fallback, `open_config`/`open_report` com eventos fake). Total: **129 testes verdes**.
 
 ---
 

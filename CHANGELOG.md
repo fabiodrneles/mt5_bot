@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.8.2 — 2026-08-11
+
+Principais mudanças:
+
+- **Expansão de cobertura de testes (ROADMAP 3.2)**:
+  - `tracker.py`: 37% → **94%** (14 testes novos). Cobertos: `_load_trades` (arquivo ausente/JSON corrompido), `record_partial_exit`, `record_exit` (loss/breakeven/SELL com pnl_final override), `_calculate_pnl_money` (caminho com MT5 mockado e fallback None), `get_open_trades`, `get_daily_pnl` (filtro por data + fallback pips), `get_performance_summary` (completo com sequências/drawdown por-symbol/por-setup; caso vazio; profit factor infinito), `print_report` (sem trades, com pnl_money, fallback pips) e `_save_trades` com datetime.
+  - `dashboard.py`: 59% → **100%** (11 testes novos). Cobertos: `_find_free_port` (porta livre e fallback por OSError), `_page_config_saved`, `_page_report` com dados e vazio, handler GET (`/report`, `/api/summary`, 404), handler POST `/config/save` (aplicação dos valores máximos mínimos + caso inválido com defaults), POST 404, `log_message` silencioso, `open_config` e `open_report` (com eventos/browser mockados).
+  - Total da suíte: **129 testes verdes**.
+  - Bump de versão para `1.8.2`.
+
 ## v1.8.1 — 2026-08-11
 
 Principais mudanças:
