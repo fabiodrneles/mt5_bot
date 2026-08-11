@@ -65,38 +65,31 @@ func main() {
 				continue
 			}
 
-			parts := strings.Split(line, " ")
-			cmd := strings.ToLower(parts[0])
+			cmd := parseCommand(line)
 
-			switch cmd {
-			case "/add":
-				if len(parts) < 2 {
+			switch cmd.Name {
+			case "add":
+				if cmd.Symbol == "" {
 					fmt.Println(ColorRed + "Uso: /add <ativo> [timeframe] - Ex: /add WIN M5" + ColorReset)
 					continue
 				}
-				sym := strings.ToUpper(parts[1])
-				tf := "H1" // default
-				if len(parts) > 2 {
-					tf = strings.ToUpper(parts[2])
-				}
-				worker := NewPythonWorker(sym, tf)
+				worker := NewPythonWorker(cmd.Symbol, cmd.Timeframe)
 				manager.Add(worker)
 				go worker.Start()
-				fmt.Printf(ColorGreen+"Worker iniciado para %s (%s)"+ColorReset+"\n", sym, tf)
+				fmt.Printf(ColorGreen+"Worker iniciado para %s (%s)"+ColorReset+"\n", cmd.Symbol, cmd.Timeframe)
 
-			case "/stop", "/remove":
-				if len(parts) < 2 {
+			case "stop":
+				if cmd.Symbol == "" {
 					fmt.Println(ColorRed + "Uso: /stop <ativo> - Ex: /stop WIN" + ColorReset)
 					continue
 				}
-				sym := strings.ToUpper(parts[1])
-				if manager.Remove(sym) {
-					fmt.Printf(ColorGreen+"Worker de %s encerrado com sucesso."+ColorReset+"\n", sym)
+				if manager.Remove(cmd.Symbol) {
+					fmt.Printf(ColorGreen+"Worker de %s encerrado com sucesso."+ColorReset+"\n", cmd.Symbol)
 				} else {
-					fmt.Printf(ColorRed+"Worker de %s nao encontrado."+ColorReset+"\n", sym)
+					fmt.Printf(ColorRed+"Worker de %s nao encontrado."+ColorReset+"\n", cmd.Symbol)
 				}
 
-			case "/list":
+			case "list":
 				workers := manager.List()
 				if len(workers) == 0 {
 					fmt.Println(ColorDim + "Nenhum worker ativo no momento." + ColorReset)
@@ -107,21 +100,21 @@ func main() {
 					fmt.Printf(" - %s (Timeframe: %s)\n", w.Symbol, w.Timeframe)
 				}
 
-			case "/report":
+			case "report":
 				fmt.Println(ColorDim + "Gerando relatorio de performance..." + ColorReset)
-				cmd := exec.Command("python", "../tracker.py", "--report")
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				cmd.Run()
+				cmdPy := exec.Command("python", "../tracker.py", "--report")
+				cmdPy.Stdout = os.Stdout
+				cmdPy.Stderr = os.Stderr
+				cmdPy.Run()
 
-			case "/dashboard":
+			case "dashboard":
 				fmt.Println(ColorDim + "Abrindo Web Dashboard..." + ColorReset)
-				cmd := exec.Command("python", "../dashboard.py")
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				cmd.Start()
+				cmdPy := exec.Command("python", "../dashboard.py")
+				cmdPy.Stdout = os.Stdout
+				cmdPy.Stderr = os.Stderr
+				cmdPy.Start()
 
-			case "/help":
+			case "help":
 				fmt.Println(ColorBold + "Comandos disponiveis:" + ColorReset)
 				fmt.Println("  /add <ativo> [tf] - Adiciona e inicia um ativo. Ex: /add WIN M5")
 				fmt.Println("  /stop <ativo>     - Para a operacao em um ativo.")
@@ -133,15 +126,14 @@ func main() {
 				fmt.Println("  /quit wait-flat   - Aguarda zerar posicao para desligar.")
 				fmt.Println("  /quit close-all   - [PANIC] Liquida todas as posicoes a mercado.")
 
-			case "/quit", "/exit", "exit":
+			case "quit":
 				fmt.Println(ColorOrange + "Iniciando processo de shutdown..." + ColorReset)
-				
-				if len(parts) > 1 {
-					action := strings.ToLower(parts[1])
-					fmt.Printf(ColorDim+"Acao solicitada: %s"+ColorReset+"\n", action)
-					
+
+				if cmd.Action != "" {
+					fmt.Printf(ColorDim+"Acao solicitada: %s"+ColorReset+"\n", cmd.Action)
+
 					// Spawn the python shutdown manager
-					shutdownCmd := exec.Command("python", "../brain/shutdown_manager.py", action)
+					shutdownCmd := exec.Command("python", "../brain/shutdown_manager.py", cmd.Action)
 					shutdownCmd.Stdout = os.Stdout
 					shutdownCmd.Stderr = os.Stderr
 					err := shutdownCmd.Run()
@@ -151,12 +143,12 @@ func main() {
 				} else {
 					fmt.Println(ColorDim + "Nenhuma acao especial. Mantendo posicoes no MT5 e encerrando local..." + ColorReset)
 				}
-				
+
 				sigChan <- syscall.SIGINT
 				return
 
 			default:
-				fmt.Printf(ColorRed+"Comando desconhecido: %s. Digite /help"+ColorReset+"\n", cmd)
+				fmt.Printf(ColorRed+"Comando desconhecido: %s. Digite /help"+ColorReset+"\n", strings.TrimSpace(line))
 			}
 		}
 	}()

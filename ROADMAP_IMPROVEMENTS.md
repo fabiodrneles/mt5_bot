@@ -80,6 +80,17 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 ---
 
+## 🚀 Fase 3 (spec) — Maestro Golang: resiliência & testes
+
+- [x] **3.3 Crash Loop Protection (spec 6.4)**
+  - `recordFailure` com janela de 2 minutos: **3 falhas → worker desligado** (`[MAESTRO] CRASH LOOP: worker desligado para proteger a banca`), mantido desligado até comando manual.
+- [x] **3.4 CLI testável (spec 6.4/6.6)**
+  - `maestro/cli.go`: `parseCommand` extraído e testável; `main.go` refatorado para consumi-lo sem mudança de comportamento.
+- [x] **3.5 Testes Go (spec 6.6)**
+  - `main_test.go`: parsing da CLI (add/stop/list/quit/exit) + `recordFailure` (limite de 3, janela expirada, disable persistente). Suite `go test ./...` verde.
+
+---
+
 ## 📲 Fase 4: Telemetria & Notificações (Opção B)
 
 - [ ] **4.1 Bot do Telegram**

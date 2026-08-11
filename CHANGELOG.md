@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.8.0 — 2026-08-11
+
+Principais mudanças:
+
+- **Maestro Go — Crash Loop Protection (spec 6.4)**:
+  - Novos campos `crashFirst`/`crashCount`/`disabled` no worker; `recordFailure` contabiliza falhas em janela de 2 minutos e desliga o worker após **3 falhas** (`[MAESTRO] CRASH LOOP: worker desligado para proteger a banca`), mantendo-o desligado até comando manual.
+- **CLI extraída e testável (`maestro/cli.go`)**:
+  - `parseCommand` converte a linha digitada em `Command` normalizado (`add/stop/list/report/dashboard/help/quit`); `main.go` refatorado para consumi-la, preservando todas as mensagens e comportamentos originais.
+- **Testes Go (spec 6.6)**:
+  - `main_test.go`: table-driven para parsing da CLI (add com/sem timeframe, stop/remove, quit com ações `cancel-open`/`wait-flat`/`close-all`, exit, linha vazia, desconhecido) e `recordFailure` (limite de 3, janela expirada reinicia, disable persistente).
+- **101 testes Python verdes** (inalterados) + suite Go `ok`.
+- Bump de versão para `1.8.0`.
+
 ## v1.7.0 — 2026-08-11
 
 Principais mudanças:

@@ -19,6 +19,11 @@ type PythonWorker struct {
 	mu        sync.Mutex
 	stopChan  chan struct{}
 	lastPong  time.Time
+
+	// Crash Loop Protection (spec 6.4)
+	crashFirst time.Time // instante da 1a falha dentro da janela de observacao
+	crashCount int       // falhas na janela
+	disabled   bool      // desligado apos 3 falhas em <2min (ate comando manual)
 }
 
 type WorkerManager struct {
@@ -84,9 +89,17 @@ func (w *PythonWorker) Start() {
 	for {
 		err := w.runProcess()
 		if err != nil {
+			// Crash Loop Protection (spec 6.4): 3 falhas em <2 min -> desliga
+			w.mu.Lock()
+			disable := w.recordFailure(time.Now())
+			w.mu.Unlock()
+			if disable {
+				log.Printf("[MAESTRO] CRASH LOOP: worker %s desligado para proteger a banca", w.Symbol)
+				return
+			}
 			log.Printf("[MAESTRO] Worker %s caiu: %v. Reiniciando em 5 segundos...", w.Symbol, err)
 		}
-		
+
 		select {
 		case <-w.stopChan:
 			log.Printf("[MAESTRO] Worker %s parado definitivamente.", w.Symbol)
@@ -95,6 +108,29 @@ func (w *PythonWorker) Start() {
 			// loop continues, restarting process
 		}
 	}
+}
+
+// recordFailure registra uma falha do processo na janela de observacao de
+// 2 minutos. Retorna true quando a protecao de crash loop dispara (3 falhas).
+// Chamada apenas sob w.mu. Uma vez desligado, permanece desligado.
+func (w *PythonWorker) recordFailure(now time.Time) bool {
+	if w.disabled {
+		return true
+	}
+	if w.crashCount == 0 {
+		w.crashFirst = now
+	}
+	// Janela expirou: reinicia a contagem a partir desta falha.
+	if now.Sub(w.crashFirst) > 2*time.Minute {
+		w.crashFirst = now
+		w.crashCount = 0
+	}
+	w.crashCount++
+	if w.crashCount >= 3 {
+		w.disabled = true
+		return true
+	}
+	return false
 }
 
 func (w *PythonWorker) Stop() {
