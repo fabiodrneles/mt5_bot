@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"log"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ type PythonWorker struct {
 	isRunning bool
 	mu        sync.Mutex
 	stopChan  chan struct{}
+	lastPong  time.Time
 }
 
 type WorkerManager struct {
@@ -117,16 +119,17 @@ func (w *PythonWorker) runProcess() error {
 	}
 	
 	// Pass stderr to OS so we can see Python logs in the console
-	w.cmd.Stderr = w.cmd.Stderr 
+	w.cmd.Stderr = os.Stderr
 
 	if err := w.cmd.Start(); err != nil {
 		return err
 	}
 
 	w.isRunning = true
+	w.lastPong = time.Now()
 	log.Printf("[MAESTRO] Processo Python (Brain) iniciado para %s [PID: %d]", w.Symbol, w.cmd.Process.Pid)
 
-	// Inicia a goroutine de Heartbeat (Ping)
+	// Inicia a goroutine de Heartbeat (Ping) e Watchdog
 	go w.heartbeatLoop()
 
 	// Leitura do Stdout (respostas do Python)
@@ -151,6 +154,9 @@ func (w *PythonWorker) handleResponse(line string) {
 	// Tratar Pong
 	if pong, ok := resp["pong"]; ok && pong.(bool) {
 		// Heartbeat recebido, o worker ta vivo
+		w.mu.Lock()
+		w.lastPong = time.Now()
+		w.mu.Unlock()
 		return
 	}
 	
@@ -159,7 +165,7 @@ func (w *PythonWorker) handleResponse(line string) {
 }
 
 func (w *PythonWorker) heartbeatLoop() {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -169,6 +175,18 @@ func (w *PythonWorker) heartbeatLoop() {
 
 		select {
 		case <-ticker.C:
+			w.mu.Lock()
+			timeSincePong := time.Since(w.lastPong)
+			w.mu.Unlock()
+			
+			if timeSincePong > 3*time.Second {
+				log.Printf("[MAESTRO] [%s] WATCHDOG TIMEOUT (3s sem pong). Matando processo...", w.Symbol)
+				if w.cmd != nil && w.cmd.Process != nil {
+					w.cmd.Process.Kill()
+				}
+				return
+			}
+
 			w.sendCommand(map[string]interface{}{
 				"ping": true,
 			})

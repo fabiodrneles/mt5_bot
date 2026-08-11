@@ -6,7 +6,7 @@ Este documento explica toda a arquitetura, logica de negocios, fluxo de dados e 
 
 ## 1. O que e este sistema
 
-Bot de trading automatizado para MetaTrader 5 (MT5). Opera no timeframe H1 usando dois setups tecnicos (9.1 e 9.2 de Palex/Larry Williams) com gestao de risco adaptativa. O bot:
+Bot de trading automatizado para MetaTrader 5 (MT5). Opera no timeframe H1 usando dois setups tecnicos (9.1 e 9.2 de Larry Williams) com gestao de risco adaptativa. O bot:
 
 1. Conecta ao terminal MT5 via API Python
 2. Monitora candles H1 a cada 10 segundos

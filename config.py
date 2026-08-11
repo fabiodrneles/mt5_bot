@@ -76,6 +76,41 @@ SCAN_INTERVAL_SECONDS = 5
 RETRY_INTERVAL_SECONDS = 5
 RATES_COUNT = 300
 
+# --- Filtro de Volume Relativo (RVOL) ---
+RVOL_FILTER_ENABLED = True
+RVOL_LOOKBACK = 20
+RVOL_THRESHOLD = 1.15
+
+# --- Filtros do Maestro Fase 2 ---
+CONFIG_SETUPS = {
+    "9.1": True,
+    "9.2": True,
+    "9.3": True,
+    "9.4": True,
+    "PC": True,
+    "FFFD": True,
+    "GAP": True,
+    "DiNapoli": True,
+    "IFR2": True,
+    "SAR": True,
+    "RompFalso": True
+}
+MIN_RISK_REWARD = 1.0
+SCORE_WEIGHTS = {
+    "rrr": 30.0,
+    "congruencia_macro": 25.0,
+    "proximidade_media": 20.0,
+    "volume": 25.0,
+    "ifr9": 10.0,
+    "vwap": 10.0,
+}
+
+# --- Filtros macro Fase 2.5 ---
+MM50_ENABLED = True
+IFR9_ENABLED = True
+VWAP_ENABLED = True
+VWAP_MAX_DEVIATION_ATR = 2.0
+
 # --- Setup 9.2 ---
 SETUP_92_ENABLED = True
 SETUP_92_MAX_CANDLES_WATCHING = 10
@@ -98,6 +133,12 @@ MAX_DAILY_LOSS_PERCENT = 2.0
 MAX_SPREAD_POINTS = 50
 ENABLE_BREAKEVEN = True
 BREAKEVEN_ATR_RATIO = 1.0
+
+# --- Posicoes externas (entradas manuais do usuario no MT5) ---
+# Se True, o bot adota posicoes abertas manualmente no mesmo simbolo,
+# registra no tracker (setup "MANUAL") e passa a guiar alvo/stop.
+MANAGE_EXTERNAL_POSITIONS = True
+EXTERNAL_POSITION_SETUP_NAME = "MANUAL"
 
 # --- Horarios de Negociacao ---
 TRADING_HOURS_ENABLED = True

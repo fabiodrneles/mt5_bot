@@ -1,5 +1,35 @@
 # Changelog
 
+## v1.7.0 — 2026-08-11
+
+Principais mudanças:
+
+- **Filtros macro Fase 2.5 (`brain/indicators.py`)**:
+  - `calculate_vwap` — VWAP ancorado por dia de negociação (fallback janela deslizante).
+  - `check_mm50_filter` / `check_ifr9_filter` / `check_vwap_filter` — todos com fallback permissivo (`True`) e flags em `config.py` (`MM50_ENABLED`, `IFR9_ENABLED`, `VWAP_ENABLED`, `VWAP_MAX_DEVIATION_ATR`).
+- **Alvos por Extensão de Fibonacci**:
+  - `swing_levels` + `fib_extension_targets` (1.0x e 1.618x da amplitude) para setups que não definem alvo próprio.
+- **Motor de decisão (`brain/scoring.py`)**:
+  - `calcular_score` com veto (MM50/VWAP/MTF contra) e bônus (IFR9 saindo de exaustão, toque na VWAP).
+  - `aplicar_scoring` com gate RRR (`MIN_RISK_REWARD`) e ordenação por score; executa apenas o 1º candidato.
+- **Filtro MTF integrado ao scoring**:
+  - `execution_manager` pré-computa `check_mtf_trend` uma vez por side e injeta no scoring como veto por-setup (antes era abort pós-ranking, derrubando todo o scan).
+- **Modo Assistência: Posições Externas**:
+  - O bot adota posições abertas manualmente no MT5, guia stop (breakeven/trailing EMA9) e alvo (parcial 50%), com reconciliação automática (`MANAGE_EXTERNAL_POSITIONS`).
+- **Watchdog no Maestro Go**: `lastPong` rastreado por worker; stderr do Python roteado ao OS (`maestro/worker.go`).
+- **89 testes verdes** (antes 84; +5 de MTF no scoring).
+- Bump de versão para `1.7.0`.
+
+## v1.6.0 — 2026-08-11
+
+Principais mudanças:
+
+- **Motor multi-setup (`brain/setups.py` + `CONFIG_SETUPS`)**: GAP, 9.1, 9.2, 9.3, 9.4, Ponto Contínuo (PC), FFFD, DiNapoli, IFR2, SAR, Rompimento Falso, com filtro macro SMA200.
+- **Arquitetura Híbrida Maestro Go + Cérebro Python**: `brain/main.py` e `brain/shutdown_manager.py` como entry points dos workers; `brain/execution_manager.py` orquestra o ciclo (scoring, risco, execução).
+- **Memória permanente RAG** (`memoria/`) baseada nos livros-fonte, com indexador e consulta BM25 em stdlib.
+- **Spec de design** em `docs/superpowers/specs/2026-08-11-mt5-multi-setup-maestro-design.md`.
+- Bump de versão para `1.6.0`.
+
 ## v1.5.2 — 2026-08-11
 
 Principais mudanças:

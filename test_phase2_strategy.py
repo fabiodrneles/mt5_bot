@@ -1,7 +1,6 @@
 import pytest
 import config
 import indicators
-import strategy
 
 def test_calculate_rvol_real_volume():
     """Calcula RVOL corretamente usando real_volume."""
@@ -62,39 +61,3 @@ def test_check_mtf_trend_buy(monkeypatch):
     monkeypatch.setattr(mt5, "copy_rates_from_pos", mock_copy_rates)
     mtf_ok = indicators.check_mtf_trend("EURUSD", "M15", "BUY")
     assert mtf_ok is True
-
-import MetaTrader5 as mt5
-
-def reset_state(symbol='TESTSYM'):
-    strategy.symbol_states[symbol] = strategy.SymbolState(symbol)
-    if hasattr(mt5, "_mock_positions"):
-        mt5._mock_positions = []
-    if hasattr(mt5, "_mock_orders"):
-        mt5._mock_orders = []
-    return strategy.symbol_states[symbol]
-
-from test_strategy import make_ema9_virou_cima
-
-def test_rvol_rejection_in_strategy(monkeypatch):
-    """Ordem e rejeitada quando RVOL esta abaixo do limiar (1.15x)."""
-    monkeypatch.setattr(config, "RVOL_FILTER_ENABLED", True)
-    monkeypatch.setattr(indicators, "calculate_rvol", lambda *a, **k: (0.80, 800.0, 1000.0))
-    s_state = reset_state()
-    rates = make_ema9_virou_cima()
-    candle = rates[-1]
-    strategy.evaluate('TESTSYM', candle, rates)
-    assert s_state.state == strategy.State.SCANNING
-
-def test_mtf_rejection_in_strategy(monkeypatch):
-    """Ordem e rejeitada quando o Filtro MTF nao confirma a tendencia."""
-    monkeypatch.setattr(config, "MTF_FILTER_ENABLED", True)
-    monkeypatch.setattr(indicators, "check_mtf_trend", lambda *a, **k: False)
-    s_state = reset_state()
-    rates = make_ema9_virou_cima()
-    candle = rates[-1]
-    strategy.evaluate('TESTSYM', candle, rates)
-    assert s_state.state == strategy.State.SCANNING
-
-
-
-

@@ -57,6 +57,14 @@ Este documento registra o planejamento e o status de implementação das melhori
   - Implementar lógica de dois candles consecutivos de correção sem virada de média.
 - [x] **2.3 Filtro de Volume Relativo (RVOL)**
   - Validar volume acima da média das últimas $N$ velas antes da entrada (`RVOL_THRESHOLD = 1.15`).
+- [x] **2.4 Filtro Macro MM50**
+  - Compras só com preço acima da MM50; vendas só abaixo (`MM50_ENABLED`). Integrado no scoring como veto (`mm50_favoravel`).
+- [x] **2.5 Filtro IFR(9) de Exaustão**
+  - Compra confirmada quando IFR9 sai da zona de sobrevenda (≤30 subindo); venda espelha na sobrecompra (≥70 caindo). Bônus de score (`ifr9_favoravel`).
+- [x] **2.6 Filtro VWAP Intraday**
+  - `calculate_vwap` (âncora diária) + veto quando preço estica além de `VWAP_MAX_DEVIATION_ATR`; toque na VWAP (≤0.5 ATR) dá bônus (`vwap_favoravel`/`vwap_toque`).
+- [x] **2.7 Alvos por Extensão de Fibonacci**
+  - `swing_levels` (swing high/low em N candles) + `fib_extension_targets` (1.0x e 1.618x da amplitude) para alvo top-down de setups que não definem alvo próprio.
 
 
 ---

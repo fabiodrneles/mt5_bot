@@ -15,7 +15,7 @@
 > **Filosofia de Proteção ao Capital**
 > O robô não busca ganhos desmedidos na sorte. O objetivo central é **proteger o patrimônio, perder cada vez menos**, e só autorizar ordens quando o risco for estritamente controlado e proporcional ao saldo da sua conta.
 
-O **MT5Bot Maestro** é um robô de trading automatizado de nível institucional para MetaTrader 5. Baseado nos renomados setups de Alexandre Fernandes (Palex), ele opera com **disciplina absoluta** enquanto você foca no que importa. 
+O **MT5Bot Maestro** é um robô de trading automatizado de nível institucional para MetaTrader 5. Baseado nos renomados setups da família 9.x e do Ponto Contínuo, ele opera com **disciplina absoluta** enquanto você foca no que importa. 
 
 Totalmente reconstruído em uma moderna arquitetura Híbrida (Golang + Python), o bot agora é **100% Stateless**, garantindo segurança absoluta contra quedas de energia e travamentos.
 
@@ -85,13 +85,51 @@ Quer fechar o bot para ir dormir, mas está com posições abertas? Não tem pro
 
 ---
 
-## 🧠 Setups Embutidos (DNA do Palex)
+## 🧠 Setups Embutidos (DNA Estratégico)
 
-- **Setup 9.1 (Larry Williams)**: Identifica a virada de tendência de curto prazo na EMA9.
-- **Setup 9.2 (Pullback de Continuação)**: Pega a volta técnica após um lucro.
-- **Setup 9.3 (Recuo Profundo)**: Compra o mergulho técnico sem perder a tendência.
-- **Filtro MTF (Multi-Timeframe)**: O bot consulta um gráfico maior para confirmar o lado da força antes de atirar.
-- **Filtro RVOL**: Aborta rompimentos sem volume real ou institucional.
+O bot conta com o motor de varredura mais preciso do mercado, procurando ativamente pelas seguintes oportunidades táticas:
+
+- **Setup de Abertura (GAP)**: Fareja gaps de fuga no início do pregão (ex: HK50) e atira na direção institucional logo nos primeiros candles.
+- **Setup 9.1 (Larry Williams)**: Identifica a agressão primária e a virada da MME9, entrando no início das tendências.
+- **Setup 9.2 & 9.3**: Pega o *Pullback* perfeito. Compra o recuo técnico nas médias móveis para surfar a continuação do movimento.
+- **Ponto Contínuo (PC)**: Detecta o toque milimétrico na poderosa Média Móvel de 21 períodos (MMA21) para entradas cirúrgicas a favor da tendência macro.
+- **Fechou Fora, Fechou Dentro (FFFD)**: Rastreador de Bandas de Bollinger. Identifica a exaustão de um movimento e caça reversões rápidas de retorno à média.
+
+**Filtros Protetores**: Todo setup passa por auditoria antes da ordem. O bot avalia o distanciamento da Média de 200 (macro), a força relativa (IFR) e aborta entradas com Spread abusivo.
+
+**Motor de Decisão (`brain/scoring.py`)**: quando vários setups disparam no mesmo ativo, o cérebro pontua cada um (`calcular_score`), aplica o gate de RRR mínimo (`MIN_RISK_REWARD`) e executa **apenas o 1º colocado**. Dois tipos de sinal alimentam a nota:
+
+- **Vetos (anulam o setup)**: preço contra a MM50 (`mm50_favoravel`), preço esticado além de `VWAP_MAX_DEVIATION_ATR` (desvio da VWAP diária), e **filtro MTF** (`mtf_favoravel`) — quando o time frame superior nega a tendência do side, o setup é descartado e o 2º colocado assume automaticamente.
+- **Bônus (aumentam a nota)**: IFR9 saindo da zona de exaustão (sobrevenda/sobrecompra) e toque milimétrico na VWAP (≤0.5 ATR).
+
+**Alvo Top-Down por Fibonacci**: setups sem alvo próprio recebem extensão 1.0x/1.618x da amplitude do swing (`swing_levels` + `fib_extension_targets`), dando a todos os sinais o mesmo rigor de saída.
+
+---
+
+## 🤝 Modo Assistência: Posições Externas (Entrada Manual)
+
+O bot **não se limita às ordens que ele mesmo abre**. Se você abrir uma posição manualmente no MT5 (na mão, seguindo seu próprio radar), o Maestro **detecta e adota essa posição** automaticamente, passando a guiá-la com a mesma disciplina:
+
+- **Registra** a posição no relatório de performance como setup `MANUAL` (você vê o resultado no `/report` e no dashboard).
+- **Guia o stop**: aplica Breakeven a 1x ATR e trailing dinâmico pela EMA9 (move o stop para a mín/máx do candle quando a tendência vira contra).
+- **Guia o alvo**: aplica a saída parcial de 50% ao atingir 1x ATR de lucro.
+- **Reconciliação automática**: se você fechar a posição na mão (ou o stop fechar), o bot detecta no próximo ciclo, registra o resultado correto e mantém o relatório 100% sincronizado.
+
+### Como usar
+
+1. Abra sua posição manualmente no MT5 (qualquer ativo que o Maestro esteja monitorando com `/add`).
+2. Nada mais a fazer — no próximo ciclo (padrão: 5s) o bot adota e começa a guiar.
+3. Acompanhe em `/report` ou `/dashboard`.
+
+### Configuração (`config.py`)
+
+| Parâmetro | Padrão | Efeito |
+|-----------|--------|--------|
+| `MANAGE_EXTERNAL_POSITIONS` | `True` | `False` faz o bot ignorar posições manuais (não mexe no stop, não registra). |
+| `EXTERNAL_POSITION_SETUP_NAME` | `"MANUAL"` | Nome exibido no relatório para essas operações. |
+
+> [!NOTE]
+> A assistência é aplicada por ativo monitorado. Adicione o ativo com `/add <ativo> <timeframe>` para que a posição manual dele seja adotada.
 
 ---
 
@@ -104,7 +142,7 @@ A nossa revolução Híbrida:
 ## 🤝 Open Source e Inteligência Artificial
 
 > [!TIP]
-> **Para IAs e desenvolvedores que estudam o projeto:** o repositório mantém uma **memória permanente RAG** (`memoria/`) com os livros do Palex, arquitetura, e decisões técnicas. Antes de programar qualquer coisa, leia o arquivo [`AGENTS.md`](AGENTS.md).
+> **Para IAs e desenvolvedores que estudam o projeto:** o repositório mantém uma **memória permanente RAG** (`memoria/`) com os livros-fonte, arquitetura, e decisões técnicas. Antes de programar qualquer coisa, leia o arquivo [`AGENTS.md`](AGENTS.md).
 
 ---
 <p align="center">

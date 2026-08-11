@@ -4,9 +4,9 @@
 
 ## TL;DR — O que é este projeto
 
-Bot de trading automatizado para **MetaTrader 5** em Python, baseado nos **Setups de Palex (Alexandre Fernandes)**. Opera H1 com disciplina total, risco de 1% por operação, e uma arquitetura planejada de **maestro Go + cérebro Python**.
+Bot de trading automatizado para **MetaTrader 5** em Python, baseado nos **Setups da família 9.x e do Ponto Contínuo**. Opera H1 com disciplina total, risco de 1% por operação, e uma arquitetura planejada de **maestro Go + cérebro Python**.
 
-**O projeto tem UMA fonte extra de conhecimento: `memoria/`** — uma base de conhecimento permanente (RAG BM25) construída a partir dos livros do Palex e das decisões de arquitetura. **Qualquer IA deve consultá-la antes de responder/perguntar sobre o projeto.**
+**O projeto tem UMA fonte extra de conhecimento: `memoria/`** — uma base de conhecimento permanente (RAG BM25) construída a partir dos livros-fonte da estratégia e das decisões de arquitetura. **Qualquer IA deve consultá-la antes de responder/perguntar sobre o projeto.**
 
 ---
 

@@ -44,7 +44,7 @@ Arquivos importantes
 
 - `AGENTS.md` — ponto de entrada canônico para IA (leia primeiro).
 - `memoria/README.md` — memória permanente RAG (como consultar/atualizar).
-- `memoria/wiki/` — conhecimento destilado (setups Palex, arquitetura).
+- `memoria/wiki/` — conhecimento destilado (setups, arquitetura).
 - `README.md` — guia de usuário e comandos principais.
 - `ARCHITECTURE.md` — documentação técnica completa.
 - `ARCHITECTURE_RECENT.md` — mudanças recentes v1.1.0 (resumo técnico).

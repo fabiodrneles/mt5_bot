@@ -1,11 +1,18 @@
 import sys
+import os
 import json
 import logging
 import pandas as pd
 import MetaTrader5 as mt5
 
-from indicators import add_all_indicators
-from setups import PalexScorer
+# A raiz do projeto precisa estar no path para importar config/executor/tracker e o package brain.*
+# Isso permite rodar este script de qualquer cwd (ex.: `python ../brain/main.py` a partir de maestro/).
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from brain.indicators import add_all_indicators
+from brain.setups import StrategyScorer
 
 # Configuracao de log para escrever no stderr (para não sujar o stdout que é usado para IPC)
 logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,6 +32,7 @@ def process_payload(payload_str: str):
 
         symbol = data.get("symbol")
         candles = data.get("candles", [])
+        timeframe_str = data.get("timeframe", "H1").upper()
 
         if not candles:
             # Hydration: O Brain puxa as velas da fonte da verdade (MT5)
@@ -33,7 +41,6 @@ def process_payload(payload_str: str):
                 sys.stdout.flush()
                 return
             
-            timeframe_str = data.get("timeframe", "H1").upper()
             tf_map = {
                 "M1": mt5.TIMEFRAME_M1,
                 "M5": mt5.TIMEFRAME_M5,
@@ -53,11 +60,13 @@ def process_payload(payload_str: str):
                 return
             
             df = pd.DataFrame(rates)
-            # Converter tempo MT5
+            # Converter tempo MT5 (epoch em segundos) para datetime
             df['time'] = pd.to_datetime(df['time'], unit='s')
         else:
             # Converter velas recebidas via stdin (se o Go enviar)
             df = pd.DataFrame(candles)
+            if 'time' in df.columns:
+                df['time'] = pd.to_datetime(df['time'], unit='s')
         
         # Opcional: ordenar pelo tempo caso nao venha ordenado
         if 'time' in df.columns:
@@ -67,8 +76,8 @@ def process_payload(payload_str: str):
         df = add_all_indicators(df)
         
         # Invocar a maquina de estados stateless para o ciclo atual
-        import execution_manager
-        execution_manager.manage_cycle(symbol, df)
+        from brain import execution_manager
+        execution_manager.manage_cycle(symbol, df, timeframe_name=timeframe_str)
 
         # Retornar que o processamento do tick foi concluído com sucesso
         response = {

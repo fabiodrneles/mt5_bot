@@ -1,7 +1,6 @@
 import pytest
 import config
 import risk_calculator
-import strategy
 import executor
 import tracker
 
@@ -128,14 +127,47 @@ def test_spread_filter_rejection(monkeypatch):
     assert result is None
 
 def test_daily_max_loss_shield(monkeypatch):
-    """Verifica se novas ordens sao bloqueadas quando perda diaria atinge o limite."""
-    monkeypatch.setattr(risk_calculator, "get_account_balance", lambda: 10000.0)
-    monkeypatch.setattr(tracker, "get_daily_pnl", lambda: -250.0) # -R$ 250 > 2% de R$ 10.000 (R$ 200)
-    monkeypatch.setattr(risk_calculator, "is_within_trading_hours", lambda *args, **kwargs: True)
-    
-    s_state = strategy.SymbolState("EURUSD")
-    candle_ref = (1234567, 100.0, 105.0, 99.0, 104.0, 1000)
-    
-    # Nao deve criar ordem nem alterar estado
-    strategy._place_entry_order(s_state, candle_ref, strategy.TradeSide.BUY, 0.01, None, [], "9.1")
-    assert s_state.state == strategy.State.SCANNING
+    """Daily Max Loss Shield: o execution_manager bloqueia novas ordens quando a perda diaria atinge o limite."""
+    import MetaTrader5 as mt5
+    from brain import execution_manager
+
+    # Cenário: sem posições/ordens (scan de novos setups)
+    monkeypatch.setattr(mt5, "positions_get", lambda symbol=None: [])
+    monkeypatch.setattr(mt5, "orders_get", lambda symbol=None: [])
+
+    # Perda diaria acima do limite de 2% de R$ 10.000 (R$ 200)
+    monkeypatch.setattr(tracker, "get_daily_pnl", lambda target_date=None: -250.0)
+    monkeypatch.setattr(risk_calculator, "get_trading_session_info", lambda symbol=None: {"is_open": True})
+    from unittest.mock import Mock
+    place_mock = Mock(return_value=None)
+    monkeypatch.setattr(executor, "place_buy_stop", place_mock)
+
+    # Setup válido (9.1 de compra) para garantir que a única barreira é o shield
+    df = _make_scannable_df(ema_down_prev=True)
+    execution_manager.manage_cycle("EURUSD", df)
+
+    # Não deve ter chamado place_buy_stop
+    place_mock.assert_not_called()
+
+
+def _make_scannable_df(ema_down_prev=False):
+    """Monta um DataFrame mínimo com indicadores para o StrategyScorer (setup 9.1 de compra)."""
+    import pandas as pd
+    data = {
+        'time': pd.date_range("2023-01-01", periods=5, freq='h'),
+        'open': [10, 9, 8, 7, 8],
+        'high': [11, 10, 9, 8, 10],
+        'low': [9, 8, 7, 6, 7],
+        'close': [9, 8, 7, 6, 9],
+    }
+    df = pd.DataFrame(data)
+    df['ema9_down'] = [True, True, True, True, False]
+    df['ema9_up'] = [False, False, False, False, True]
+    df['sma21_up'] = False
+    df['sma21_down'] = True
+    df['sma21'] = 15.0
+    df['sma200'] = 5.0
+    df['bollinger_lower'] = 4.0
+    df['bollinger_upper'] = 20.0
+    df['atr'] = 1.0
+    return df

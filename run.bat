@@ -1,6 +1,6 @@
 @echo off
 echo =======================================================
-echo          MT5 BOT - PALEX QUANTITATIVE MOTOR
+echo          MT5 BOT - QUANTITATIVE ENGINE
 echo =======================================================
 echo.
 echo Iniciando o Maestro (Golang) que orquestrara os Brains...

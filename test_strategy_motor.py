@@ -6,7 +6,9 @@ import os
 
 # Nao inserimos no path para nao conflitar com modulos raiz. Vamos importar como modulo.
 from brain.indicators import add_all_indicators
-from brain.setups import PalexScorer
+from brain.setups import StrategyScorer
+
+TICK_SIZE = 0.05
 
 def test_ema9_reversal_setup_91():
     """Testa se o motor reconhece um Setup 9.1 de Compra."""
@@ -27,7 +29,7 @@ def test_ema9_reversal_setup_91():
     df['ema9_down'] = [True, True, True, True, False]
     df['ema9_up'] = [False, False, False, False, True]
     
-    # Preencher outras colunas necessarias pelo PalexScorer para evitar KeyErrors
+    # Preencher outras colunas necessarias pelo StrategyScorer para evitar KeyErrors
     df['sma21_up'] = False
     df['sma21_down'] = True
     df['sma21'] = 15.0
@@ -36,15 +38,15 @@ def test_ema9_reversal_setup_91():
     df['bollinger_upper'] = 20.0
     df['atr'] = 1.0
 
-    valid_setups, _ = PalexScorer.evaluate_all(df)
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=TICK_SIZE)
     
     # Deve encontrar o Setup 9.1 de compra
     assert len(valid_setups) > 0, "Deveria ter encontrado um setup"
     best = valid_setups[0]
     assert best['setup'] == '9.1'
     assert best['action'] == 'buy'
-    # Trigger deve ser a maxima do candle que fez virar (último candle) + 0.01
-    assert best['trigger_price'] == 10.01
+    # Trigger deve ser a maxima do candle que fez virar (último candle) + 1 tick
+    assert best['trigger_price'] == pytest.approx(10.0 + TICK_SIZE)
 
 def test_bollinger_fffd():
     """Testa se o motor reconhece o setup Fechou Fora Fechou Dentro."""
@@ -71,7 +73,7 @@ def test_bollinger_fffd():
     df['bollinger_lower'] = [5.0, 5.0, 5.0, 5.0, 5.0]
     df['bollinger_upper'] = [15.0, 15.0, 15.0, 15.0, 15.0]
 
-    valid_setups, _ = PalexScorer.evaluate_all(df)
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=TICK_SIZE)
     
     assert len(valid_setups) > 0
     best = valid_setups[0]

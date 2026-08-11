@@ -1,7 +1,14 @@
 import sys
+import os
 import time
 import logging
 import MetaTrader5 as mt5
+import config
+
+# A raiz do projeto precisa estar no path para importar config (o script roda a partir de maestro/).
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - SHUTDOWN - %(message)s')
 
@@ -46,7 +53,7 @@ def close_all_positions():
             "type": mt5.ORDER_TYPE_SELL if pos.type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY,
             "price": tick.bid if pos.type == mt5.ORDER_TYPE_BUY else tick.ask,
             "deviation": 20,
-            "magic": 1000,
+            "magic": getattr(config, 'MAGIC', 1000),
             "comment": "Panic Close",
             "type_time": mt5.ORDER_TIME_GTC,
             "type_filling": mt5.ORDER_FILLING_IOC,

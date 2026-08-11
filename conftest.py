@@ -5,6 +5,7 @@ class MockMT5Module:
     TRADE_ACTION_PENDING = 5
     TRADE_ACTION_REMOVE = 6
     TRADE_ACTION_DEAL = 1
+    TRADE_ACTION_SLTP = 6
     TRADE_RETCODE_DONE = 10009
     ORDER_TYPE_BUY = 0
     ORDER_TYPE_SELL = 1
@@ -15,6 +16,10 @@ class MockMT5Module:
     ORDER_FILLING_IOC = 1
     POSITION_TYPE_BUY = 0
     POSITION_TYPE_SELL = 1
+    DEAL_ENTRY_IN = 0
+    DEAL_ENTRY_OUT = 1
+    DEAL_ENTRY_INOUT = 2
+    DEAL_ENTRY_OUT_BY = 3
     TIMEFRAME_M1 = 1
     TIMEFRAME_M5 = 5
     TIMEFRAME_M15 = 15
@@ -51,6 +56,15 @@ class MockMT5Module:
     def symbol_info_tick(self, symbol):
         return type('obj', (object,), {'bid': 1.12345, 'ask': 1.12350})()
     def copy_rates_from_pos(self, symbol, tf, start, count):
+        return []
+
+    _mock_deals = []
+
+    def history_deals_get(self, position=None, ticket=None):
+        if self._mock_deals:
+            if position is not None:
+                return [d for d in self._mock_deals if getattr(d, "position", None) == position] or []
+            return self._mock_deals
         return []
     def last_error(self):
         return (0, 'OK')
