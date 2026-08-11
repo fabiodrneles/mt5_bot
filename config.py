@@ -134,6 +134,13 @@ MAX_SPREAD_POINTS = 50
 ENABLE_BREAKEVEN = True
 BREAKEVEN_ATR_RATIO = 1.0
 
+# --- Trailing Stop dinamico (spec 5.7) ---
+# Apos o breakeven, o SL acompanha o mercado barra a barra.
+# Modos: "candle" (extremidade do penultimo candle) | "ema9" | "mm21".
+# Se o preco perder a media de referencia do modo, o restante e liquidado.
+TRAILING_ENABLED = True
+TRAILING_MODE = "candle"
+
 # --- Posicoes externas (entradas manuais do usuario no MT5) ---
 # Se True, o bot adota posicoes abertas manualmente no mesmo simbolo,
 # registra no tracker (setup "MANUAL") e passa a guiar alvo/stop.

@@ -16,8 +16,10 @@ Principais mudanças:
   - `execution_manager` pré-computa `check_mtf_trend` uma vez por side e injeta no scoring como veto por-setup (antes era abort pós-ranking, derrubando todo o scan).
 - **Modo Assistência: Posições Externas**:
   - O bot adota posições abertas manualmente no MT5, guia stop (breakeven/trailing EMA9) e alvo (parcial 50%), com reconciliação automática (`MANAGE_EXTERNAL_POSITIONS`).
+- **Trailing Stop dinâmico (spec 5.7)**:
+  - Novo `brain/trailing.py` (puro/testável): modos `candle` (mín/máx do penúltimo candle), `ema9` e `mm21`; integrado no `execution_manager` após o breakeven; nunca piora o SL atual; perda da média de referência liquida o restante (`TRAILING_ENABLED`/`TRAILING_MODE`).
 - **Watchdog no Maestro Go**: `lastPong` rastreado por worker; stderr do Python roteado ao OS (`maestro/worker.go`).
-- **89 testes verdes** (antes 84; +5 de MTF no scoring).
+- **101 testes verdes** (antes 84; +5 de MTF no scoring; +12 de trailing).
 - Bump de versão para `1.7.0`.
 
 ## v1.6.0 — 2026-08-11

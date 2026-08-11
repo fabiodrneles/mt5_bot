@@ -65,6 +65,8 @@ Este documento registra o planejamento e o status de implementação das melhori
   - `calculate_vwap` (âncora diária) + veto quando preço estica além de `VWAP_MAX_DEVIATION_ATR`; toque na VWAP (≤0.5 ATR) dá bônus (`vwap_favoravel`/`vwap_toque`).
 - [x] **2.7 Alvos por Extensão de Fibonacci**
   - `swing_levels` (swing high/low em N candles) + `fib_extension_targets` (1.0x e 1.618x da amplitude) para alvo top-down de setups que não definem alvo próprio.
+- [x] **2.8 Trailing Stop Dinâmico (spec 5.7)**
+  - `brain/trailing.py` (puro/testável): modo `candle` (mín/máx do penúltimo candle), `ema9` ou `mm21`. Integrado no `execution_manager` após o breakeven; nunca piora o SL atual; preço perdendo a média de referência liquida o restante a mercado (`TRAILING_ENABLED`/`TRAILING_MODE`).
 
 
 ---

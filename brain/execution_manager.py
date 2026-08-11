@@ -190,6 +190,25 @@ def _manage_position(symbol, position, df):
                 logging.info(f"[{symbol}] Breakeven Ativado! Ajustando SL para {position.price_open}")
                 executor.modify_position_sl(position.ticket, symbol, position.price_open)
 
+    # --- 2.5 TRAILING STOP DINAMICO (spec 5.7) ---
+    # Apos o breakeven, o SL acompanha o mercado. Se o preco perder a media de
+    # referencia do modo escolhido, o restante e liquidado a mercado.
+    if getattr(config, 'TRAILING_ENABLED', True):
+        from brain.trailing import aplicar_trailing
+        modo = getattr(config, 'TRAILING_MODE', 'candle')
+        side = "BUY" if is_buy else "SELL"
+        novo_sl, liquidar = aplicar_trailing(
+            df, side, sl_atual=float(position.sl or 0.0), modo=modo,
+        )
+        if liquidar:
+            logging.info(f"[{symbol}] {side} perdeu a media de referencia ({modo}). Liquidando restante...")
+            # O resultado real sera registrado pelo _reconcile_closed_trades
+            # (usa o preco do deal real do MT5) no proximo ciclo.
+            executor.close_full_position(position.ticket, symbol, position.type)
+        elif novo_sl is not None:
+            logging.info(f"[{symbol}] Trailing {modo}: movendo SL de {position.sl} para {novo_sl}")
+            executor.modify_position_sl(position.ticket, symbol, novo_sl)
+
     # --- 3. SAIDA FINAL (EMA9 VIRANDO CONTRA) ---
     info = mt5.symbol_info(symbol)
     tick_size = info.trade_tick_size if info else 0.01

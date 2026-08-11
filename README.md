@@ -106,6 +106,22 @@ O bot conta com o motor de varredura mais preciso do mercado, procurando ativame
 
 ---
 
+## 🕹️ Gestão de Posição (condução do trade)
+
+O bot não joga a posição solta depois da entrada — ela é conduzida barra a barra:
+
+- **Saída Parcial**: lucro de 1x ATR fecha 50% do volume (`PARTIAL_EXIT_TARGET`/`PARTIAL_EXIT_PERCENT`).
+- **Breakeven**: com 1x ATR a favor, o SL sobe/desce para o preço de entrada (`ENABLE_BREAKEVEN`).
+- **Trailing Stop dinâmico** (`TRAILING_ENABLED`, novo): depois do breakeven, o SL **cola no mercado barra a barra**:
+  - `TRAILING_MODE = "candle"` (padrão): BUY segue a mínima do penúltimo candle; SELL a máxima.
+  - `"ema9"` / `"mm21"`: cola o SL na EMA9 ou SMA21.
+  - Se o preço **perder a média de referência**, o restante é liquidado a mercado.
+- **Saída Final**: EMA9 virando contra a posição aperta o SL para a extremidade do candle.
+
+Toda a lógica de trailing vive em `brain/trailing.py` (pura, testável) e é orquestrada pelo `execution_manager`.
+
+---
+
 ## 🤝 Modo Assistência: Posições Externas (Entrada Manual)
 
 O bot **não se limita às ordens que ele mesmo abre**. Se você abrir uma posição manualmente no MT5 (na mão, seguindo seu próprio radar), o Maestro **detecta e adota essa posição** automaticamente, passando a guiá-la com a mesma disciplina:
