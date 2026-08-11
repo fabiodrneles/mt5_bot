@@ -1,6 +1,16 @@
 # Changelog
 
+## v1.5.1 — 2026-08-11
+
+Principais mudanças:
+
+- **Filtragem de Ativos Válidos pela Corretora (`mt5.symbol_info`)**:
+  - Garantia de que ativos não oferecidos pela corretora do usuário (ex: Hantec Markets) sejam filtrados e removidos da observação sem interromper a execução.
+  - As sugestões de mercado aberto agora verificam a presença do ativo no servidor do MT5 da corretora conectada antes de exibi-lo na tela.
+- Bump de versão para `1.5.1`.
+
 ## v1.5.0 — 2026-08-11
+
 
 Principais mudanças:
 
