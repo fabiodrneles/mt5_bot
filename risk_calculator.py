@@ -278,7 +278,13 @@ def calculate_required_margin(symbol: str, volume: float = 0.01) -> Dict[str, An
     }
 
 
-SUGGESTED_GLOBAL_ASSETS = ["HK50", "HKG50", "USDJPY", "AUDUSD", "EURUSD", "GBPUSD", "US500", "BTCUSD", "WIN", "WDO"]
+SUGGESTED_GLOBAL_ASSETS = getattr(config, "AVAILABLE_SYMBOLS", [
+    "HK50", "HKG50", "USDJPY", "AUDUSD", "EURUSD", "GBPUSD", "USDCAD", "USDCHF", "NZDUSD",
+    "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD", "US500", "SP500", "NAS100", "USTEC",
+    "US30", "DJ30", "GER40", "DAX40", "UK100", "JPN225", "XAUUSD", "XAGUSD", "WTI", "USOIL",
+    "BTCUSD", "ETHUSD", "WIN", "WDO", "PETR4", "VALE3", "ITUB4", "BBDC4"
+])
+
 
 
 def check_all_symbols_closed(symbols: list) -> bool:

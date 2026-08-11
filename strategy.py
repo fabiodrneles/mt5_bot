@@ -273,10 +273,10 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
     elif not virou_para_cima and not virou_para_baixo:
         slopes = indicators.get_ema9_slopes(ema9_values)
         slope_str = f"{slopes[0]:.6f}" if slopes else "N/A"
-        logger.info(
-            f"[{s_state.symbol}] Rejeitado: nenhuma virada clara de EMA9. "
-            f"Slope atual={slope_str}. Buscando uma reversão definida para 9.1."
+        logger.debug(
+            f"[{s_state.symbol}] Nenhuma virada de EMA9. Slope={slope_str}."
         )
+
 
 
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):

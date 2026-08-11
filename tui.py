@@ -33,33 +33,30 @@ VERSION = "1.5.0"
 
 def print_header():
     term_w = shutil.get_terminal_size((80, 20)).columns
-    max_box_w = min(64, max(50, term_w - 10))
+    box_w = min(68, max(54, term_w - 6))
+    inner_w = box_w - 4
 
     title_text = f"MT5Bot v{VERSION}"
     slogan = "Measured, disciplined execution — performance varies with market conditions."
-    slogan_lines = textwrap.wrap(slogan, width=max_box_w - 6)
+    slogan_lines = textwrap.wrap(slogan, width=inner_w - 2)
 
-    content_width = max(len(title_text), *(len(line) for line in slogan_lines))
-    inner_w = min(max_box_w - 4, max(40, content_width))
-    box_w = inner_w + 4
-
-    top = f"{BOLD}{WHITE}    ╔" + "═" * box_w + "╗\n"
-    blank = f"    ║{' ' * box_w}║\n"
+    top = f"  {BOLD}{CYAN}┌" + "─" * (box_w - 2) + f"┐{RESET}\n"
+    blank = f"  {CYAN}│{' ' * (box_w - 2)}│{RESET}\n"
 
     title_line = title_text.center(inner_w)
-    title_row = f"    ║  {BOLD}{WHITE}{title_line}{RESET}  ║\n"
+    title_row = f"  {CYAN}│{RESET}  {BOLD}{WHITE}{title_line}{RESET}  {CYAN}│{RESET}\n"
 
     slogan_rows = ""
     for ln in slogan_lines:
-        slogan_rows += f"    ║  {ln.center(inner_w)}  ║\n"
+        slogan_rows += f"  {CYAN}│{RESET}  {DIM}{ln.center(inner_w)}{RESET}  {CYAN}│{RESET}\n"
 
-    bottom = f"    ╚" + "═" * box_w + "╝\n"
-    print(top + blank + title_row + slogan_rows + blank + bottom + RESET)
+    bottom = f"  {BOLD}{CYAN}└" + "─" * (box_w - 2) + f"┘{RESET}\n"
+    print(top + title_row + blank + slogan_rows + bottom)
 
 
 def print_section(title):
-    print(f"\n{BOLD}{CYAN}  [{title}]{RESET}")
-    print(f"  {DIM}{'─' * 50}{RESET}")
+    print(f"\n  \033[90m┌──\033[0m \033[1m\033[96m[ {title} ]\033[0m \033[90m──────────────────────────────────────────────────┐\033[0m\n")
+
 
 
 def print_param(key, value, description=""):
@@ -395,27 +392,31 @@ def configure_timeframe_tui():
 # ============================================================
 
 def show_summary():
-    """Mostra resumo final antes de iniciar."""
-    print_section("RESUMO DA CONFIGURACAO")
-    print()
-
+    """Mostra resumo final com card de contorno elegante e espacamento visual."""
     account = mt5.account_info()
-    if account:
-        print_param("Conta", f"{account.login} @ {account.server}")
+    account_str = f"{account.login} ({account.name}) @ {account.server}" if account else "Demonstração / Teste"
+    balance_str = f"{account.balance:.2f} {account.currency}" if account else "N/A"
 
-    print_param("Ativos", ", ".join(config.SYMBOLS))
-    print_param("Volume", f"{config.VOLUME_INITIAL} lote")
-    print_param("Timeframe", config.TIMEFRAME_NAME)
-    print_param("Setup 9.1", "Ativado")
-    print_param("Setup 9.2", "Ativado" if config.SETUP_92_ENABLED else "Desativado")
-    print_param("Saida parcial",
-                f"{int(config.PARTIAL_EXIT_PERCENT*100)}% a {int(config.PARTIAL_EXIT_TARGET*100)}% amplitude"
-                if config.PARTIAL_EXIT_ENABLED else "Desativada")
-    print_param("Alvo adaptativo", "Ativado" if config.ADAPTIVE_TARGET_ENABLED else "Desativado")
-    print_param("ATR dinamico", f">{config.ATR_HIGH_VOL_THRESHOLD}x alarga stop")
-    print_param("Filtro Flat", "Ativado" if config.FLAT_FILTER_ENABLED else "Desativado")
-    print_param("Magic Number", config.MAGIC)
-    print()
+    symbols_str = ", ".join(config.SYMBOLS) if config.SYMBOLS else "Nenhum selecionado"
+    
+    print("\n")
+    print("  \033[1m\033[96m┌────────────────────────────────────────────────────────────────────────┐\033[0m")
+    print("  \033[1m\033[96m│                        RESUMO DA CONFIGURAÇÃO                          │\033[0m")
+    print("  \033[1m\033[96m├────────────────────────────────────────────────────────────────────────┤\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mConta:\033[0m          \033[97m\033[1m{account_str:<50}\033[0m \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mSaldo:\033[0m          \033[92m\033[1m{balance_str:<50}\033[0m \033[96m│\033[0m")
+    print("  \033[90m├────────────────────────────────────────────────────────────────────────┤\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mAtivos:\033[0m         \033[93m\033[1m{symbols_str:<50}\033[0m \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mVolume Inicial:\033[0m \033[97m{config.VOLUME_INITIAL:.2f} lote(s)\033[0m                                   \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mTimeframe:\033[0m      \033[96m\033[1m{config.TIMEFRAME_NAME:<50}\033[0m \033[96m│\033[0m")
+    print("  \033[90m├────────────────────────────────────────────────────────────────────────┤\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mEstratégia:\033[0m     \033[97mSetup 9.1\033[0m" + (" + \033[97mSetup 9.2\033[0m" if config.SETUP_92_ENABLED else "") + "                       \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mRisco por Trade:\033[0m\033[92m{config.MAX_RISK_PER_TRADE_PERCENT:.1f}% do saldo\033[0m | \033[91mCorte Absoluto: {config.ABSOLUTE_MAX_TRADE_RISK_PERCENT:.1f}%\033[0m        \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mTrava Diária:\033[0m    \033[91mPerda Máxima {config.MAX_DAILY_LOSS_PERCENT:.1f}% do saldo\033[0m                    \033[96m│\033[0m")
+    print(f"  \033[96m│\033[0m  \033[90mFiltros:\033[0m         \033[97mMTF Trend\033[0m | \033[97mRVOL Volume\033[0m | \033[97mBreakeven ATR\033[0m               \033[96m│\033[0m")
+    print("  \033[1m\033[96m└────────────────────────────────────────────────────────────────────────┘\033[0m")
+    print("\n")
+
 
 
 def run_tui():

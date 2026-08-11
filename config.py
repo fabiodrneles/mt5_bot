@@ -7,12 +7,25 @@ import MetaTrader5 as mt5
 LOG_LEVEL = logging.INFO
 
 # --- Simbolos e Timeframe ---
-AVAILABLE_SYMBOLS = ["HK50", "EURUSD", "US500"]
+AVAILABLE_SYMBOLS = [
+    # B3 Brasil (Indice, Dolar e Acoes)
+    "WIN", "WDO", "PETR4", "VALE3", "ITUB4", "BBDC4",
+    # Forex Principais
+    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+    # Forex Cruzados
+    "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURAUD",
+    # Indices Globais
+    "HK50", "HKG50", "US500", "SP500", "NAS100", "USTEC", "US30", "DJ30", "GER40", "DAX40", "UK100", "JPN225",
+    # Commodities & Metais
+    "XAUUSD", "XAGUSD", "WTI", "USOIL",
+    # Criptomoedas
+    "BTCUSD", "ETHUSD"
+]
+
 SYMBOLS = []  # Preenchido pela TUI no startup
 TIMEFRAME = mt5.TIMEFRAME_H1
 
 # Timeframes disponiveis para selecao do usuario
-# Mapeia nome amigavel -> constante do MT5
 AVAILABLE_TIMEFRAMES = {
     "M1":  mt5.TIMEFRAME_M1,
     "M5":  mt5.TIMEFRAME_M5,
@@ -23,7 +36,6 @@ AVAILABLE_TIMEFRAMES = {
     "D1":  mt5.TIMEFRAME_D1,
 }
 
-# Nome do timeframe atualmente selecionado (para exibicao)
 TIMEFRAME_NAME = "H1"
 
 # --- EMAs ---
@@ -42,60 +54,50 @@ PARTIAL_EXIT_TARGET = 1.00
 FLAT_FILTER_ENABLED = True
 FLAT_THRESHOLD_TICKS = 5
 FLAT_THRESHOLD_MULTIPLIERS = {
-    "M1":  0.5,   # 5 * 0.5 = 2.5 ticks (mais sensivel)
-    "M5":  0.7,   # 5 * 0.7 = 3.5 ticks
-    "M15": 1.0,   # 5 * 1.0 = 5 ticks (padrao atual)
-    "M30": 1.0,   # 5 * 1.0 = 5 ticks
-    "H1":  1.5,   # 5 * 1.5 = 7.5 ticks (menos sensivel)
-    "H4":  2.0,   # 5 * 2.0 = 10 ticks
-    "D1":  3.0,   # 5 * 3.0 = 15 ticks
+    "M1":  0.5,
+    "M5":  0.7,
+    "M15": 1.0,
+    "M30": 1.0,
+    "H1":  1.5,
+    "H4":  2.0,
+    "D1":  3.0,
 }
 
-# --- Offsets ---
-TICK_OFFSET = 1
-
-# --- Intervalos ---
-SCAN_INTERVAL_SECONDS = 10
-RETRY_INTERVAL_SECONDS = 30
-
-# --- Dados ---
-RATES_COUNT = 100
-
-# --- Identificacao ---
-MAGIC = 20260731
-
-# --- Alvo Adaptativo ---
+# --- Alvo Adaptativo & ATR ---
 ADAPTIVE_TARGET_ENABLED = True
-ADAPTIVE_TARGET_LOOKBACK = 20  # Candles para calcular amplitude mediana
-
-# --- ATR Dinamico ---
+ADAPTIVE_TARGET_LOOKBACK = 20
 ATR_PERIOD = 14
 ATR_AVG_PERIOD = 50
 ATR_HIGH_VOL_THRESHOLD = 1.5
 ATR_DAMPING_FACTOR = 0.8
+TICK_OFFSET = 1
+MAGIC = 20260731
+SCAN_INTERVAL_SECONDS = 5
+RETRY_INTERVAL_SECONDS = 5
+RATES_COUNT = 300
 
 # --- Setup 9.2 ---
 SETUP_92_ENABLED = True
 SETUP_92_MAX_CANDLES_WATCHING = 10
 SETUP_92_EMA_AGAINST_LIMIT = 2
 
-# --- Persistencia ---
+# --- Persistencia & Contas ---
 STATE_FILE = "state.json"
- 
-# --- Shutdown behavior ---
-# Default action on interactive shutdown: 'save-only' | 'wait-flat' | 'cancel-open'
-SHUTDOWN_DEFAULT_ACTION = 'save-only'
-# Maximum seconds to wait when using 'wait-flat' before forcing save and exit
+DEFAULT_ACCOUNT_BALANCE = 10000.0
+
+
+# --- Shutdown Default Action ---
+SHUTDOWN_DEFAULT_ACTION = "cancel-open"
 SHUTDOWN_WAIT_SECONDS = 600
 
-# --- Gestao de Risco & Protecao de Capital ---
-DEFAULT_ACCOUNT_BALANCE = 10000.0
-MAX_RISK_PER_TRADE_PERCENT = 1.0       # Risco recomendado por operacao (1% do saldo)
-ABSOLUTE_MAX_TRADE_RISK_PERCENT = 1.5  # Corte absoluto: rejeita a ordem se exigir > 1.5% do saldo
-MAX_DAILY_LOSS_PERCENT = 2.0           # Perda maxima diaria (2% do saldo)
-MAX_SPREAD_POINTS = 50                 # Spread maximo permitido em pontos
-ENABLE_BREAKEVEN = True                # Ativar ajuste automatico para Breakeven
-BREAKEVEN_ATR_RATIO = 1.0              # Mover para Breakeven ao atingir 1x ATR de lucro
+
+# --- Modulo de Protecao de Capital (Fase 1 - Opcao A) ---
+MAX_RISK_PER_TRADE_PERCENT = 1.0
+ABSOLUTE_MAX_TRADE_RISK_PERCENT = 1.5
+MAX_DAILY_LOSS_PERCENT = 2.0
+MAX_SPREAD_POINTS = 50
+ENABLE_BREAKEVEN = True
+BREAKEVEN_ATR_RATIO = 1.0
 
 # --- Horarios de Negociacao ---
 TRADING_HOURS_ENABLED = True
@@ -105,23 +107,58 @@ FORCE_CLOSE_TIME = "17:30"
 
 # Horarios de negociacao especificos por ativo no fuso horario local (Horario de Brasilia BRT)
 SYMBOL_TRADING_HOURS = {
-    # B3 Brasil (Mini Indice e Mini Dolar)
+    # B3 Brasil (Mini Indice, Mini Dolar e Acoes)
     "WIN":   {"start": "09:15", "end": "17:15", "force_close": "17:30"},
     "WDO":   {"start": "09:15", "end": "17:15", "force_close": "17:30"},
+    "PETR4": {"start": "10:00", "end": "17:15", "force_close": "17:30"},
+    "VALE3": {"start": "10:00", "end": "17:15", "force_close": "17:30"},
+    "ITUB4": {"start": "10:00", "end": "17:15", "force_close": "17:30"},
+    "BBDC4": {"start": "10:00", "end": "17:15", "force_close": "17:30"},
+
     # Bolsa de Hong Kong (HK50 / Hang Seng) — Abre as 22:15 BRT
     "HK50":  {"start": "22:15", "end": "12:00", "force_close": "12:30"},
     "HKG50": {"start": "22:15", "end": "12:00", "force_close": "12:30"},
+
+    # Japao Nikkei 225
+    "JPN225":{"start": "21:00", "end": "15:00", "force_close": "15:30"},
+
     # Indices Americanos (S&P500, Nasdaq, Dow Jones)
     "US500": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
     "SP500": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
     "NAS100":{"start": "10:30", "end": "17:00", "force_close": "17:30"},
+    "USTEC": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
     "US30":  {"start": "10:30", "end": "17:00", "force_close": "17:30"},
-    # Forex Principal (Sessoes de Londres e Nova York)
+    "DJ30":  {"start": "10:30", "end": "17:00", "force_close": "17:30"},
+
+    # Indices Europeus (Alemanha DAX / Reino Unido UK100)
+    "GER40": {"start": "04:00", "end": "17:00", "force_close": "17:30"},
+    "DAX40": {"start": "04:00", "end": "17:00", "force_close": "17:30"},
+    "UK100": {"start": "04:00", "end": "17:00", "force_close": "17:30"},
+
+    # Forex Principal e Cruzados (Londres e Nova York)
     "EURUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "GBPUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "USDJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
-}
+    "AUDUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "USDCAD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "USDCHF":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "NZDUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "EURGBP":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "EURJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "GBPJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "AUDJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "EURAUD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
 
+    # Commodities (Ouro, Prata, Petroleo)
+    "XAUUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "XAGUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "WTI":   {"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "USOIL": {"start": "03:00", "end": "18:00", "force_close": "18:30"},
+
+    # Criptomoedas (24/7)
+    "BTCUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
+    "ETHUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
+}
 
 # --- Filtro Multi-Timeframe (MTF) ---
 MTF_FILTER_ENABLED = True
