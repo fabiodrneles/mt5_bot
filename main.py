@@ -133,19 +133,19 @@ def _check_and_log_open_suggestions():
     sugg_data = risk_calculator.get_open_market_suggestions(config.SYMBOLS)
     if sugg_data.get("all_closed"):
         currency = sugg_data.get("currency", "USD")
-        logger.info("🌙 [TODOS OS ATIVOS CONFIGURADOS ESTÃO FECHADOS NO MOMENTO]")
+        logger.info("\033[93m[#]\033[0m [TODOS OS ATIVOS CONFIGURADOS ESTÃO FECHADOS NO MOMENTO]")
         suggestions = sugg_data.get("suggestions", [])
         if suggestions:
-            logger.info(f"💡 [SUGESTÃO DE ATIVOS ABERTOS] Margem estimada na sua moeda ({currency}):")
+            logger.info(f"\033[96m[#]\033[0m [SUGESTÃO DE ATIVOS ABERTOS] Margem estimada na sua moeda ({currency}):")
             for item in suggestions[:3]:
                 sym = item["symbol"]
                 vol = item["volume"]
                 margin = item["margin"]
-                logger.info(f"   👉 Ativo: {sym:<8} | Vol: {vol:.2f} | Margem necessária: {currency} {margin:.2f}")
+                logger.info(f"   [#] Ativo: {sym:<8} | Vol: {vol:.2f} | Margem necessária: {currency} {margin:.2f}")
         else:
-            logger.info("💡 Nenhum outro ativo cadastrado para sugestão no momento.")
+            logger.info("[#] Nenhum outro ativo cadastrado para sugestão no momento.")
         
-        logger.info("📊 [MODO PRÉ-AQUECIMENTO ATIVO] O bot continuará lendo candles e pré-calculando EMAs e ATR. "
+        logger.info("\033[92m[#]\033[0m [MODO PRÉ-AQUECIMENTO ATIVO] O bot continuará lendo candles e pré-calculando EMAs e ATR. "
                     "Quando o mercado abrir, o contexto técnico estará 100% pronto para operar!")
 
 
@@ -188,7 +188,6 @@ def run_bot():
                 f"Setups: 9.1" + (" + 9.2" if config.SETUP_92_ENABLED else ""))
 
     # Exibir status e janela operacional de cada ativo no fuso BRT
-    import risk_calculator
     for sym in config.SYMBOLS:
         info = risk_calculator.get_trading_session_info(sym)
         logger.info(f"[HORÁRIO BRT] {info['formatted_badge']}")
@@ -208,7 +207,7 @@ def run_bot():
     _consecutive_failures = 0
 
     # Loop principal
-    # Start console watcher thread to accept interactive 'exit' command for immediate shutdown
+    # Start console watcher thread to accept interactive 'exit' or asset addition commands
     def _console_watcher():
         global _shutdown_requested
         global _shutdown_action
@@ -220,7 +219,8 @@ def run_bot():
                     break
                 if not line:
                     break
-                cmd = line.strip().lower()
+                raw_input = line.strip()
+                cmd = raw_input.lower()
                 if cmd in ('exit', 'quit', 'q'):
                     _shutdown_action = config.SHUTDOWN_DEFAULT_ACTION
                     _shutdown_requested = True
@@ -236,6 +236,23 @@ def run_bot():
                     _shutdown_requested = True
                     logger.info("Shutdown solicitado (wait-flat) via console input. Aguardando posicoes fecharem antes de encerrar.")
                     break
+
+                # Adição dinâmica de ativo (ex: digitou "AUDUSD" ou "add AUDUSD")
+                candidate_symbol = raw_input.replace("add ", "").replace("ADD ", "").strip().upper()
+                if candidate_symbol and len(candidate_symbol) >= 3:
+                    if candidate_symbol not in config.SYMBOLS:
+                        # Tentar habilitar no MetaTrader 5
+                        sym_info = mt5.symbol_info(candidate_symbol)
+                        if sym_info is not None or mt5.symbol_select(candidate_symbol, True):
+                            config.SYMBOLS.append(candidate_symbol)
+                            strategy.initialize_symbol_states()
+                            last_candle_time[candidate_symbol] = None
+                            session_info = risk_calculator.get_trading_session_info(candidate_symbol)
+                            logger.info(f"\033[92m[#]\033[0m Ativo \033[1m\033[96m{candidate_symbol}\033[0m ADICIONADO ao bot e em monitoramento!")
+                            logger.info(f"[HORÁRIO BRT] {session_info['formatted_badge']}")
+                        else:
+                            logger.warning(f"\033[91m[#]\033[0m Não foi possível encontrar o ativo '{candidate_symbol}' na sua corretora.")
+
         except Exception:
             pass
 

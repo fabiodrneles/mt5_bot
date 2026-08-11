@@ -209,14 +209,15 @@ def get_trading_session_info(symbol: Optional[str] = None) -> Dict[str, Any]:
 
     if is_open:
         badge = (
-            f"{BOLD}{GREEN}🟢 [SESSAO OPERACIONAL ATIVA]{RESET} "
+            f"{BOLD}{GREEN}[#] [SESSAO OPERACIONAL ATIVA]{RESET} "
             f"{CYAN}{sym_display}{RESET} | Janela BRT: {start_str} as {end_str} | Hora Atual: {curr_str}"
         )
     else:
         badge = (
-            f"{BOLD}{YELLOW}🌙 [FORA DO HORARIO OPERACIONAL]{RESET} "
+            f"{BOLD}{YELLOW}[#] [FORA DO HORARIO OPERACIONAL]{RESET} "
             f"{CYAN}{sym_display}{RESET} | Janela BRT: {start_str} as {end_str} | Hora Atual: {curr_str}"
         )
+
 
     return {
         "is_open": is_open,
