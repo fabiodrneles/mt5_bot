@@ -1,7 +1,10 @@
 """
-Dashboard web para configuracao e relatorio de performance.
-Usa apenas modulos built-in do Python (sem dependencias externas).
-Abre no navegador para configuracao visual e mostra resultados.
+Web dashboard for configuration and performance report.
+Python stdlib only (no external dependencies).
+Opens in the browser for visual configuration and shows results.
+Multi-language UI: pt (default), en, es — selectable in the top bar.
+
+Identity: institutional Maestro-orange terminal (ANSI 208 = #ff8700).
 """
 import http.server
 import json
@@ -18,9 +21,149 @@ _server = None
 _config_ready = threading.Event()
 _configured_data = {}
 
+DEFAULT_LANG = "pt"
+SUPPORTED_LANGS = ("pt", "en", "es")
+
+
+def _lang_name(lang):
+    return {"pt": "Português", "en": "English", "es": "Español"}.get(lang, lang)
+
+
+def _build_l10n():
+    """UI strings for pt/en/es. Keys are shared across the three languages."""
+
+    def m(pt, en, es):
+        return {"pt": pt, "en": en, "es": es}
+
+    return {
+        "pages": {
+            "config_title": m("MT5Bot — Configuração", "MT5Bot — Configuration", "MT5Bot — Configuración"),
+            "config_h1": m("CONFIGURAÇÃO DO TERMINAL", "TERMINAL CONFIGURATION", "CONFIGURACIÓN DEL TERMINAL"),
+            "config_sub": m(
+                'Configure os parâmetros abaixo e clique em "Salvar e Iniciar".',
+                'Set the parameters below and click "Save and Start".',
+                'Configure los parámetros abajo y haga clic en "Guardar e Iniciar".',
+            ),
+            "ready_title": m("MT5Bot — Pronto!", "MT5Bot — Ready!", "MT5Bot — ¡Listo!"),
+            "ready_h1": m("CONFIGURAÇÃO APLICADA", "CONFIGURATION APPLIED", "CONFIGURACIÓN APLICADA"),
+            "ready_msg": m(
+                "O bot está iniciando no terminal.<br>Pode fechar esta janela.",
+                "The bot is starting in the terminal.<br>You can close this window.",
+                "El bot está iniciando en el terminal.<br>Puede cerrar esta ventana.",
+            ),
+            "report_title": m("MT5Bot — Relatório de Performance", "MT5Bot — Performance Report", "MT5Bot — Informe de Rendimiento"),
+            "report_h1": m("RELATÓRIO DE PERFORMANCE", "PERFORMANCE REPORT", "INFORME DE RENDIMIENTO"),
+            "report_sub": m(
+                "Histórico completo de operações e métricas financeiras.",
+                "Full trade history and financial metrics.",
+                "Historial completo de operaciones y métricas financieras.",
+            ),
+        },
+        "nav": {
+            "label": m("Seções", "Sections", "Secciones"),
+            "config": m("Configuração", "Configuration", "Configuración"),
+            "report": m("Relatório", "Report", "Informe"),
+        },
+        "footer": m(
+            "MT5BOT MAESTRO — RISCO POR TRADE ≤ 1% · HARD STOP NA CORRETORA · STATELESS",
+            "MT5BOT MAESTRO — RISK PER TRADE ≤ 1% · HARD STOP AT BROKER · STATELESS",
+            "MT5BOT MAESTRO — RIESGO POR TRADE ≤ 1% · HARD STOP EN EL BRÓKER · STATELESS",
+        ),
+        "general": {
+            "enabled": m("Ativado", "Enabled", "Activado"),
+            "disabled": m("Desativado", "Disabled", "Desactivado"),
+            "cancel": m("Cancelar", "Cancel", "Cancelar"),
+            "save_start": m("Salvar e Iniciar", "Save and Start", "Guardar e Iniciar"),
+        },
+        "config": {
+            "assets_market": m("Ativos & Mercado", "Assets & Market", "Activos & Mercado"),
+            "symbols": m("Ativos (separados por vírgula)", "Assets (comma-separated)", "Activos (separados por coma)"),
+            "timeframe": m("Timeframe", "Timeframe", "Timeframe"),
+            "volume": m("Volume por operação (lotes)", "Volume per trade (lots)", "Volumen por operación (lotes)"),
+            "strategy": m("Estratégia", "Strategy", "Estrategia"),
+            "ema_fast": m("EMA Rápida (período)", "Fast EMA (period)", "EMA Rápida (período)"),
+            "ema_filter": m("EMA Filtro (período)", "EMA Filter (period)", "Filtro EMA (período)"),
+            "setup_92": m("Setup 9.2", "Setup 9.2", "Setup 9.2"),
+            "setup_93": m("Setup 9.3 (Larry Williams)", "Setup 9.3 (Larry Williams)", "Setup 9.3 (Larry Williams)"),
+            "flat": m("Filtro Flat", "Flat Filter", "Filtro Flat"),
+            "flat_ticks": m("Ticks de Flat (limiar)", "Flat Ticks (threshold)", "Ticks de Flat (umbral)"),
+            "mtf": m("Filtro MTF (Timeframe Maior)", "MTF Filter (Higher Timeframe)", "Filtro MTF (Marco Temporal Superior)"),
+            "rvol": m("Filtro de Volume (RVOL)", "Volume Filter (RVOL)", "Filtro de Volumen (RVOL)"),
+            "rvol_th": m("RVOL limiar mínimo (ex.: 1.15 = +15%)", "RVOL min threshold (e.g., 1.15 = +15%)", "Umbral mínimo RVOL (ej.: 1.15 = +15%)"),
+            "rvol_lb": m("RVOL períodos (lookback)", "RVOL periods (lookback)", "Períodos RVOL (lookback)"),
+            "risk": m("Proteção de Capital & Escudo de Risco", "Capital Protection & Risk Shield", "Protección de Capital & Escudo de Riesgo"),
+            "risk_trade": m("Risco por trade (% saldo)", "Risk per trade (% balance)", "Riesgo por trade (% saldo)"),
+            "abs_cap": m("Corte absoluto (% saldo)", "Absolute cap (% balance)", "Tope absoluto (% saldo)"),
+            "daily_loss": m("Perda diária máx. (% saldo)", "Max daily loss (% balance)", "Pérdida diaria máx. (% saldo)"),
+            "spread": m("Spread máximo (pontos)", "Max spread (points)", "Spread máximo (puntos)"),
+            "breakeven": m("Breakeven automático", "Automatic breakeven", "Breakeven automático"),
+            "hours": m("Filtro de horário", "Trading hours filter", "Filtro de horario"),
+            "start_time": m("Horário de início (HH:MM)", "Start time (HH:MM)", "Hora de inicio (HH:MM)"),
+            "end_time": m("Horário de fim (HH:MM)", "End time (HH:MM)", "Hora de fin (HH:MM)"),
+            "position": m("Gestão de Posição", "Position Management", "Gestión de Posición"),
+            "partial_exit": m("Saída parcial", "Partial exit", "Salida parcial"),
+            "partial_pct": m("% volume parcial", "Partial volume %", "% volumen parcial"),
+            "partial_target": m("Alvo parcial (× amplitude)", "Partial target (× amplitude)", "Objetivo parcial (× amplitud)"),
+            "adaptive": m("Alvo adaptativo", "Adaptive target", "Objetivo adaptativo"),
+            "atr_th": m("ATR threshold (volatilidade)", "ATR threshold (volatility)", "Umbral ATR (volatilidad)"),
+            "tick_offset": m("Tick offset (SL/entrada)", "Tick offset (SL/entry)", "Offset de ticks (SL/entrada)"),
+            "intervals": m("Intervalos", "Intervals", "Intervalos"),
+            "scan": m("Scan (segundos)", "Scan (seconds)", "Scan (segundos)"),
+            "retry": m("Retry em erro (segundos)", "Retry on error (seconds)", "Reintento en error (segundos)"),
+            "rates": m("Candles históricos", "Historical candles", "Velas históricas"),
+        },
+        "report": {
+            "trades": m("Operações", "Trades", "Operaciones"),
+            "pnl_total": m("PnL Total (pips)", "Total PnL (pips)", "PnL Total (pips)"),
+            "win_rate": m("Win Rate", "Win Rate", "Win Rate"),
+            "profit_factor": m("Profit Factor", "Profit Factor", "Profit Factor"),
+            "wins": m("Vitórias", "Wins", "Victorias"),
+            "losses": m("Derrotas", "Losses", "Derrotas"),
+            "max_dd": m("Max Drawdown (pips)", "Max Drawdown (pips)", "Max Drawdown (pips)"),
+            "open_now": m("Abertas Agora", "Open Now", "Abiertas Ahora"),
+            "per_trade": m("Métricas por Operação", "Per-Trade Metrics", "Métricas por Operación"),
+            "metric": m("Métrica", "Metric", "Métrica"),
+            "value": m("Valor", "Value", "Valor"),
+            "avg_win": m("Média Vitória (pips)", "Avg Win (pips)", "Media Victoria (pips)"),
+            "avg_loss": m("Média Derrota (pips)", "Avg Loss (pips)", "Media Derrota (pips)"),
+            "big_win": m("Maior Vitória (pips)", "Largest Win (pips)", "Mayor Victoria (pips)"),
+            "big_loss": m("Maior Derrota (pips)", "Largest Loss (pips)", "Mayor Derrota (pips)"),
+            "win_streak": m("Seq. Vitórias", "Win Streak", "Racha Victorias"),
+            "loss_streak": m("Seq. Derrotas", "Loss Streak", "Racha Derrotas"),
+            "asset": m("Ativo", "Asset", "Activo"),
+            "wl": m("W/L", "W/L", "W/L"),
+            "pnl": m("PnL", "PnL", "PnL"),
+            "no_data": m("Nenhum dado ainda", "No data yet", "Aún sin datos"),
+            "setup": m("Setup", "Setup", "Setup"),
+            "history": m("Histórico de Operações", "Trade History", "Historial de Operaciones"),
+            "h_date": m("Data", "Date", "Fecha"),
+            "h_side": m("Lado", "Side", "Lado"),
+            "h_entry": m("Entrada", "Entry", "Entrada"),
+            "h_exit": m("Saída", "Exit", "Salida"),
+            "h_pnl": m("PnL (pips)", "PnL (pips)", "PnL (pips)"),
+            "h_result": m("Resultado", "Result", "Resultado"),
+            "no_trades": m(
+                "Nenhuma operação registrada ainda. Inicie o bot para começar a operar.",
+                "No trades recorded yet. Start the bot to begin trading.",
+                "Aún no hay operaciones registradas. Inicie el bot para comenzar a operar.",
+            ),
+        },
+    }
+
+
+_L10N = _build_l10n()
+
+
+def _t(scope, key, lang):
+    return _L10N[scope][key][lang]
+
+
+def _clean_lang(lang):
+    return lang if lang in SUPPORTED_LANGS else DEFAULT_LANG
+
 
 def _find_free_port(start=5555, attempts=10):
-    """Encontra uma porta livre a partir de start."""
+    """Find a free port starting at start."""
     import socket
     for port in range(start, start + attempts):
         try:
@@ -32,77 +175,185 @@ def _find_free_port(start=5555, attempts=10):
     return start  # fallback
 
 
-def _html_head(title):
+def _html_head(title, lang=DEFAULT_LANG):
+    lang_btns = ""
+    for code in SUPPORTED_LANGS:
+        active = " active" if code == lang else ""
+        lang_btns += (
+            f'<button type="button" class="lang-btn{active}" '
+            f'data-lang="{code}">{code.upper()}</button>'
+        )
     return f"""<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="{lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
 <style>
+:root {{
+  --bg: #0a0e14;
+  --surface: #121821;
+  --surface-2: #0f151e;
+  --border: #263044;
+  --accent: #ff8700;
+  --accent-soft: rgba(255,135,0,0.14);
+  --win: #2ecc71;
+  --loss: #ff5252;
+  --text: #e6e9ef;
+  --muted: #8fa0b8;
+  --mono: "Cascadia Mono","JetBrains Mono",Consolas,"SF Mono",Menlo,monospace;
+}}
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-       background: #1a1a2e; color: #e0e0e0; line-height: 1.6; padding: 2rem; }}
-.container {{ max-width: 900px; margin: 0 auto; }}
-h1 {{ color: #ffffff; margin-bottom: 0.3rem; font-size: 1.8rem; }}
-h2 {{ color: #a0a0b0; margin: 2rem 0 1rem; font-size: 1.2rem; border-bottom: 1px solid #2a2a4e; padding-bottom: 0.5rem; }}
-.tagline {{ color: #4a9eff; font-size: 0.9rem; margin-bottom: 1.5rem; font-style: italic; }}
-.subtitle {{ color: #707090; font-size: 0.9rem; margin-bottom: 2rem; }}
-.card {{ background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #2a2a4e; }}
-label {{ display: block; color: #a0a0b0; font-size: 0.85rem; margin-bottom: 0.3rem; }}
-input, select {{ width: 100%; padding: 0.6rem; border-radius: 4px; border: 1px solid #2a2a4e;
-               background: #0f3460; color: #e0e0e0; font-size: 0.95rem; margin-bottom: 1rem; }}
-input:focus, select:focus {{ outline: none; border-color: #4a9eff; }}
-.row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
-.row-3 {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }}
-button {{ padding: 0.8rem 2rem; border-radius: 6px; border: none; cursor: pointer;
-         font-size: 1rem; font-weight: 600; transition: all 0.2s; }}
-.btn-primary {{ background: #4a9eff; color: #fff; }}
-.btn-primary:hover {{ background: #3a8eef; }}
-.btn-secondary {{ background: #2a2a4e; color: #a0a0b0; }}
-.btn-secondary:hover {{ background: #3a3a5e; }}
-.actions {{ display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }}
-table {{ width: 100%; border-collapse: collapse; font-size: 0.85rem; }}
-th {{ text-align: left; padding: 0.6rem; color: #707090; border-bottom: 1px solid #2a2a4e; font-weight: 500; }}
-td {{ padding: 0.6rem; border-bottom: 1px solid #1a1a3e; }}
-.win {{ color: #4ecdc4; }}
-.loss {{ color: #ff6b6b; }}
-.stat-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }}
-.stat {{ background: #0f3460; padding: 1rem; border-radius: 6px; text-align: center; }}
-.stat-value {{ font-size: 1.5rem; font-weight: 700; color: #fff; }}
-.stat-label {{ font-size: 0.75rem; color: #707090; margin-top: 0.3rem; }}
-.nav {{ display: flex; gap: 1rem; margin-bottom: 2rem; }}
-.nav a {{ color: #4a9eff; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }}
-.nav a:hover {{ background: #16213e; }}
-.nav a.active {{ background: #16213e; font-weight: 600; }}
-.success-msg {{ background: #1a4a3a; color: #4ecdc4; padding: 1rem; border-radius: 6px; text-align: center; margin: 2rem 0; }}
+html {{ -webkit-text-size-adjust: 100%; }}
+body {{ background: var(--bg); color: var(--text); font-family: var(--mono);
+       line-height: 1.55; padding: 1.4rem; }}
+.container {{ max-width: 1020px; margin: 0 auto; }}
+
+/* --- Top bar --- */
+.topbar {{ display: flex; align-items: baseline; justify-content: space-between;
+          gap: 1rem; flex-wrap: wrap; padding-bottom: 1.1rem;
+          border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }}
+.brand {{ display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem;
+         letter-spacing: 0.18em; font-weight: 700; }}
+.brand-mark {{ color: var(--accent); }}
+.live-dot {{ width: 10px; height: 10px; border-radius: 50%; background: var(--win);
+            box-shadow: 0 0 0 0 rgba(46,204,113,0.6); animation: pulse 2.2s infinite; }}
+@keyframes pulse {{
+  0% {{ box-shadow: 0 0 0 0 rgba(46,204,113,0.55); }}
+  70% {{ box-shadow: 0 0 0 9px rgba(46,204,113,0); }}
+  100% {{ box-shadow: 0 0 0 0 rgba(46,204,113,0); }}
+}}
+.lang-switch {{ display: flex; align-items: center; gap: 0.3rem; }}
+.lang-btn {{ padding: 0.3rem 0.7rem; background: var(--surface-2); color: var(--muted);
+            border: 1px solid var(--border); border-radius: 3px; font-size: 0.68rem;
+            font-weight: 700; letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s; }}
+.lang-btn:hover {{ color: var(--text); border-color: var(--accent); }}
+.lang-btn.active {{ color: var(--accent); background: var(--accent-soft);
+                   border-color: var(--accent); }}
+.tagline {{ color: var(--muted); font-size: 0.72rem; letter-spacing: 0.05em;
+           flex-basis: 100%; margin-top: 0.4rem; }}
+
+/* --- Nav --- */
+.nav {{ display: flex; gap: 0.35rem; margin-bottom: 1.6rem; }}
+.nav a {{ color: var(--muted); text-decoration: none; padding: 0.5rem 1.1rem;
+         border: 1px solid var(--border); border-radius: 4px;
+         font-size: 0.8rem; letter-spacing: 0.06em; transition: all 0.15s; }}
+.nav a:hover {{ color: var(--text); border-color: var(--accent); }}
+.nav a.active {{ color: var(--accent); background: var(--accent-soft);
+                border-color: var(--accent); font-weight: 700; }}
+
+/* --- Layout --- */
+h1 {{ font-size: 1.35rem; letter-spacing: 0.1em; margin-bottom: 0.4rem; }}
+.subtitle {{ color: var(--muted); font-size: 0.82rem; margin-bottom: 1.8rem; }}
+
+.panel {{ background: var(--surface); border: 1px solid var(--border);
+         border-radius: 6px; padding: 1.4rem 1.6rem; margin-bottom: 1.4rem; }}
+.eyebrow {{ display: flex; align-items: center; gap: 0.6rem; font-size: 0.7rem;
+           letter-spacing: 0.2em; color: var(--accent); font-weight: 700;
+           text-transform: uppercase; margin-bottom: 1.2rem; }}
+.eyebrow::before {{ content: ""; width: 22px; height: 2px; background: var(--accent); }}
+
+.grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1rem 1.4rem; }}
+label {{ display: block; color: var(--muted); font-size: 0.72rem;
+        letter-spacing: 0.04em; margin-bottom: 0.35rem; }}
+input, select {{ width: 100%; padding: 0.55rem 0.7rem; border-radius: 4px;
+                border: 1px solid var(--border); background: var(--surface-2);
+                color: var(--text); font-family: var(--mono); font-size: 0.85rem;
+                transition: border-color 0.15s; }}
+input:focus, select:focus {{ outline: none; border-color: var(--accent);
+                            box-shadow: 0 0 0 2px var(--accent-soft); }}
+input::placeholder {{ color: #56647a; }}
+
+.actions {{ display: flex; justify-content: flex-end; gap: 0.9rem; margin-top: 1.8rem; }}
+button {{ padding: 0.7rem 1.8rem; border-radius: 4px; border: none; cursor: pointer;
+         font-family: var(--mono); font-size: 0.82rem; font-weight: 700;
+         letter-spacing: 0.06em; transition: all 0.15s; }}
+.btn-primary {{ background: var(--accent); color: #0a0e14; }}
+.btn-primary:hover, .btn-primary:focus-visible {{ background: #ff9a2e; }}
+.btn-secondary {{ background: var(--surface-2); color: var(--muted);
+                 border: 1px solid var(--border); }}
+.btn-secondary:hover {{ color: var(--text); border-color: var(--muted); }}
+
+/* --- Report --- */
+.stat-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+             gap: 1rem; margin-bottom: 1.6rem; }}
+.stat {{ background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+        padding: 1rem 0.6rem; text-align: center; }}
+.stat-value {{ font-size: 1.35rem; font-weight: 700; letter-spacing: 0.02em; }}
+.stat-label {{ font-size: 0.62rem; color: var(--muted); letter-spacing: 0.12em;
+              text-transform: uppercase; margin-top: 0.35rem; }}
+.win {{ color: var(--win); }}
+.loss {{ color: var(--loss); }}
+
+table {{ width: 100%; border-collapse: collapse; font-size: 0.78rem; }}
+th {{ text-align: left; padding: 0.55rem 0.5rem; color: var(--muted);
+     border-bottom: 1px solid var(--border); font-weight: 600;
+     letter-spacing: 0.04em; white-space: nowrap; }}
+td {{ padding: 0.5rem; border-bottom: 1px solid #1a2332; }}
+tr:last-child td {{ border-bottom: none; }}
+tr:hover td {{ background: rgba(255,135,0,0.04); }}
+.empty {{ color: var(--muted); text-align: center; padding: 1.2rem 0; }}
+
+/* --- Feedback --- */
+.success-msg {{ background: #12301f; border: 1px solid var(--win); color: var(--win);
+               padding: 1.4rem; border-radius: 6px; text-align: center;
+               margin: 2rem auto; max-width: 560px; font-size: 0.9rem; }}
+.footer {{ margin-top: 2.4rem; padding-top: 1.1rem; border-top: 1px solid var(--border);
+          color: var(--muted); font-size: 0.68rem; letter-spacing: 0.08em;
+          text-align: center; }}
+
+@media (prefers-reduced-motion: reduce) {{
+  .live-dot {{ animation: none; }}
+  * {{ transition: none !important; }}
+}}
 </style>
+<script>
+function setLang(lang) {{
+  document.cookie = "lang=" + lang + "; path=/; max-age=31536000";
+  location.reload();
+}}
+document.addEventListener("DOMContentLoaded", function () {{
+  document.querySelectorAll(".lang-btn").forEach(function (btn) {{
+    btn.addEventListener("click", function () {{
+      setLang(btn.dataset.lang);
+    }});
+  }});
+}});
+</script>
 </head>
 <body>
 <div class="container">
-"""
-
-
-def _html_nav(active="config"):
-    config_cls = "active" if active == "config" else ""
-    report_cls = "active" if active == "report" else ""
-    return f"""
-<div class="nav">
-    <a href="/config" class="{config_cls}">Configuracao</a>
-    <a href="/report" class="{report_cls}">Relatorio</a>
+<div class="topbar">
+  <div class="brand"><span class="live-dot" aria-hidden="true"></span>
+    <span><span class="brand-mark">MT5BOT</span> MAESTRO</span></div>
+  <div class="lang-switch">{lang_btns}</div>
+  <div class="tagline">MEASURED, DISCIPLINED EXECUTION</div>
 </div>
 """
 
 
-def _html_footer():
-    return """
+def _html_nav(active="config", lang=DEFAULT_LANG):
+    config_cls = "active" if active == "config" else ""
+    report_cls = "active" if active == "report" else ""
+    return f"""
+<div class="nav" role="navigation" aria-label="{_t('nav', 'label', lang)}">
+    <a href="/config" class="{config_cls}">{_t('nav', 'config', lang)}</a>
+    <a href="/report" class="{report_cls}">{_t('nav', 'report', lang)}</a>
+</div>
+"""
+
+
+def _html_footer(lang=DEFAULT_LANG):
+    return f"""
+<div class="footer">{_L10N['footer'][lang]}</div>
 </div>
 </body>
 </html>"""
 
 
 def _build_timeframe_options():
-    """Gera as <option> HTML para o seletor de timeframe."""
+    """Generate the HTML <option> for the timeframe selector."""
     options = []
     for tf_name, tf_value in config.AVAILABLE_TIMEFRAMES.items():
         selected = "selected" if tf_name == config.TIMEFRAME_NAME else ""
@@ -110,205 +361,202 @@ def _build_timeframe_options():
     return "\n".join(options)
 
 
-def _page_config():
-    """Pagina de configuracao."""
-    html = _html_head("MT5Bot — Configuracao")
+def _page_config(lang=DEFAULT_LANG):
+    """Render the configuration page in the given language."""
+    t = {k: _t("config", k, lang) for k in _L10N["config"]}
+    g = {k: _t("general", k, lang) for k in _L10N["general"]}
+    p = _L10N["pages"]
+    html = _html_head(p["config_title"][lang], lang)
     html += f"""
-<h1>MT5Bot</h1>
-    <p class="tagline">Measured, disciplined execution — performance varies with market conditions.</p>
-<p class="subtitle">Configure os parametros abaixo e clique em "Salvar e Iniciar".</p>
+<h1>{p['config_h1'][lang]}</h1>
+<p class="subtitle">{p['config_sub'][lang]}</p>
 """
-    html += _html_nav("config")
-    html += """
+    html += _html_nav("config", lang)
+    html += f"""
 <form method="POST" action="/config/save">
 
-<div class="card">
-<h2>Ativos e Volume</h2>
-<div class="row">
+<div class="panel">
+<div class="eyebrow">{t['assets_market']}</div>
+<div class="grid">
 <div>
-<label>Ativos (separados por virgula)</label>
-<input type="text" name="symbols" value="{symbols}" placeholder="HK50, EURUSD, US500">
-</div>
-<div>
-<label>Volume por operacao (lotes)</label>
-<input type="number" name="volume" value="{volume}" step="0.01" min="0.01">
-</div>
+<label for="symbols">{t['symbols']}</label>
+<input type="text" id="symbols" name="symbols" value="{{symbols}}" placeholder="HK50, EURUSD, US500">
 </div>
 <div>
-<label>Timeframe</label>
-<select name="timeframe">
-{timeframe_options}
-</select>
-</div>
-</div>
-
-<div class="card">
-<h2>Estrategia</h2>
-<div class="row-3">
-<div>
-<label>EMA Rapida (periodo)</label>
-<input type="number" name="ema_period" value="{ema_period}" min="3" max="50">
-</div>
-<div>
-<label>EMA Filtro (periodo)</label>
-<input type="number" name="ema_filter" value="{ema_filter}" min="10" max="200">
-</div>
-<div>
-<label>Setup 9.2</label>
-<select name="setup_92">
-<option value="1" {s92_on}>Ativado</option>
-<option value="0" {s92_off}>Desativado</option>
-</select>
-</div>
-</div>
-<div class="row">
-<div>
-<label>Filtro Flat</label>
-<select name="flat_filter">
-<option value="1" {flat_on}>Ativado</option>
-<option value="0" {flat_off}>Desativado</option>
-<div class="row-3">
-<div>
-<label>Setup 9.3 (Larry Williams)</label>
-<select name="setup_93">
-<option value="1" {s93_on}>Ativado</option>
-<option value="0" {s93_off}>Desativado</option>
+<label for="timeframe">{t['timeframe']}</label>
+<select id="timeframe" name="timeframe">
+{{timeframe_options}}
 </select>
 </div>
 <div>
-<label>Filtro MTF (Timeframe Maior)</label>
-<select name="mtf_filter">
-<option value="1" {mtf_on}>Ativado</option>
-<option value="0" {mtf_off}>Desativado</option>
-</select>
-</div>
-<div>
-<label>Filtro de Volume (RVOL)</label>
-<select name="rvol_filter">
-<option value="1" {rvol_on}>Ativado</option>
-<option value="0" {rvol_off}>Desativado</option>
-</select>
-</div>
-</div>
-<div class="row">
-<div>
-<label>RVOL Limiar Minimo (ex: 1.15 = 15% acima)</label>
-<input type="number" name="rvol_threshold" value="{rvol_threshold}" step="0.05" min="1.0" max="3.0">
-</div>
-<div>
-<label>RVOL Periodos Média (Lookback)</label>
-<input type="number" name="rvol_lookback" value="{rvol_lookback}" min="5" max="50">
+<label for="volume">{t['volume']}</label>
+<input type="number" id="volume" name="volume" value="{{volume}}" step="0.01" min="0.01">
 </div>
 </div>
 </div>
 
-<div class="card">
-<h2>Proteção de Capital & Escudo de Risco</h2>
-<div class="row-3">
+<div class="panel">
+<div class="eyebrow">{t['strategy']}</div>
+<div class="grid">
 <div>
-<label>Risco por Trade (% saldo)</label>
-<input type="number" name="max_risk_pct" value="{max_risk_pct}" step="0.1" min="0.1" max="5.0">
+<label for="ema_period">{t['ema_fast']}</label>
+<input type="number" id="ema_period" name="ema_period" value="{{ema_period}}" min="3" max="50">
 </div>
 <div>
-<label>Corte Absoluto (% saldo)</label>
-<input type="number" name="abs_max_risk_pct" value="{abs_max_risk_pct}" step="0.1" min="0.5" max="10.0">
+<label for="ema_filter">{t['ema_filter']}</label>
+<input type="number" id="ema_filter" name="ema_filter" value="{{ema_filter}}" min="10" max="200">
 </div>
 <div>
-<label>Perda Diaria Max (% saldo)</label>
-<input type="number" name="max_daily_loss_pct" value="{max_daily_loss_pct}" step="0.1" min="0.5" max="20.0">
-</div>
-</div>
-<div class="row-3">
-<div>
-<label>Spread Maximo (pontos)</label>
-<input type="number" name="max_spread" value="{max_spread}" min="5" max="500">
-</div>
-<div>
-<label>Breakeven Automatico</label>
-<select name="enable_breakeven">
-<option value="1" {be_on}>Ativado</option>
-<option value="0" {be_off}>Desativado</option>
+<label for="setup_92">{t['setup_92']}</label>
+<select id="setup_92" name="setup_92">
+<option value="1" {{s92_on}}>{g['enabled']}</option>
+<option value="0" {{s92_off}}>{g['disabled']}</option>
 </select>
 </div>
 <div>
-<label>Filtro de Horario</label>
-<select name="trading_hours_enabled">
-<option value="1" {th_on}>Ativado</option>
-<option value="0" {th_off}>Desativado</option>
+<label for="setup_93">{t['setup_93']}</label>
+<select id="setup_93" name="setup_93">
+<option value="1" {{s93_on}}>{g['enabled']}</option>
+<option value="0" {{s93_off}}>{g['disabled']}</option>
 </select>
 </div>
-</div>
-<div class="row">
 <div>
-<label>Horario de Inicio (HH:MM)</label>
-<input type="text" name="trading_start_time" value="{trading_start_time}" placeholder="09:15">
+<label for="flat_filter">{t['flat']}</label>
+<select id="flat_filter" name="flat_filter">
+<option value="1" {{flat_on}}>{g['enabled']}</option>
+<option value="0" {{flat_off}}>{g['disabled']}</option>
+</select>
 </div>
 <div>
-<label>Horario de Fim (HH:MM)</label>
-<input type="text" name="trading_end_time" value="{trading_end_time}" placeholder="16:45">
+<label for="flat_threshold">{t['flat_ticks']}</label>
+<input type="number" id="flat_threshold" name="flat_threshold" value="{{flat_threshold}}" min="1" max="50">
+</div>
+<div>
+<label for="mtf_filter">{t['mtf']}</label>
+<select id="mtf_filter" name="mtf_filter">
+<option value="1" {{mtf_on}}>{g['enabled']}</option>
+<option value="0" {{mtf_off}}>{g['disabled']}</option>
+</select>
+</div>
+<div>
+<label for="rvol_filter">{t['rvol']}</label>
+<select id="rvol_filter" name="rvol_filter">
+<option value="1" {{rvol_on}}>{g['enabled']}</option>
+<option value="0" {{rvol_off}}>{g['disabled']}</option>
+</select>
+</div>
+<div>
+<label for="rvol_threshold">{t['rvol_th']}</label>
+<input type="number" id="rvol_threshold" name="rvol_threshold" value="{{rvol_threshold}}" step="0.05" min="1.0" max="3.0">
+</div>
+<div>
+<label for="rvol_lookback">{t['rvol_lb']}</label>
+<input type="number" id="rvol_lookback" name="rvol_lookback" value="{{rvol_lookback}}" min="5" max="50">
 </div>
 </div>
 </div>
 
-<div class="card">
-<h2>Gestao de Risco</h2>
-<div class="row-3">
+<div class="panel">
+<div class="eyebrow">{t['risk']}</div>
+<div class="grid">
 <div>
-<label>Saida Parcial</label>
-<select name="partial_exit">
-<option value="1" {pe_on}>Ativada</option>
-<option value="0" {pe_off}>Desativada</option>
+<label for="max_risk_pct">{t['risk_trade']}</label>
+<input type="number" id="max_risk_pct" name="max_risk_pct" value="{{max_risk_pct}}" step="0.1" min="0.1" max="5.0">
+</div>
+<div>
+<label for="abs_max_risk_pct">{t['abs_cap']}</label>
+<input type="number" id="abs_max_risk_pct" name="abs_max_risk_pct" value="{{abs_max_risk_pct}}" step="0.1" min="0.5" max="10.0">
+</div>
+<div>
+<label for="max_daily_loss_pct">{t['daily_loss']}</label>
+<input type="number" id="max_daily_loss_pct" name="max_daily_loss_pct" value="{{max_daily_loss_pct}}" step="0.1" min="0.5" max="20.0">
+</div>
+<div>
+<label for="max_spread">{t['spread']}</label>
+<input type="number" id="max_spread" name="max_spread" value="{{max_spread}}" min="5" max="500">
+</div>
+<div>
+<label for="enable_breakeven">{t['breakeven']}</label>
+<select id="enable_breakeven" name="enable_breakeven">
+<option value="1" {{be_on}}>{g['enabled']}</option>
+<option value="0" {{be_off}}>{g['disabled']}</option>
 </select>
 </div>
 <div>
-<label>% Volume Parcial</label>
-<input type="number" name="partial_pct" value="{partial_pct}" step="0.1" min="0.1" max="0.9">
-</div>
-<div>
-<label>Alvo Parcial (% amplitude)</label>
-<input type="number" name="partial_target" value="{partial_target}" step="0.1" min="0.5" max="3.0">
-</div>
-</div>
-<div class="row-3">
-<div>
-<label>Alvo Adaptativo</label>
-<select name="adaptive_target">
-<option value="1" {at_on}>Ativado</option>
-<option value="0" {at_off}>Desativado</option>
+<label for="trading_hours_enabled">{t['hours']}</label>
+<select id="trading_hours_enabled" name="trading_hours_enabled">
+<option value="1" {{th_on}}>{g['enabled']}</option>
+<option value="0" {{th_off}}>{g['disabled']}</option>
 </select>
 </div>
 <div>
-<label>ATR Threshold (volatilidade)</label>
-<input type="number" name="atr_threshold" value="{atr_threshold}" step="0.1" min="1.0" max="3.0">
+<label for="trading_start_time">{t['start_time']}</label>
+<input type="text" id="trading_start_time" name="trading_start_time" value="{{trading_start_time}}" placeholder="09:15">
 </div>
 <div>
-<label>Tick Offset (SL/Entry)</label>
-<input type="number" name="tick_offset" value="{tick_offset}" min="1" max="5">
+<label for="trading_end_time">{t['end_time']}</label>
+<input type="text" id="trading_end_time" name="trading_end_time" value="{{trading_end_time}}" placeholder="16:45">
 </div>
 </div>
 </div>
 
-<div class="card">
-<h2>Intervalos</h2>
-<div class="row-3">
+<div class="panel">
+<div class="eyebrow">{t['position']}</div>
+<div class="grid">
 <div>
-<label>Scan (segundos)</label>
-<input type="number" name="scan_interval" value="{scan_interval}" min="5" max="60">
+<label for="partial_exit">{t['partial_exit']}</label>
+<select id="partial_exit" name="partial_exit">
+<option value="1" {{pe_on}}>{g['enabled']}</option>
+<option value="0" {{pe_off}}>{g['disabled']}</option>
+</select>
 </div>
 <div>
-<label>Retry em erro (segundos)</label>
-<input type="number" name="retry_interval" value="{retry_interval}" min="10" max="120">
+<label for="partial_pct">{t['partial_pct']}</label>
+<input type="number" id="partial_pct" name="partial_pct" value="{{partial_pct}}" step="0.1" min="0.1" max="0.9">
 </div>
 <div>
-<label>Candles historicos</label>
-<input type="number" name="rates_count" value="{rates_count}" min="50" max="500">
+<label for="partial_target">{t['partial_target']}</label>
+<input type="number" id="partial_target" name="partial_target" value="{{partial_target}}" step="0.1" min="0.5" max="3.0">
+</div>
+<div>
+<label for="adaptive_target">{t['adaptive']}</label>
+<select id="adaptive_target" name="adaptive_target">
+<option value="1" {{at_on}}>{g['enabled']}</option>
+<option value="0" {{at_off}}>{g['disabled']}</option>
+</select>
+</div>
+<div>
+<label for="atr_threshold">{t['atr_th']}</label>
+<input type="number" id="atr_threshold" name="atr_threshold" value="{{atr_threshold}}" step="0.1" min="1.0" max="3.0">
+</div>
+<div>
+<label for="tick_offset">{t['tick_offset']}</label>
+<input type="number" id="tick_offset" name="tick_offset" value="{{tick_offset}}" min="1" max="5">
+</div>
+</div>
+</div>
+
+<div class="panel">
+<div class="eyebrow">{t['intervals']}</div>
+<div class="grid">
+<div>
+<label for="scan_interval">{t['scan']}</label>
+<input type="number" id="scan_interval" name="scan_interval" value="{{scan_interval}}" min="5" max="60">
+</div>
+<div>
+<label for="retry_interval">{t['retry']}</label>
+<input type="number" id="retry_interval" name="retry_interval" value="{{retry_interval}}" min="10" max="120">
+</div>
+<div>
+<label for="rates_count">{t['rates']}</label>
+<input type="number" id="rates_count" name="rates_count" value="{{rates_count}}" min="50" max="500">
 </div>
 </div>
 </div>
 
 <div class="actions">
-<button type="button" class="btn-secondary" onclick="window.close()">Cancelar</button>
-<button type="submit" class="btn-primary">Salvar e Iniciar</button>
+<button type="button" class="btn-secondary" onclick="window.close()">{g['cancel']}</button>
+<button type="submit" class="btn-primary">{g['save_start']}</button>
 </div>
 </form>
 """.format(
@@ -352,72 +600,72 @@ def _page_config():
         retry_interval=config.RETRY_INTERVAL_SECONDS,
         rates_count=config.RATES_COUNT,
     )
-    html += _html_footer()
+    html += _html_footer(lang)
     return html
 
 
-def _page_config_saved():
-    """Pagina de confirmacao apos salvar."""
-    html = _html_head("MT5Bot — Pronto!")
-    html += """
-<h1>MT5Bot</h1>
-<p class="tagline">Lucros consistentes. Zero emocao.</p>
+def _page_config_saved(lang=DEFAULT_LANG):
+    """Confirmation page after saving."""
+    p = _L10N["pages"]
+    html = _html_head(p["ready_title"][lang], lang)
+    html += f"""
 <div class="success-msg">
-    Configuracao salva. Pode fechar esta janela.<br>
-    O bot esta iniciando no terminal.
+    <h1>{p['ready_h1'][lang]}</h1>
+    <p style="margin-top:0.8rem">{p['ready_msg'][lang]}</p>
 </div>
 """
-    html += _html_footer()
+    html += _html_footer(lang)
     return html
 
 
-def _page_report():
-    """Pagina de relatorio de performance."""
+def _page_report(lang=DEFAULT_LANG):
+    """Performance report page."""
     summary = tracker.get_performance_summary()
     trades = tracker.get_closed_trades()
+    t = {k: _t("report", k, lang) for k in _L10N["report"]}
+    p = _L10N["pages"]
 
-    html = _html_head("MT5Bot — Relatorio de Performance")
-    html += """
-<h1>MT5Bot — Performance</h1>
-<p class="tagline">Lucros consistentes. Zero emocao.</p>
-<p class="subtitle">Historico completo de operacoes e metricas financeiras.</p>
+    html = _html_head(p["report_title"][lang], lang)
+    html += f"""
+<h1>{p['report_h1'][lang]}</h1>
+<p class="subtitle">{p['report_sub'][lang]}</p>
 """
-    html += _html_nav("report")
+    html += _html_nav("report", lang)
 
     # Stats grid
     pnl_color = "win" if summary["total_pnl_pips"] >= 0 else "loss"
     html += f"""
 <div class="stat-grid">
-    <div class="stat"><div class="stat-value">{summary['total_trades']}</div><div class="stat-label">Total Operacoes</div></div>
-    <div class="stat"><div class="stat-value {pnl_color}">{summary['total_pnl_pips']:+.2f}</div><div class="stat-label">PnL Total (pips)</div></div>
-    <div class="stat"><div class="stat-value">{summary['win_rate']}%</div><div class="stat-label">Win Rate</div></div>
-    <div class="stat"><div class="stat-value">{summary['profit_factor']:.2f}</div><div class="stat-label">Profit Factor</div></div>
-    <div class="stat"><div class="stat-value win">{summary['wins']}</div><div class="stat-label">Vitorias</div></div>
-    <div class="stat"><div class="stat-value loss">{summary['losses']}</div><div class="stat-label">Derrotas</div></div>
-    <div class="stat"><div class="stat-value">{summary['max_drawdown_pips']:.2f}</div><div class="stat-label">Max Drawdown (pips)</div></div>
-    <div class="stat"><div class="stat-value">{summary['open_trades']}</div><div class="stat-label">Abertas Agora</div></div>
+    <div class="stat"><div class="stat-value">{summary['total_trades']}</div><div class="stat-label">{t['trades']}</div></div>
+    <div class="stat"><div class="stat-value {pnl_color}">{summary['total_pnl_pips']:+.2f}</div><div class="stat-label">{t['pnl_total']}</div></div>
+    <div class="stat"><div class="stat-value">{summary['win_rate']}%</div><div class="stat-label">{t['win_rate']}</div></div>
+    <div class="stat"><div class="stat-value">{summary['profit_factor']:.2f}</div><div class="stat-label">{t['profit_factor']}</div></div>
+    <div class="stat"><div class="stat-value win">{summary['wins']}</div><div class="stat-label">{t['wins']}</div></div>
+    <div class="stat"><div class="stat-value loss">{summary['losses']}</div><div class="stat-label">{t['losses']}</div></div>
+    <div class="stat"><div class="stat-value">{summary['max_drawdown_pips']:.2f}</div><div class="stat-label">{t['max_dd']}</div></div>
+    <div class="stat"><div class="stat-value">{summary['open_trades']}</div><div class="stat-label">{t['open_now']}</div></div>
 </div>
 """
 
-    # Detalhes
+    # Details
     html += f"""
-<div class="card">
-<h2>Detalhes</h2>
-<div class="row">
+<div class="panel">
+<div class="eyebrow">{t['per_trade']}</div>
+<div class="grid">
 <div>
 <table>
-<tr><th>Metrica</th><th>Valor</th></tr>
-<tr><td>Media Vitoria (pips)</td><td class="win">{summary['avg_win_pips']:.5f}</td></tr>
-<tr><td>Media Derrota (pips)</td><td class="loss">{summary['avg_loss_pips']:.5f}</td></tr>
-<tr><td>Maior Vitoria (pips)</td><td class="win">{summary['largest_win_pips']:.5f}</td></tr>
-<tr><td>Maior Derrota (pips)</td><td class="loss">{summary['largest_loss_pips']:.5f}</td></tr>
-<tr><td>Seq. Vitorias</td><td>{summary['consecutive_wins']}</td></tr>
-<tr><td>Seq. Derrotas</td><td>{summary['consecutive_losses']}</td></tr>
+<tr><th>{t['metric']}</th><th>{t['value']}</th></tr>
+<tr><td>{t['avg_win']}</td><td class="win">{summary['avg_win_pips']:.5f}</td></tr>
+<tr><td>{t['avg_loss']}</td><td class="loss">{summary['avg_loss_pips']:.5f}</td></tr>
+<tr><td>{t['big_win']}</td><td class="win">{summary['largest_win_pips']:.5f}</td></tr>
+<tr><td>{t['big_loss']}</td><td class="loss">{summary['largest_loss_pips']:.5f}</td></tr>
+<tr><td>{t['win_streak']}</td><td>{summary['consecutive_wins']}</td></tr>
+<tr><td>{t['loss_streak']}</td><td>{summary['consecutive_losses']}</td></tr>
 </table>
 </div>
 <div>
 <table>
-<tr><th>Ativo</th><th>W/L</th><th>Win Rate</th><th>PnL</th></tr>
+<tr><th>{t['asset']}</th><th>{t['wl']}</th><th>{t['win_rate']}</th><th>{t['pnl']}</th></tr>
 """
     for sym, data in summary["by_symbol"].items():
         total = data["wins"] + data["losses"]
@@ -426,13 +674,13 @@ def _page_report():
         html += f'<tr><td>{sym}</td><td>{data["wins"]}/{data["losses"]}</td><td>{wr}%</td><td class="{pnl_cls}">{data["pnl_pips"]:+.2f}</td></tr>\n'
 
     if not summary["by_symbol"]:
-        html += '<tr><td colspan="4" style="color:#707090">Nenhum dado ainda</td></tr>'
+        html += f'<tr><td colspan="4" class="empty">{t["no_data"]}</td></tr>'
 
-    html += """
+    html += f"""
 </table>
 <br>
 <table>
-<tr><th>Setup</th><th>W/L</th><th>Win Rate</th><th>PnL</th></tr>
+<tr><th>{t['setup']}</th><th>{t['wl']}</th><th>{t['win_rate']}</th><th>{t['pnl']}</th></tr>
 """
     for setup, data in summary["by_setup"].items():
         total = data["wins"] + data["losses"]
@@ -441,9 +689,9 @@ def _page_report():
         html += f'<tr><td>{setup}</td><td>{data["wins"]}/{data["losses"]}</td><td>{wr}%</td><td class="{pnl_cls}">{data["pnl_pips"]:+.2f}</td></tr>\n'
 
     if not summary["by_setup"]:
-        html += '<tr><td colspan="4" style="color:#707090">Nenhum dado ainda</td></tr>'
+        html += f'<tr><td colspan="4" class="empty">{t["no_data"]}</td></tr>'
 
-    html += """
+    html += f"""
 </table>
 </div>
 </div>
@@ -451,44 +699,53 @@ def _page_report():
 """
 
     # Trade history
-    html += """
-<div class="card">
-<h2>Historico de Operacoes</h2>
+    html += f"""
+<div class="panel">
+<div class="eyebrow">{t['history']}</div>
 <table>
-<tr><th>#</th><th>Data</th><th>Ativo</th><th>Lado</th><th>Setup</th><th>Entrada</th><th>Saida</th><th>PnL (pips)</th><th>Resultado</th></tr>
+<tr><th>#</th><th>{t['h_date']}</th><th>{t['asset']}</th><th>{t['h_side']}</th><th>{t['setup']}</th><th>{t['h_entry']}</th><th>{t['h_exit']}</th><th>{t['h_pnl']}</th><th>{t['h_result']}</th></tr>
 """
-    for t in reversed(trades[-50:]):
-        entry = f"{t['entry_price']:.5f}" if t['entry_price'] else "—"
-        exit_p = f"{t['exit_price']:.5f}" if t['exit_price'] else "—"
-        pnl_val = t['pnl_pips'] if t['pnl_pips'] is not None else 0
-        pnl_str = f"{pnl_val:+.5f}" if t['pnl_pips'] is not None else "—"
+    for trade in reversed(trades[-50:]):
+        entry = f"{trade['entry_price']:.5f}" if trade['entry_price'] else "—"
+        exit_p = f"{trade['exit_price']:.5f}" if trade['exit_price'] else "—"
+        pnl_val = trade['pnl_pips'] if trade['pnl_pips'] is not None else 0
+        pnl_str = f"{pnl_val:+.5f}" if trade['pnl_pips'] is not None else "—"
         pnl_cls = "win" if pnl_val > 0 else "loss" if pnl_val < 0 else ""
-        result_str = t['result'].upper()
-        entry_time = t.get('entry_time', '')[:16].replace('T', ' ') if t.get('entry_time') else '—'
-        html += f'<tr><td>{t["id"]}</td><td>{entry_time}</td><td>{t["symbol"]}</td><td>{t["side"]}</td><td>{t.get("setup","9.1")}</td><td>{entry}</td><td>{exit_p}</td><td class="{pnl_cls}">{pnl_str}</td><td>{result_str}</td></tr>\n'
+        result_str = trade['result'].upper()
+        entry_time = trade.get('entry_time', '')[:16].replace('T', ' ') if trade.get('entry_time') else '—'
+        html += f'<tr><td>{trade["id"]}</td><td>{entry_time}</td><td>{trade["symbol"]}</td><td>{trade["side"]}</td><td>{trade.get("setup","9.1")}</td><td>{entry}</td><td>{exit_p}</td><td class="{pnl_cls}">{pnl_str}</td><td>{result_str}</td></tr>\n'
 
     if not trades:
-        html += '<tr><td colspan="9" style="color:#707090;text-align:center">Nenhuma operacao registrada ainda. Inicie o bot para comecar a operar.</td></tr>'
+        html += f'<tr><td colspan="9" class="empty">{t["no_trades"]}</td></tr>'
 
-    html += """
+    html += f"""
 </table>
 </div>
 """
-    html += _html_footer()
+    html += _html_footer(lang)
     return html
 
 
 class _DashboardHandler(http.server.BaseHTTPRequestHandler):
-    """Handler HTTP para o dashboard."""
+    """HTTP handler for the dashboard."""
 
     def log_message(self, format, *args):
-        pass  # Silenciar logs HTTP
+        pass  # Silence HTTP logs
+
+    def _lang_from_cookie(self):
+        raw = self.headers.get("Cookie", "")
+        for part in raw.split(";"):
+            part = part.strip()
+            if part.startswith("lang="):
+                return _clean_lang(part[len("lang="):].strip())
+        return DEFAULT_LANG
 
     def do_GET(self):
+        lang = self._lang_from_cookie()
         if self.path == "/" or self.path == "/config":
-            self._respond(200, _page_config())
+            self._respond(200, _page_config(lang))
         elif self.path == "/report":
-            self._respond(200, _page_report())
+            self._respond(200, _page_report(lang))
         elif self.path == "/api/summary":
             summary = tracker.get_performance_summary()
             self._respond_json(summary)
@@ -497,11 +754,12 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == "/config/save":
+            lang = self._lang_from_cookie()
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
             params = urllib.parse.parse_qs(body)
 
-            # Extrair e aplicar configuracao com validacao
+            # Extract and apply config with validation
             global _configured_data
             try:
                 _configured_data = {
@@ -537,50 +795,46 @@ class _DashboardHandler(http.server.BaseHTTPRequestHandler):
                     "timeframe": params.get("timeframe", ["H1"])[0],
                 }
             except (ValueError, TypeError):
-                # Se dados do formulario forem invalidos, usar defaults
-                _configured_data = {
-                    "symbols": ", ".join(config.AVAILABLE_SYMBOLS),
-                    "volume": 0.01, "ema_period": 9, "ema_filter": 21,
-                    "setup_92": True, "setup_93": True, "mtf_filter": True,
-                    "rvol_filter": True, "rvol_threshold": 1.15, "rvol_lookback": 20,
-                    "flat_filter": True, "flat_threshold": 5,
-                    "max_risk_pct": 1.0, "abs_max_risk_pct": 1.5, "max_daily_loss_pct": 2.0,
-                    "max_spread": 50, "enable_breakeven": True, "trading_hours_enabled": True,
-                    "trading_start_time": "09:15", "trading_end_time": "16:45",
-                    "partial_exit": True, "partial_pct": 0.5, "partial_target": 1.0,
-                    "adaptive_target": True, "atr_threshold": 1.5, "tick_offset": 1,
-                    "scan_interval": 10, "retry_interval": 30, "rates_count": 100,
-                    "timeframe": "H1",
-                }
+                _configured_data = {}
 
-            # Aplicar ao config
             _apply_config(_configured_data)
 
-            self._respond(200, _page_config_saved())
+            self._respond(200, _page_config_saved(lang))
+
             _config_ready.set()
         else:
             self._respond(404, "<h1>404</h1>")
 
-    def _respond(self, code, html):
+    def _respond(self, code, html_body):
+        body = html_body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(html.encode("utf-8"))
+        self.wfile.write(body)
 
     def _respond_json(self, data):
+        body = json.dumps(data).encode("utf-8")
         self.send_response(200)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode("utf-8"))
+        self.wfile.write(body)
 
 
 def _apply_config(data):
-    """Aplica dados do formulario web ao config."""
-    symbols_raw = data.get("symbols", "")
-    config.SYMBOLS = [s.strip() for s in symbols_raw.split(",") if s.strip()]
-    config.VOLUME_INITIAL = data.get("volume", 0.01)
-    config.EMA_PERIOD = data.get("ema_period", 9)
-    config.EMA_FILTER_PERIOD = data.get("ema_filter", 21)
+    """Apply web form data to config."""
+    global _configured_data
+    _configured_data = data
+
+    if "symbols" in data:
+        config.SYMBOLS = [s.strip() for s in data["symbols"].split(",") if s.strip()]
+    if "volume" in data:
+        config.VOLUME_INITIAL = data["volume"]
+    if "ema_period" in data:
+        config.EMA_PERIOD = data["ema_period"]
+    if "ema_filter" in data:
+        config.EMA_FILTER_PERIOD = data["ema_filter"]
     config.SETUP_92_ENABLED = data.get("setup_92", True)
     config.SETUP_93_ENABLED = data.get("setup_93", True)
     config.MTF_FILTER_ENABLED = data.get("mtf_filter", True)
@@ -607,7 +861,7 @@ def _apply_config(data):
     config.RETRY_INTERVAL_SECONDS = data.get("retry_interval", 30)
     config.RATES_COUNT = data.get("rates_count", 100)
 
-    # Timeframe — valida contra lista de timeframes disponiveis
+    # Timeframe — validate against list of available timeframes
     tf_name = data.get("timeframe", "H1")
     if tf_name in config.AVAILABLE_TIMEFRAMES:
         config.TIMEFRAME = config.AVAILABLE_TIMEFRAMES[tf_name]
@@ -615,9 +869,9 @@ def _apply_config(data):
 
 
 def open_config():
-    """Abre dashboard de configuracao no navegador.
-    Bloqueia ate o usuario salvar a configuracao.
-    Retorna True se configuracao foi salva, False se timeout/cancelado.
+    """Open configuration dashboard in the browser.
+    Blocks until the user saves the configuration.
+    Returns True if configuration was saved, False on timeout/cancel.
     """
     global _server, _config_ready, _PORT
     _config_ready.clear()
@@ -632,7 +886,7 @@ def open_config():
     print(f"  Aguardando configuracao no navegador...\n")
     webbrowser.open(url)
 
-    # Aguardar ate o usuario salvar ou timeout de 5 minutos
+    # Wait until the user saves or 5-minute timeout
     configured = _config_ready.wait(timeout=300)
 
     _server.shutdown()
@@ -640,7 +894,7 @@ def open_config():
 
 
 def open_report():
-    """Abre pagina de relatorio no navegador."""
+    """Open report page in the browser."""
     global _server, _PORT
 
     _PORT = _find_free_port()

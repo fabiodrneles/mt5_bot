@@ -29,8 +29,8 @@ func printASCIIArt() {
 	fmt.Println(` / /  / / / / ____/ /   / /_/ / /_/ / /_  `)
 	fmt.Println(`/_/  /_/ /_/ /_____/   /_____/\____/\__/  `)
 	fmt.Println(ColorReset)
-	fmt.Println(ColorDim + " Measured, disciplined execution — performance varies with market conditions." + ColorReset)
-	fmt.Println(ColorDim + " Digite /help para ver os comandos disponíveis." + ColorReset)
+	fmt.Println(ColorDim + tr("ascii_tag") + ColorReset)
+	fmt.Println(ColorDim + tr("ascii_help") + ColorReset)
 	fmt.Println()
 }
 
@@ -43,6 +43,7 @@ func main() {
 	os.Remove("../.no_new_trades")
 	os.Remove(".no_new_trades")
 
+	currentLang = loadSavedLang()
 	printASCIIArt()
 
 	// Create a manager to hold all worker processes
@@ -70,67 +71,77 @@ func main() {
 			switch cmd.Name {
 			case "add":
 				if cmd.Symbol == "" {
-					fmt.Println(ColorRed + "Uso: /add <ativo> [timeframe] - Ex: /add WIN M5" + ColorReset)
+					fmt.Println(ColorRed + tr("usage_add") + ColorReset)
 					continue
 				}
 				worker := NewPythonWorker(cmd.Symbol, cmd.Timeframe)
 				manager.Add(worker)
 				go worker.Start()
-				fmt.Printf(ColorGreen+"Worker iniciado para %s (%s)"+ColorReset+"\n", cmd.Symbol, cmd.Timeframe)
+				fmt.Printf(ColorGreen+tr("worker_started")+ColorReset+"\n", cmd.Symbol, cmd.Timeframe)
 
 			case "stop":
 				if cmd.Symbol == "" {
-					fmt.Println(ColorRed + "Uso: /stop <ativo> - Ex: /stop WIN" + ColorReset)
+					fmt.Println(ColorRed + tr("usage_stop") + ColorReset)
 					continue
 				}
 				if manager.Remove(cmd.Symbol) {
-					fmt.Printf(ColorGreen+"Worker de %s encerrado com sucesso."+ColorReset+"\n", cmd.Symbol)
+					fmt.Printf(ColorGreen+tr("worker_stopped")+ColorReset+"\n", cmd.Symbol)
 				} else {
-					fmt.Printf(ColorRed+"Worker de %s nao encontrado."+ColorReset+"\n", cmd.Symbol)
+					fmt.Printf(ColorRed+tr("worker_notfound")+ColorReset+"\n", cmd.Symbol)
 				}
 
 			case "list":
 				workers := manager.List()
 				if len(workers) == 0 {
-					fmt.Println(ColorDim + "Nenhum worker ativo no momento." + ColorReset)
+					fmt.Println(ColorDim + tr("no_workers") + ColorReset)
 					continue
 				}
-				fmt.Println(ColorBold + "Workers Ativos:" + ColorReset)
+				fmt.Println(ColorBold + tr("workers_active") + ColorReset)
 				for _, w := range workers {
 					fmt.Printf(" - %s (Timeframe: %s)\n", w.Symbol, w.Timeframe)
 				}
 
 			case "report":
-				fmt.Println(ColorDim + "Gerando relatorio de performance..." + ColorReset)
+				fmt.Println(ColorDim + tr("report_gen") + ColorReset)
 				cmdPy := exec.Command("python", "../tracker.py", "--report")
 				cmdPy.Stdout = os.Stdout
 				cmdPy.Stderr = os.Stderr
 				cmdPy.Run()
 
 			case "dashboard":
-				fmt.Println(ColorDim + "Abrindo Web Dashboard..." + ColorReset)
+				fmt.Println(ColorDim + tr("dashboard_open") + ColorReset)
 				cmdPy := exec.Command("python", "../dashboard.py")
 				cmdPy.Stdout = os.Stdout
 				cmdPy.Stderr = os.Stderr
 				cmdPy.Start()
 
 			case "help":
-				fmt.Println(ColorBold + "Comandos disponiveis:" + ColorReset)
-				fmt.Println("  /add <ativo> [tf] - Adiciona e inicia um ativo. Ex: /add WIN M5")
-				fmt.Println("  /stop <ativo>     - Para a operacao em um ativo.")
-				fmt.Println("  /list             - Lista os ativos operando atualmente.")
-				fmt.Println("  /report           - Exibe o relatorio de performance no terminal.")
-				fmt.Println("  /dashboard        - Abre o painel visual no navegador.")
-				fmt.Println("  /quit             - Encerra o Maestro mantendo o estado no MT5.")
-				fmt.Println("  /quit cancel-open - Cancela ordens pendentes e encerra.")
-				fmt.Println("  /quit wait-flat   - Aguarda zerar posicao para desligar.")
-				fmt.Println("  /quit close-all   - [PANIC] Liquida todas as posicoes a mercado.")
+				fmt.Println(ColorBold + tr("help_title") + ColorReset)
+				fmt.Println(tr("help_add"))
+				fmt.Println(tr("help_stop"))
+				fmt.Println(tr("help_list"))
+				fmt.Println(tr("help_report"))
+				fmt.Println(tr("help_dashboard"))
+				fmt.Println(tr("help_quit"))
+				fmt.Println(tr("help_quit_cancel"))
+				fmt.Println(tr("help_quit_flat"))
+				fmt.Println(tr("help_quit_all"))
+				fmt.Println(tr("help_lang"))
+
+			case "idioma":
+				if cmd.Symbol == "" || normalizeLang(cmd.Symbol) == "" {
+					fmt.Println(ColorRed + tr("lang_invalid") + ColorReset)
+					continue
+				}
+				currentLang = normalizeLang(cmd.Symbol)
+				saveLang(currentLang)
+				fmt.Println(ColorGreen + tr("lang_set") + ColorReset)
 
 			case "quit":
-				fmt.Println(ColorOrange + "Iniciando processo de shutdown..." + ColorReset)
+				fmt.Println(ColorOrange + tr("shutdown_start") + ColorReset)
 
 				if cmd.Action != "" {
-					fmt.Printf(ColorDim+"Acao solicitada: %s"+ColorReset+"\n", cmd.Action)
+					fmt.Printf(ColorDim+tr("action_requested")+ColorReset+"\n", cmd.Action)
 
 					// Spawn the python shutdown manager
 					shutdownCmd := exec.Command("python", "../brain/shutdown_manager.py", cmd.Action)
@@ -138,24 +149,24 @@ func main() {
 					shutdownCmd.Stderr = os.Stderr
 					err := shutdownCmd.Run()
 					if err != nil {
-						fmt.Println(ColorRed+"Erro ao executar shutdown manager:"+ColorReset, err)
+						fmt.Println(ColorRed+tr("shutdown_err")+ColorReset, err)
 					}
 				} else {
-					fmt.Println(ColorDim + "Nenhuma acao especial. Mantendo posicoes no MT5 e encerrando local..." + ColorReset)
+					fmt.Println(ColorDim + tr("shutdown_none") + ColorReset)
 				}
 
 				sigChan <- syscall.SIGINT
 				return
 
 			default:
-				fmt.Printf(ColorRed+"Comando desconhecido: %s. Digite /help"+ColorReset+"\n", strings.TrimSpace(line))
+				fmt.Printf(ColorRed+tr("unknown_cmd")+ColorReset+"\n", strings.TrimSpace(line))
 			}
 		}
 	}()
 
 	<-sigChan
-	log.Println(ColorReset + "Encerrando Maestro. Matando workers..." + ColorReset)
+	log.Println(ColorReset + tr("msg_shutting") + ColorReset)
 
 	manager.StopAll()
-	log.Println(ColorGreen + "Maestro finalizado com sucesso." + ColorReset)
+	log.Println(ColorGreen + tr("msg_done") + ColorReset)
 }

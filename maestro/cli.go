@@ -37,6 +37,13 @@ func parseCommand(line string) Command {
 		}
 		return cmd
 
+	case "/idioma", "/lang":
+		cmd := Command{Name: "idioma"}
+		if len(parts) > 1 {
+			cmd.Symbol = strings.ToLower(parts[1])
+		}
+		return cmd
+
 	case "/list":
 		return Command{Name: "list"}
 

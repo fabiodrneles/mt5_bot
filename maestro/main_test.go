@@ -1,16 +1,17 @@
 package main
 
 import (
+	"os"
 	"testing"
 	"time"
 )
 
 func TestParseCommandAdd(t *testing.T) {
 	cases := []struct {
-		name  string
-		line  string
+		name   string
+		line   string
 		symbol string
-		tf    string
+		tf     string
 	}{
 		{"com timeframe", "/add WIN M5", "WIN", "M5"},
 		{"sem timeframe usa H1", "/add WIN", "WIN", "H1"},
@@ -35,8 +36,8 @@ func TestParseCommandAdd(t *testing.T) {
 
 func TestParseCommandStop(t *testing.T) {
 	cases := []struct {
-		name  string
-		line  string
+		name   string
+		line   string
 		symbol string
 	}{
 		{"stop", "/stop WIN", "WIN"},
@@ -104,6 +105,106 @@ func TestParseCommandVazioIgnorado(t *testing.T) {
 func TestParseCommandDesconhecido(t *testing.T) {
 	if cmd := parseCommand("/nada"); cmd.Name != "unknown" {
 		t.Fatalf("Name=%q, esperado unknown", cmd.Name)
+	}
+}
+
+func TestParseCommandIdioma(t *testing.T) {
+	cases := []struct {
+		line string
+		lang string
+	}{
+		{"/idioma en", "en"},
+		{"/idioma ES", "es"},
+		{"/lang pt", "pt"},
+		{"/lang espanol", "espanol"},
+		{"/idioma", ""},
+	}
+	for _, tc := range cases {
+		cmd := parseCommand(tc.line)
+		if cmd.Name != "idioma" {
+			t.Fatalf("%q: Name=%q, esperado idioma", tc.line, cmd.Name)
+		}
+		if cmd.Symbol != tc.lang {
+			t.Fatalf("%q: Symbol=%q, esperado %q", tc.line, cmd.Symbol, tc.lang)
+		}
+	}
+}
+
+func TestNormalizeLang(t *testing.T) {
+	cases := []struct {
+		in   string
+		want Lang
+	}{
+		{"pt", LangPt},
+		{"PT", LangPt},
+		{"pt-br", LangPt},
+		{"portugues", LangPt},
+		{"en", LangEn},
+		{"english", LangEn},
+		{"es", LangEs},
+		{"ES", LangEs},
+		{"espanol", LangEs},
+		{"xx", ""},
+		{"", ""},
+	}
+	for _, tc := range cases {
+		if got := normalizeLang(tc.in); got != tc.want {
+			t.Fatalf("normalizeLang(%q)=%q, esperado %q", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestTTranslationsCompletas(t *testing.T) {
+	ptKeys := make([]string, 0, len(translations[LangPt]))
+	for k := range translations[LangPt] {
+		ptKeys = append(ptKeys, k)
+	}
+	for _, lang := range []Lang{LangEn, LangEs} {
+		for _, k := range ptKeys {
+			if v, ok := translations[lang][k]; !ok || v == "" {
+				t.Fatalf("idioma %q sem traducao para chave %q", lang, k)
+			}
+		}
+	}
+}
+
+func TestTLangSwitchEFallback(t *testing.T) {
+	prev := currentLang
+	defer func() { currentLang = prev }()
+
+	currentLang = LangEn
+	if got := tr("help_title"); got != "Available commands:" {
+		t.Fatalf("t(help_title) en=%q", got)
+	}
+	if got := tr("msg_done"); got != "Maestro finished successfully." {
+		t.Fatalf("t(msg_done) en=%q", got)
+	}
+
+	// Chave inexistente: fallback para pt sem KeyError/panic
+	if got := tr("nao_existe"); got != "" {
+		t.Fatalf("chave inexistente deveria retornar vazio, obteve %q", got)
+	}
+}
+
+func TestSaveLoadLangRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("APPDATA", dir)
+	t.Setenv("LOCALAPPDATA", "")
+
+	saveLang(LangEs)
+	if got := loadSavedLang(); got != LangEs {
+		t.Fatalf("loadSavedLang=%q, esperado es", got)
+	}
+	if _, err := os.Stat(langFilePath()); err != nil {
+		t.Fatalf("lang.json nao criado: %v", err)
+	}
+
+	// Arquivo corrompido: deve cair para o padrao pt.
+	if err := os.WriteFile(langFilePath(), []byte("{{{"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := loadSavedLang(); got != LangDefault {
+		t.Fatalf("arquivo invalido deveria cair para pt, obteve %q", got)
 	}
 }
 

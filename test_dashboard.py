@@ -8,7 +8,7 @@ def test_page_config_html_rendering():
     """Garante que _page_config renderiza o formulario HTML com todos os cartoes de configuracao."""
     html = dashboard._page_config()
     assert "<!DOCTYPE html>" in html
-    assert "Configuracao" in html
+    assert "Configuração" in html  # MT5Bot — Configuração (title)
     assert "Proteção de Capital & Escudo de Risco" in html
     assert "Setup 9.3 (Larry Williams)" in html
     assert "Filtro MTF (Timeframe Maior)" in html
@@ -20,7 +20,7 @@ def test_page_report_html_rendering():
     """Garante que _page_report renderiza o relatorio HTML sem erros."""
     html = dashboard._page_report()
     assert "<!DOCTYPE html>" in html
-    assert "Relatorio de Performance" in html
+    assert "RELATÓRIO DE PERFORMANCE" in html
 
 def test_apply_config_updates_global_config(monkeypatch):
     """Valida se _apply_config atualiza corretamente as variaveis em config.py isoladamente."""
@@ -93,18 +93,14 @@ def test_dashboard_handler_get_requests(monkeypatch):
     handler = dashboard._DashboardHandler.__new__(dashboard._DashboardHandler)
     handler.path = "/config"
     handler.wfile = DummyWfile()
-    
-    def dummy_send_response(code): handler.last_code = code
-    def dummy_send_header(k, v): pass
-    def dummy_end_headers(): pass
-    
-    handler.send_response = dummy_send_response
-    handler.send_header = dummy_send_header
-    handler.end_headers = dummy_end_headers
-    
+    handler.headers = dashboard._FakeHeaders(0)  # Set headers so _lang_from_cookie works
+    handler.send_response = lambda code: setattr(handler, "last_code", code)
+    handler.send_header = lambda k, v: None
+    handler.end_headers = lambda: None
+
     handler.do_GET()
     assert handler.last_code == 200
-    assert b"Configuracao" in handler.wfile.data
+    assert "Configuração" in handler.wfile.data.decode("utf-8")  # Title contains "Configuração" (pt)
 
 
 class _FakeHeaders:
@@ -159,7 +155,7 @@ def test_find_free_port_fallback_quando_sem_porta_livre(monkeypatch):
 
 def test_page_config_saved_render(monkeypatch):
     html = dashboard._page_config_saved()
-    assert "Configuracao salva" in html
+    assert "CONFIGURAÇÃO APLICADA" in html
     assert "<!DOCTYPE html>" in html
 
 
@@ -185,7 +181,7 @@ def test_page_report_com_dados(monkeypatch, tmp_path):
     assert "PC" in html
     assert "1/0" in html
     assert "0/1" in html
-    assert "Historico de Operacoes" in html
+    assert "Trade History" in html
 
 
 def test_page_report_vazio(monkeypatch, tmp_path):
@@ -194,7 +190,7 @@ def test_page_report_vazio(monkeypatch, tmp_path):
     trades_file.write_text("[]", encoding="utf-8")
     monkeypatch.setattr(tracker_mod, "_TRADES_FILE", str(trades_file))
     html = dashboard._page_report()
-    assert "Nenhuma operacao registrada ainda" in html
+    assert "Nenhuma operação registrada ainda" in html
     assert "Nenhum dado ainda" in html
 
 
@@ -208,7 +204,7 @@ def test_handler_get_report_e_api_e_404(monkeypatch, tmp_path):
     h = _make_handler(monkeypatch, path="/report")
     h.do_GET()
     assert h.last_code == 200
-    assert b"Relatorio de Performance" in h.wfile.data
+    assert "RELATÓRIO DE PERFORMANCE" in h.wfile.data.decode("utf-8")
 
     h = _make_handler(monkeypatch, path="/api/summary")
     h.do_GET()
@@ -235,7 +231,7 @@ def test_handler_post_config_save(monkeypatch):
     h = _make_handler(monkeypatch, path="/config/save", body=body, content_length=len(body))
     h.do_POST()
     assert h.last_code == 200
-    assert b"Configuracao salva" in h.wfile.data
+    assert b"CONFIGURATION" in h.wfile.data
     assert dashboard._config_ready.is_set()
     assert config.SYMBOLS == ["EURUSD", "GBPUSD"]
     assert config.TIMEFRAME_NAME == "M15"

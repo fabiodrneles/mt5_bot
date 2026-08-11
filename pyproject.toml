@@ -15,6 +15,8 @@ authors = [
 
 dependencies = [
     "MetaTrader5>=5.0.45",
+    "pandas>=2.0",
+    "numpy>=1.24",
     "pytz>=2023.3",
 ]
 
@@ -28,4 +30,4 @@ dev = [
 mt5bot = "main:main"
 
 [tool.setuptools]
-py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "tui", "dashboard", "tracker", "risk_calculator"]
+py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "dashboard", "tracker", "risk_calculator"]
