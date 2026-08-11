@@ -4,6 +4,7 @@ Interface limpa e neutra para configurar todos os parametros antes de operar.
 """
 import os
 import sys
+import re
 import getpass
 import shutil
 import textwrap
@@ -23,40 +24,53 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RED = "\033[91m"
 
+VERSION = "1.5.1"
+
 
 def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-VERSION = "1.5.1"
+def _visible_len(text: str) -> int:
+    """Calcula o tamanho visível do texto descartando códigos de cor ANSI."""
+    return len(re.sub(r'\033\[[0-9;]*m|\x1b\[[0-9;]*m', '', text))
 
 
 def print_header():
-    term_w = shutil.get_terminal_size((80, 20)).columns
-    box_w = min(68, max(54, term_w - 6))
-    inner_w = box_w - 4
+    """Imprime o cabeçalho principal em uma caixa perfeitamente retangular."""
+    box_w = 68
+    inner_w = box_w - 2  # 66 caracteres entre │ e │
 
     title_text = f"MT5Bot v{VERSION}"
     slogan = "Measured, disciplined execution — performance varies with market conditions."
-    slogan_lines = textwrap.wrap(slogan, width=inner_w - 2)
+    slogan_lines = textwrap.wrap(slogan, width=inner_w - 6)
 
-    top = f"  {BOLD}{CYAN}┌" + "─" * (box_w - 2) + f"┐{RESET}\n"
-    blank = f"  {CYAN}│{' ' * (box_w - 2)}│{RESET}\n"
+    top = f"  {BOLD}{CYAN}┌" + "─" * inner_w + f"┐{RESET}"
+    bottom = f"  {BOLD}{CYAN}└" + "─" * inner_w + f"┘{RESET}"
 
-    title_line = title_text.center(inner_w)
-    title_row = f"  {CYAN}│{RESET}  {BOLD}{WHITE}{title_line}{RESET}  {CYAN}│{RESET}\n"
+    print(top)
 
-    slogan_rows = ""
+    # Linha do título
+    t_len = len(title_text)
+    t_left = (inner_w - t_len) // 2
+    t_right = inner_w - t_len - t_left
+    print(f"  {CYAN}│{RESET}{' ' * t_left}{BOLD}{WHITE}{title_text}{RESET}{' ' * t_right}{CYAN}│{RESET}")
+
+    # Linha em branco
+    print(f"  {CYAN}│{RESET}{' ' * inner_w}{CYAN}│{RESET}")
+
+    # Linhas do slogan
     for ln in slogan_lines:
-        slogan_rows += f"  {CYAN}│{RESET}  {DIM}{ln.center(inner_w)}{RESET}  {CYAN}│{RESET}\n"
+        l_len = len(ln)
+        l_left = (inner_w - l_len) // 2
+        l_right = inner_w - l_len - l_left
+        print(f"  {CYAN}│{RESET}{' ' * l_left}{DIM}{ln}{RESET}{' ' * l_right}{CYAN}│{RESET}")
 
-    bottom = f"  {BOLD}{CYAN}└" + "─" * (box_w - 2) + f"┘{RESET}\n"
-    print(top + title_row + blank + slogan_rows + bottom)
+    print(bottom)
 
 
 def print_section(title):
     print(f"\n  \033[90m┌──\033[0m \033[1m\033[96m[ {title} ]\033[0m \033[90m──────────────────────────────────────────────────┐\033[0m\n")
-
 
 
 def print_param(key, value, description=""):
@@ -86,14 +100,10 @@ def input_password(msg):
 # ============================================================
 
 def connect_mt5_tui():
-    """Tela de conexao com o MetaTrader 5.
-    Tenta conectar automaticamente. Se falhar, pede credenciais.
-    Retorna True se conectado, False se cancelado.
-    """
+    """Tela de conexao com o MetaTrader 5."""
     print_section("CONEXAO MetaTrader 5")
     print()
 
-    # Tentar inicializar MT5 (ja logado no terminal)
     print(f"    {DIM}Tentando conectar ao terminal MT5...{RESET}")
 
     if mt5.initialize():
@@ -117,16 +127,13 @@ def connect_mt5_tui():
         print(f"    {YELLOW}Terminal MT5 nao detectado ou nao esta logado.{RESET}")
         print()
 
-    # Login manual
     print()
     print(f"    {DIM}Para conectar, informe os dados da sua conta MT5.{RESET}")
     print(f"    {DIM}Voce encontra essas informacoes no email da corretora{RESET}")
     print(f"    {DIM}ou nas configuracoes do seu terminal MT5.{RESET}")
     print()
 
-    # Pedir path do MT5 (opcional)
     mt5_path = input_prompt("Caminho do terminal.exe (Enter=automatico)", "")
-
     login_str = input_prompt("Numero da conta (login)")
     if not login_str:
         print(f"    {RED}Login obrigatorio. Cancelando.{RESET}")
@@ -148,7 +155,6 @@ def connect_mt5_tui():
         print(f"    {RED}Servidor obrigatorio. Cancelando.{RESET}")
         return False
 
-    # Tentar conectar
     print(f"\n    {DIM}Conectando...{RESET}")
 
     init_kwargs = {
@@ -163,12 +169,6 @@ def connect_mt5_tui():
         error = mt5.last_error()
         print(f"    {RED}Falha na conexao: {error}{RESET}")
         print()
-        print(f"    {DIM}Verifique:{RESET}")
-        print(f"    {DIM}  - O MetaTrader 5 esta instalado?{RESET}")
-        print(f"    {DIM}  - Login, senha e servidor estao corretos?{RESET}")
-        print(f"    {DIM}  - O terminal MT5 consegue conectar manualmente?{RESET}")
-        print()
-
         resp = input_prompt("Tentar novamente? (s/n)", "s")
         if resp.lower() in ("s", "sim", "y", "yes", ""):
             return connect_mt5_tui()
@@ -198,7 +198,6 @@ def select_symbols_tui():
     print_section("ATIVOS")
     print()
     for i, sym in enumerate(config.AVAILABLE_SYMBOLS, 1):
-        # Verificar se ativo existe no broker
         info = mt5.symbol_info(sym)
         status = f"{GREEN}disponivel{RESET}" if info else f"{RED}indisponivel{RESET}"
         print(f"    {BOLD}{i}.{RESET} {sym}  {status}")
@@ -242,7 +241,6 @@ def select_symbols_tui():
         else:
             print(f"    {RED}Opcao invalida.{RESET}")
 
-    # Ativar simbolos no Market Watch
     for sym in config.SYMBOLS:
         mt5.symbol_select(sym, True)
 
@@ -392,31 +390,60 @@ def configure_timeframe_tui():
 # ============================================================
 
 def show_summary():
-    """Mostra resumo final com card de contorno elegante e espacamento visual."""
+    """Mostra resumo final em caixa retangular perfeitamente alinhada."""
     account = mt5.account_info()
     account_str = f"{account.login} ({account.name}) @ {account.server}" if account else "Demonstração / Teste"
     balance_str = f"{account.balance:.2f} {account.currency}" if account else "N/A"
-
     symbols_str = ", ".join(config.SYMBOLS) if config.SYMBOLS else "Nenhum selecionado"
-    
-    print("\n")
-    print("  \033[1m\033[96m┌────────────────────────────────────────────────────────────────────────┐\033[0m")
-    print("  \033[1m\033[96m│                        RESUMO DA CONFIGURAÇÃO                          │\033[0m")
-    print("  \033[1m\033[96m├────────────────────────────────────────────────────────────────────────┤\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mConta:\033[0m          \033[97m\033[1m{account_str:<50}\033[0m \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mSaldo:\033[0m          \033[92m\033[1m{balance_str:<50}\033[0m \033[96m│\033[0m")
-    print("  \033[90m├────────────────────────────────────────────────────────────────────────┤\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mAtivos:\033[0m         \033[93m\033[1m{symbols_str:<50}\033[0m \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mVolume Inicial:\033[0m \033[97m{config.VOLUME_INITIAL:.2f} lote(s)\033[0m                                   \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mTimeframe:\033[0m      \033[96m\033[1m{config.TIMEFRAME_NAME:<50}\033[0m \033[96m│\033[0m")
-    print("  \033[90m├────────────────────────────────────────────────────────────────────────┤\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mEstratégia:\033[0m     \033[97mSetup 9.1\033[0m" + (" + \033[97mSetup 9.2\033[0m" if config.SETUP_92_ENABLED else "") + "                       \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mRisco por Trade:\033[0m\033[92m{config.MAX_RISK_PER_TRADE_PERCENT:.1f}% do saldo\033[0m | \033[91mCorte Absoluto: {config.ABSOLUTE_MAX_TRADE_RISK_PERCENT:.1f}%\033[0m        \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mTrava Diária:\033[0m    \033[91mPerda Máxima {config.MAX_DAILY_LOSS_PERCENT:.1f}% do saldo\033[0m                    \033[96m│\033[0m")
-    print(f"  \033[96m│\033[0m  \033[90mFiltros:\033[0m         \033[97mMTF Trend\033[0m | \033[97mRVOL Volume\033[0m | \033[97mBreakeven ATR\033[0m               \033[96m│\033[0m")
-    print("  \033[1m\033[96m└────────────────────────────────────────────────────────────────────────┘\033[0m")
-    print("\n")
 
+    box_w = 74
+    inner_w = box_w - 2  # 72 caracteres internos entre │ e │
+
+    def print_row(label: str, value_formatted: str):
+        lbl = f"\033[90m{label:<18}\033[0m"
+        raw_content = f"  {lbl} {value_formatted}"
+        vis_len = _visible_len(raw_content)
+        padding = max(0, inner_w - vis_len)
+        print(f"  \033[96m│\033[0m{raw_content}{' ' * padding}\033[96m│\033[0m")
+
+    def print_center_row(title_text: str):
+        vis_len = len(title_text)
+        left_pad = (inner_w - vis_len) // 2
+        right_pad = inner_w - vis_len - left_pad
+        print(f"  \033[1m\033[96m│\033[0m{' ' * left_pad}\033[1m\033[96m{title_text}\033[0m{' ' * right_pad}\033[1m\033[96m│\033[0m")
+
+    top_border = f"  \033[1m\033[96m┌" + "─" * inner_w + f"┐\033[0m"
+    mid_border_cyan = f"  \033[1m\033[96m├" + "─" * inner_w + f"┤\033[0m"
+    mid_border_gray = f"  \033[90m├" + "─" * inner_w + f"┤\033[0m"
+    bot_border = f"  \033[1m\033[96m└" + "─" * inner_w + f"┘\033[0m"
+
+    print("\n")
+    print(top_border)
+    print_center_row("RESUMO DA CONFIGURAÇÃO")
+    print(mid_border_cyan)
+
+    print_row("Conta:", f"\033[97m\033[1m{account_str}\033[0m")
+    print_row("Saldo:", f"\033[92m\033[1m{balance_str}\033[0m")
+    print(mid_border_gray)
+
+    print_row("Ativos:", f"\033[93m\033[1m{symbols_str}\033[0m")
+    print_row("Volume Inicial:", f"\033[97m{config.VOLUME_INITIAL:.2f} lote(s)\033[0m")
+    print_row("Timeframe:", f"\033[96m\033[1m{config.TIMEFRAME_NAME}\033[0m")
+    print(mid_border_gray)
+
+    strat_str = f"\033[97mSetup 9.1\033[0m" + (f" + \033[97mSetup 9.2\033[0m" if config.SETUP_92_ENABLED else "")
+    print_row("Estratégia:", strat_str)
+
+    risk_str = f"\033[92m{config.MAX_RISK_PER_TRADE_PERCENT:.1f}% do saldo\033[0m | \033[91mCorte Absoluto: {config.ABSOLUTE_MAX_TRADE_RISK_PERCENT:.1f}%\033[0m"
+    print_row("Risco por Trade:", risk_str)
+
+    daily_str = f"\033[91mPerda Máxima {config.MAX_DAILY_LOSS_PERCENT:.1f}% do saldo\033[0m"
+    print_row("Trava Diária:", daily_str)
+
+    print_row("Filtros:", "\033[97mMTF Trend\033[0m | \033[97mRVOL Volume\033[0m | \033[97mBreakeven ATR\033[0m")
+
+    print(bot_border)
+    print("\n")
 
 
 def run_tui():
@@ -426,32 +453,20 @@ def run_tui():
     clear_screen()
     print_header()
 
-    # 1. Conexao MT5
     if not connect_mt5_tui():
         return False
 
-    # 2. Selecao de ativos
     select_symbols_tui()
     if not config.SYMBOLS:
         print(f"    {RED}Nenhum ativo disponivel. Encerrando.{RESET}")
         return False
 
-    # 3. Timeframe
     configure_timeframe_tui()
-
-    # 4. Volume
     configure_volume_tui()
-
-    # 5. Estrategia
     configure_strategy_tui()
-
-    # 6. Risco
     configure_risk_tui()
-
-    # 7. Intervalos
     configure_timing_tui()
 
-    # Resumo final
     clear_screen()
     print_header()
     show_summary()
@@ -475,11 +490,9 @@ def run_quick_start():
     print_header()
     print(f"  {DIM}Modo rapido — configuracoes default{RESET}\n")
 
-    # Conexao
     if not connect_mt5_tui():
         return False
 
-    # Ativo + volume
     select_symbols_tui()
     if not config.SYMBOLS:
         print(f"    {RED}Nenhum ativo disponivel.{RESET}")
@@ -487,7 +500,6 @@ def run_quick_start():
 
     configure_volume_tui()
 
-    # Resumo
     show_summary()
 
     print(f"  {DIM}{'─' * 50}{RESET}")
