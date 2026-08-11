@@ -1,6 +1,26 @@
 # Changelog
 
+## v1.5.0 — 2026-08-11
+
+Principais mudanças:
+
+- **Horários Operacionais Inteligentes por Ativo no Fuso de Brasília (BRT)** (`config.py` / `risk_calculator.py`):
+  - Suporte a janelas de negociação específicas por ativo no fuso BRT (B3 `09:15-17:15`, HK50 `22:15-12:00`, Índices EUA `10:30-17:00`, Forex `03:00-18:00`).
+  - Suporte a sessões noturnas que cruzam a meia-noite (como a bolsa de Hong Kong HK50).
+- **Sugestão Automática de Ativos Abertos e Cálculo de Margem**:
+  - Quando todos os ativos do usuário estiverem fechados, o bot identifica mercados abertos e calcula a margem exata necessária na moeda da conta do usuário (USD/BRL/EUR).
+- **Modo de Pré-Aquecimento e Análise de Contexto (Warmup Mode)**:
+  - Permite ao usuário manter o bot lendo o mercado em standby para acumular histórico de EMAs e ATR antes da abertura do pregão.
+- **Formatação de Terminal Clean com Cerquilhas Coloridas (`[#]`)**:
+  - Emojis substituídos por cerquilhas ANSI limpas (Verde `[#]`, Amarelo `[#]`, Vermelho `[#]`).
+- **Adição Dinâmica de Ativos via Console**:
+  - Digitação direta do código do ativo (ex: `AUDUSD` ou `add AUDUSD`) no console interativo em execução.
+- **Suíte de Testes Unitários**:
+  - **55 testes unitários** passando com 100% de sucesso.
+- Bump de versão para `1.5.0`.
+
 ## v1.4.0 — 2026-08-10
+
 
 Principais mudanças:
 
