@@ -1,6 +1,16 @@
 # Changelog
 
+## v1.5.2 — 2026-08-11
+
+Principais mudanças:
+
+- **Alinhamento Retangular Perfeito na TUI (`tui.py`)**:
+  - Implementação de `_visible_len()` com Regex para ignorar caracteres não-imprimíveis de cores ANSI.
+  - Correção de cálculo de largura de borda direita (`│`), garantindo caixas retangulares 100% retas no Windows PowerShell, CMD e Linux.
+- Bump de versão para `1.5.2`.
+
 ## v1.5.1 — 2026-08-11
+
 
 Principais mudanças:
 

@@ -24,7 +24,7 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RED = "\033[91m"
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 
 
 def clear_screen():
