@@ -9,6 +9,7 @@ Foi decidido e aprovado que a aplicação não usará Docker/Linux. Rodará inte
 ### Como vai funcionar:
 - **Golang (O Maestro):** Será responsável pelo gerenciamento de processos e ordens. O Go roda leve, conecta na porta do MT5 e monitora o ciclo de vida. Para cada par de moedas/ativo em operação, o Go *spawnará* (via `os/exec`) um processo isolado em Python. O Go também fará ping periódico ("Heartbeat") via `stdin/stdout` com o Python para garantir que ele não travou.
 - **Python (O Cérebro):** Será responsável estritamente pela matemática e lógica da estratégia. Rodando via Pandas e NumPy, os cálculos vetorizados nas séries de preço (que serão pequenas janelas temporais de velas, para economizar RAM) determinarão o sinal. Se houver sinal, o Python cospe um JSON no stdout: `{"action": "buy", "setup": "9.1", "stop": 10.0, "take_profit": 11.5}`. O Golang lê isso e envia a ordem para o MT5.
+- **Hydration (A Verdade Absoluta do MT5):** Para evitar que o bot encha o HD com arquivos de estado desatualizados (SQLite/TXT), o sistema usará um mecanismo *Stateless/Hydration*. Toda vez que o bot ligar, o Golang puxará as últimas 200 velas diretamente da API do MT5 (quantidade mínima necessária para calcular a SMA de 200 períodos) e as injetará no Python. O MetaTrader 5 será sempre a única e absoluta fonte da verdade. O bot nunca confia em cache local.
 
 ## 2. As Fórmulas e Lógicas (Motor de Setups)
 
