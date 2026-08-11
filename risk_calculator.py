@@ -305,8 +305,11 @@ def get_open_market_suggestions(configured_symbols: list) -> Dict[str, Any]:
     
     for candidate in SUGGESTED_GLOBAL_ASSETS:
         if candidate not in configured_symbols and is_within_trading_hours(candidate):
-            margin_info = calculate_required_margin(candidate, volume=0.01)
-            suggestions.append(margin_info)
+            sym_info = mt5.symbol_info(candidate)
+            if sym_info is not None or not hasattr(mt5, "account_info"):
+                margin_info = calculate_required_margin(candidate, volume=0.01)
+                suggestions.append(margin_info)
+
 
     return {
         "all_closed": True,
