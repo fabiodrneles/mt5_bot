@@ -92,6 +92,25 @@ def test_is_within_trading_hours_hk50_and_symbol_specific(monkeypatch):
     assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="20:00") is False
 
 
+def test_open_market_suggestions_and_margin(monkeypatch):
+    """Testa a identificacao de todos os ativos fechados e geracao de sugestoes com calculo de margem."""
+    monkeypatch.undo()
+    # Simula todos os ativos do usuario fechados
+    monkeypatch.setattr(risk_calculator, "is_within_trading_hours", lambda sym=None, **k: False if sym in ["WIN", "WDO"] else True)
+    
+    all_closed = risk_calculator.check_all_symbols_closed(["WIN", "WDO"])
+    assert all_closed is True
+
+    sugg_data = risk_calculator.get_open_market_suggestions(["WIN", "WDO"])
+    assert sugg_data["all_closed"] is True
+    assert len(sugg_data["suggestions"]) > 0
+    first = sugg_data["suggestions"][0]
+    assert "margin" in first
+    assert "currency" in first
+    assert first["margin"] > 0
+
+
+
 def test_spread_filter_rejection(monkeypatch):
     """Verifica se executor rejeita ordem quando spread excede MAX_SPREAD_POINTS."""
     import MetaTrader5 as mt5

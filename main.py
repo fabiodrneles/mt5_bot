@@ -17,6 +17,7 @@ import executor
 import tracker
 import tui
 import dashboard
+import risk_calculator
 import threading
 
 # Namedtuple para candles
@@ -127,7 +128,29 @@ def _validate_symbols_on_broker():
     return len(validated) > 0
 
 
+def _check_and_log_open_suggestions():
+    """Verifica se todos os ativos selecionados estao fechados e sugere ativos abertos com margem calculada."""
+    sugg_data = risk_calculator.get_open_market_suggestions(config.SYMBOLS)
+    if sugg_data.get("all_closed"):
+        currency = sugg_data.get("currency", "USD")
+        logger.info("🌙 [TODOS OS ATIVOS CONFIGURADOS ESTÃO FECHADOS NO MOMENTO]")
+        suggestions = sugg_data.get("suggestions", [])
+        if suggestions:
+            logger.info(f"💡 [SUGESTÃO DE ATIVOS ABERTOS] Margem estimada na sua moeda ({currency}):")
+            for item in suggestions[:3]:
+                sym = item["symbol"]
+                vol = item["volume"]
+                margin = item["margin"]
+                logger.info(f"   👉 Ativo: {sym:<8} | Vol: {vol:.2f} | Margem necessária: {currency} {margin:.2f}")
+        else:
+            logger.info("💡 Nenhum outro ativo cadastrado para sugestão no momento.")
+        
+        logger.info("📊 [MODO PRÉ-AQUECIMENTO ATIVO] O bot continuará lendo candles e pré-calculando EMAs e ATR. "
+                    "Quando o mercado abrir, o contexto técnico estará 100% pronto para operar!")
+
+
 def run_bot():
+
     """Loop principal do bot."""
     global _shutdown_requested
     global _shutdown_action
@@ -169,6 +192,10 @@ def run_bot():
     for sym in config.SYMBOLS:
         info = risk_calculator.get_trading_session_info(sym)
         logger.info(f"[HORÁRIO BRT] {info['formatted_badge']}")
+
+    # Verificar se todos estao fechados e sugerir alternativas com margem
+    _check_and_log_open_suggestions()
+
 
 
     # Inicializar estados (com persistencia)

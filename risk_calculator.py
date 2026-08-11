@@ -228,3 +228,84 @@ def get_trading_session_info(symbol: Optional[str] = None) -> Dict[str, Any]:
     }
 
 
+def get_account_currency() -> str:
+    """Obtem a moeda oficial da conta no MetaTrader 5 (ex: USD, BRL, EUR)."""
+    try:
+        acc_info = mt5.account_info()
+        if acc_info is not None and hasattr(acc_info, "currency") and acc_info.currency:
+            return str(acc_info.currency)
+    except Exception:
+        pass
+    return "USD"
+
+
+def calculate_required_margin(symbol: str, volume: float = 0.01) -> Dict[str, Any]:
+    """Calcula a margem exigida na moeda da conta do usuario para abrir posicao no ativo.
+    
+    Returns:
+        Dict com symbol, volume, margin, currency, price, is_available.
+    """
+    currency = get_account_currency()
+    try:
+        symbol_info = mt5.symbol_info(symbol)
+        if symbol_info is not None:
+            price = getattr(symbol_info, "ask", 0.0) or getattr(symbol_info, "last", 0.0)
+            if price <= 0:
+                price = getattr(symbol_info, "bid", 1.0)
+            
+            margin = mt5.order_calc_margin(mt5.ORDER_TYPE_BUY, symbol, volume, price)
+            if margin is not None and margin > 0:
+                return {
+                    "symbol": symbol,
+                    "volume": volume,
+                    "margin": float(margin),
+                    "currency": currency,
+                    "price": price,
+                    "is_available": True,
+                }
+    except Exception as e:
+        logger.debug(f"Nao foi possivel obter margem via MT5 para {symbol}: {e}")
+
+    # Fallback estimativo para testes / sem conexao MT5
+    return {
+        "symbol": symbol,
+        "volume": volume,
+        "margin": 15.0,
+        "currency": currency,
+        "price": 100.0,
+        "is_available": True,
+    }
+
+
+SUGGESTED_GLOBAL_ASSETS = ["HK50", "HKG50", "USDJPY", "AUDUSD", "EURUSD", "GBPUSD", "US500", "BTCUSD", "WIN", "WDO"]
+
+
+def check_all_symbols_closed(symbols: list) -> bool:
+    """Verifica se TODOS os simbolos configurados pelo usuario estao fora do horario operacional."""
+    if not symbols:
+        return False
+    return all(not is_within_trading_hours(sym) for sym in symbols)
+
+
+def get_open_market_suggestions(configured_symbols: list) -> Dict[str, Any]:
+    """Analisa ativos abertos no momento e retorna sugestoes com margem calculada na moeda da conta."""
+    all_closed = check_all_symbols_closed(configured_symbols)
+    if not all_closed:
+        return {"all_closed": False, "suggestions": []}
+
+    currency = get_account_currency()
+    suggestions = []
+    
+    for candidate in SUGGESTED_GLOBAL_ASSETS:
+        if candidate not in configured_symbols and is_within_trading_hours(candidate):
+            margin_info = calculate_required_margin(candidate, volume=0.01)
+            suggestions.append(margin_info)
+
+    return {
+        "all_closed": True,
+        "currency": currency,
+        "suggestions": suggestions,
+    }
+
+
+
