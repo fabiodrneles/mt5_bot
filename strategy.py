@@ -282,9 +282,10 @@ def _handle_scanning(s_state, candle_fechado, ema9_values, filtro_compra_ok, fil
 def _place_entry_order(s_state, candle_ref, side, tick_size, symbol_info, all_rates, setup_type):
     """Coloca ordem de entrada (BUY ou SELL STOP) com ajuste ATR se necessario e controle de risco."""
     # 1. FILTRO DE HORARIO DE NEGOCIACAO:
-    if not risk_calculator.is_within_trading_hours(symbol=s_state.symbol):
+    session_info = risk_calculator.get_trading_session_info(symbol=s_state.symbol)
+    if not session_info["is_open"]:
         logger.warning(
-            f"[{s_state.symbol}] [TRADING HOURS REJECTED] Fora da janela operacional permitida para {s_state.symbol}. Ordem nao enviada."
+            f"[{s_state.symbol}] {session_info['formatted_badge']} — Ordem de {side.name} abortada."
         )
         return
 

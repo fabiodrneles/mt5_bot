@@ -164,6 +164,13 @@ def run_bot():
                 f"Timeframe: {config.TIMEFRAME_NAME} | "
                 f"Setups: 9.1" + (" + 9.2" if config.SETUP_92_ENABLED else ""))
 
+    # Exibir status e janela operacional de cada ativo no fuso BRT
+    import risk_calculator
+    for sym in config.SYMBOLS:
+        info = risk_calculator.get_trading_session_info(sym)
+        logger.info(f"[HORÁRIO BRT] {info['formatted_badge']}")
+
+
     # Inicializar estados (com persistencia)
     if not strategy.initialize_symbol_states():
         logger.error("Falha ao inicializar estados. Encerrando.")

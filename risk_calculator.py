@@ -175,3 +175,56 @@ def is_within_trading_hours(
         logger.error(f"Erro ao verificar horario de negociacao para {symbol}: {e}")
         return True
 
+
+def get_trading_session_info(symbol: Optional[str] = None) -> Dict[str, Any]:
+    """Retorna informacoes detalhadas e formatadas da sessao operacional do ativo no fuso Horario de Brasilia (BRT).
+    
+    Returns:
+        Dict com status operacional, janela de horario, hora atual e badge formatado com cores.
+    """
+    start_str = getattr(config, "TRADING_START_TIME", "09:15")
+    end_str = getattr(config, "TRADING_END_TIME", "16:45")
+    
+    if symbol and hasattr(config, "SYMBOL_TRADING_HOURS"):
+        sym_clean = symbol.upper()
+        sym_map = config.SYMBOL_TRADING_HOURS
+        for key, hours in sym_map.items():
+            if key in sym_clean:
+                start_str = hours.get("start", start_str)
+                end_str = hours.get("end", end_str)
+                break
+
+    now = datetime.now()
+    curr_str = now.strftime("%H:%M")
+    is_open = is_within_trading_hours(symbol=symbol)
+    
+    # Cores ANSI para feedback visual no terminal
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+
+    sym_display = symbol.upper() if symbol else "GERAL"
+
+    if is_open:
+        badge = (
+            f"{BOLD}{GREEN}🟢 [SESSAO OPERACIONAL ATIVA]{RESET} "
+            f"{CYAN}{sym_display}{RESET} | Janela BRT: {start_str} as {end_str} | Hora Atual: {curr_str}"
+        )
+    else:
+        badge = (
+            f"{BOLD}{YELLOW}🌙 [FORA DO HORARIO OPERACIONAL]{RESET} "
+            f"{CYAN}{sym_display}{RESET} | Janela BRT: {start_str} as {end_str} | Hora Atual: {curr_str}"
+        )
+
+    return {
+        "is_open": is_open,
+        "symbol": sym_display,
+        "start_time": start_str,
+        "end_time": end_str,
+        "current_time": curr_str,
+        "formatted_badge": badge,
+    }
+
+
