@@ -73,8 +73,8 @@ Este documento registra o planejamento e o status de implementação das melhori
 
 ## ⚙️ Fase 3: Infraestrutura, CI/CD & Automação de Testes (Opção D)
 
-- [ ] **3.1 GitHub Actions CI/CD Pipeline**
-  - Workflow automatizado para rodar `pytest` a cada push/PR.
+- [x] **3.1 GitHub Actions CI/CD Pipeline**
+  - Workflow único `.github/workflows/ci.yml`: job `test-python` (pytest com numpy/pandas, sem instalar MetaTrader5) + job `test-go` (`go vet` + `go test` no `maestro/`). Dispara em push (main/develop/feat/**) e PRs. Workflows legados `pytest.yml`/`test_pipeline.yml` removidos (quebrados/duplicados).
 - [ ] **3.2 Expansão de Cobertura de Testes**
   - Criar novos testes unitários para `tracker.py` e `dashboard.py` visando >85% de cobertura total.
 

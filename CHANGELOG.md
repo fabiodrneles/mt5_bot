@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.8.1 — 2026-08-11
+
+Principais mudanças:
+
+- **CI/CD no GitHub Actions (ROADMAP 3.1)**:
+  - Novo `.github/workflows/ci.yml` consolidado: job `test-python` (pytest + numpy/pandas, **não** instala o pacote MetaTrader5 — o conftest já mocka o MT5) e job `test-go` (`go vet` + `go test` no `maestro/`).
+  - Workflows legados removidos: `pytest.yml` (instalava `pip install .` → MetaTrader5, inexistente no Linux) e `test_pipeline.yml` (rodava `test_strategy.py`, arquivo deletado).
+  - Bump de versão para `1.8.1`.
+
 ## v1.8.0 — 2026-08-11
 
 Principais mudanças:

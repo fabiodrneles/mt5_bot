@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt5bot"
-version = "1.8.0"
-description = "Bot de trading automatizado para MetaTrader 5 — Fase 3: Maestro Go (crash loop protection + testes)"
+version = "1.8.1"
+description = "Bot de trading automatizado para MetaTrader 5 — Fase 3: CI/CD GitHub Actions + Maestro Go resiliente"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
