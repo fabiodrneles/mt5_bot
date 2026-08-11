@@ -120,15 +120,41 @@ def calculate_position_size(
 
 
 def is_within_trading_hours(
+    symbol: Optional[str] = None,
     current_time_str: Optional[str] = None,
-    start_str: str = config.TRADING_START_TIME,
-    end_str: str = config.TRADING_END_TIME,
+    start_str: Optional[str] = None,
+    end_str: Optional[str] = None,
 ) -> bool:
-    """Verifica se a hora atual esta dentro da janela operacional configurada."""
+    """Verifica se a hora atual esta dentro da janela operacional permitida para o ativo.
+    Suporta busca especifica por simbolo em SYMBOL_TRADING_HOURS (ex: HK50 22:15-12:00 BRT, WIN 09:15-17:15 BRT)
+    e suporta sessoes de negociacao que atravessam a meia-noite.
+    """
     if not getattr(config, "TRADING_HOURS_ENABLED", True):
         return True
 
     try:
+        # Se symbol for informado, buscar horario especifico em SYMBOL_TRADING_HOURS
+        if symbol and hasattr(config, "SYMBOL_TRADING_HOURS"):
+            sym_clean = symbol.upper()
+            sym_map = config.SYMBOL_TRADING_HOURS
+            matching_key = None
+            for key in sym_map:
+                if key in sym_clean:
+                    matching_key = key
+                    break
+            
+            if matching_key:
+                hours = sym_map[matching_key]
+                if start_str is None:
+                    start_str = hours.get("start")
+                if end_str is None:
+                    end_str = hours.get("end")
+
+        if start_str is None:
+            start_str = getattr(config, "TRADING_START_TIME", "09:15")
+        if end_str is None:
+            end_str = getattr(config, "TRADING_END_TIME", "16:45")
+
         if current_time_str is None:
             now = datetime.now()
             current_time = now.time()
@@ -138,7 +164,14 @@ def is_within_trading_hours(
         start_time = datetime.strptime(start_str, "%H:%M").time()
         end_time = datetime.strptime(end_str, "%H:%M").time()
         
-        return start_time <= current_time <= end_time
+        # Sessao diurna convencional (ex: 09:15 as 17:15)
+        if start_time <= end_time:
+            return start_time <= current_time <= end_time
+        else:
+            # Sessao noturna que cruza a meia-noite (ex: HK50 das 22:15 as 12:00)
+            return current_time >= start_time or current_time <= end_time
+
     except Exception as e:
-        logger.error(f"Erro ao verificar horario de negociacao: {e}")
-        return True  # Fallback permissivo em caso de falha de parse
+        logger.error(f"Erro ao verificar horario de negociacao para {symbol}: {e}")
+        return True
+

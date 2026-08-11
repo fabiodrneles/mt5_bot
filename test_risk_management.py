@@ -75,9 +75,22 @@ def test_calculate_position_size_rejected_due_to_high_risk(monkeypatch):
 def test_is_within_trading_hours(monkeypatch):
     """Valida janela de horario de negociacao."""
     monkeypatch.undo()
-    assert risk_calculator.is_within_trading_hours("10:00", "09:15", "16:45") is True
-    assert risk_calculator.is_within_trading_hours("08:30", "09:15", "16:45") is False
-    assert risk_calculator.is_within_trading_hours("17:00", "09:15", "16:45") is False
+    assert risk_calculator.is_within_trading_hours(current_time_str="10:00", start_str="09:15", end_str="16:45") is True
+    assert risk_calculator.is_within_trading_hours(current_time_str="08:30", start_str="09:15", end_str="16:45") is False
+    assert risk_calculator.is_within_trading_hours(current_time_str="17:00", start_str="09:15", end_str="16:45") is False
+
+def test_is_within_trading_hours_hk50_and_symbol_specific(monkeypatch):
+    """Valida janela de horario especifica para HK50 (sessao noturna 22:15-12:00 BRT) e WIN."""
+    monkeypatch.undo()
+    # HK50 (22:15 as 12:00 BRT do dia seguinte)
+    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="23:00") is True
+    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="08:00") is True
+    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="15:00") is False
+
+    # WIN (Mini Indice 09:15 as 17:15 BRT)
+    assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="11:30") is True
+    assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="20:00") is False
+
 
 def test_spread_filter_rejection(monkeypatch):
     """Verifica se executor rejeita ordem quando spread excede MAX_SPREAD_POINTS."""
@@ -99,7 +112,7 @@ def test_daily_max_loss_shield(monkeypatch):
     """Verifica se novas ordens sao bloqueadas quando perda diaria atinge o limite."""
     monkeypatch.setattr(risk_calculator, "get_account_balance", lambda: 10000.0)
     monkeypatch.setattr(tracker, "get_daily_pnl", lambda: -250.0) # -R$ 250 > 2% de R$ 10.000 (R$ 200)
-    monkeypatch.setattr(risk_calculator, "is_within_trading_hours", lambda: True)
+    monkeypatch.setattr(risk_calculator, "is_within_trading_hours", lambda *args, **kwargs: True)
     
     s_state = strategy.SymbolState("EURUSD")
     candle_ref = (1234567, 100.0, 105.0, 99.0, 104.0, 1000)

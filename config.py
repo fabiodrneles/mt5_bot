@@ -103,6 +103,26 @@ TRADING_START_TIME = "09:15"
 TRADING_END_TIME = "16:45"
 FORCE_CLOSE_TIME = "17:30"
 
+# Horarios de negociacao especificos por ativo no fuso horario local (Horario de Brasilia BRT)
+SYMBOL_TRADING_HOURS = {
+    # B3 Brasil (Mini Indice e Mini Dolar)
+    "WIN":   {"start": "09:15", "end": "17:15", "force_close": "17:30"},
+    "WDO":   {"start": "09:15", "end": "17:15", "force_close": "17:30"},
+    # Bolsa de Hong Kong (HK50 / Hang Seng) — Abre as 22:15 BRT
+    "HK50":  {"start": "22:15", "end": "12:00", "force_close": "12:30"},
+    "HKG50": {"start": "22:15", "end": "12:00", "force_close": "12:30"},
+    # Indices Americanos (S&P500, Nasdaq, Dow Jones)
+    "US500": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
+    "SP500": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
+    "NAS100":{"start": "10:30", "end": "17:00", "force_close": "17:30"},
+    "US30":  {"start": "10:30", "end": "17:00", "force_close": "17:30"},
+    # Forex Principal (Sessoes de Londres e Nova York)
+    "EURUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "GBPUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    "USDJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+}
+
+
 # --- Filtro Multi-Timeframe (MTF) ---
 MTF_FILTER_ENABLED = True
 MTF_TIMEFRAME_MAP = {

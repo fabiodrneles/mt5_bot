@@ -172,8 +172,18 @@ Antes de enviar qualquer ordem pendente (`BUY_STOP` / `SELL_STOP`), o bot verifi
 #### 5. 🎯 Breakeven Automático
 Assim que uma operação aberta atinge **1x ATR** (`BREAKEVEN_ATR_RATIO = 1.0`) de lucro a favor, o bot ajusta automaticamente o Stop Loss no MT5 para o preço de entrada (*Entry Price*). A partir deste momento, a operação torna-se **livre de risco financeiro**.
 
-#### 6. ⏰ Janela de Horário de Negociação
-O bot valida a hora do sistema contra a janela operacional configurada (`09:15` às `16:45`). Nenhuma nova entrada é permitida fora desse horário.
+#### 6. ⏰ Horários de Negociação Inteligentes por Ativo (Horário de Brasília - BRT)
+O bot valida a hora do sistema contra as janelas de negociação oficiais de cada ativo no fuso horário brasileiro (Horário de Brasília - BRT), suportando sessões noturnas que cruzam a meia-noite:
+
+| Ativo / Mercado | Início da Sessão (BRT) | Fim da Sessão (BRT) | Zeragem Forçada |
+| :--- | :---: | :---: | :---: |
+| **B3 (Mini Índice WIN / Mini Dólar WDO)** | `09:15` | `17:15` | `17:30` |
+| **Hong Kong (HK50 / Hang Seng)** | `22:15` (Noite) | `12:00` (Dia seguinte) | `12:30` |
+| **Índices EUA (US500, NAS100, US30)** | `10:30` | `17:00` | `17:30` |
+| **Forex (EURUSD, GBPUSD, USDJPY)** | `03:00` (Londres) | `18:00` (Nova York) | `18:30` |
+
+> [!TIP]
+> O bot reconhece automaticamente o ativo sendo negociado (ex: `HK50`, `WING24`) e aplica a janela de mercado real do ativo em horário de Brasília. Nenhuma entrada é permitida fora do fluxo de mercado real.
 
 ---
 
