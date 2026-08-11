@@ -1,518 +1,113 @@
-# MT5Bot
-
-### Lucros consistentes. Zero emoção.
-
-> [!IMPORTANT]
-> **Filosofia de Proteção ao Capital**:
-> *"O bot não busca ganhos desmedidos; o objetivo central é proteger o patrimônio, perder cada vez menos e autorizar ordens somente quando o risco for estritamente controlado e proporcional ao saldo da conta."*
-
-> [!TIP]
-> **Para IAs e desenvolvedores que estudam o projeto**: o repositório mantém uma **memória permanente RAG** (`memoria/`) com os livros do Palex, a conversa de arquitetura e o conhecimento destilado dos setups. Comece por [`AGENTS.md`](AGENTS.md) e [`memoria/README.md`](memoria/README.md). Consulte via:
-> ```powershell
-> python memoria\scripts\query_memory.py "regras do setup 9.4 falso recuo"
-> ```
-
-Bot de trading automatizado para MetaTrader 5 que opera com disciplina absoluta enquanto você foca no que importa. Baseado nos Setups 9.1 e 9.2 de Palex (Larry Williams), com inteligência de volatilidade que adapta cada operação ao momento real do mercado.
-
----
-
-## Por que usar o MT5Bot?
-
-| Problema | Solucao |
-|----------|---------|
-| Voce perde dinheiro por emocao | O bot opera 100% tecnico, sem hesitacao |
-| Alvos irreais causam stops desnecessarios | Alvo adaptativo calcula o que o mercado esta pagando |
-| Voce nao esta disponivel 24h | O bot monitora e opera enquanto voce dorme |
-| Reiniciar perde contexto | Persistencia total — retoma exatamente de onde parou |
-| Configuracao complexa assusta | Ja vem pronto. Conecte e observe |
-
----
-
-## Comece em 3 Passos
-
-### 1. Instale
-
-pip install .
-
-### 2. Execute
-
-mt5bot
-
-### 3. Conecte sua conta e observe
-
-O bot faz o resto. Nenhuma configuracao necessaria — ele ja vem otimizado para operar com seguranca.
-
----
-
-## Instalacao Completa
-
-### Requisitos
-
-- *Windows 10/11* (MetaTrader 5 exige Windows)
-- *Python 3.10+* — [baixe aqui](https://www.python.org/downloads/)
-- *MetaTrader 5* instalado com conta ativa (demo ou real)
-
-### Instalar
-
-# Baixar e entrar na pasta do bot
-cd mt5_bot-main
-
-# Instalar como comando do sistema
-pip install .
-
-Pronto. O comando mt5bot esta disponivel no seu terminal.
-
-### Verificar
-
-mt5bot --version
-
-### Para desenvolvedores
-
-pip install -e .    # Modo editavel — alteracoes refletem imediatamente
-
----
-
-## Como Funciona
-
-Ao executar mt5bot, voce ve o menu principal:
-
-    ╔══════════════════════════════════════════════════╗
-    ║                                                  ║
-    ║   MT5Bot  v1.2.0                                 ║
-    ║   Measured, disciplined execution — performance varies with market conditions.              ║
-    ║                                                  ║
-    ╚══════════════════════════════════════════════════╝
-
-  Como deseja iniciar?
-
-    1. Iniciar direto             (sem alterar nada — recomendado)
-    2. Configurar no terminal     (ajustar parametros via CLI)
-    3. Configurar no navegador    (interface visual no browser)
-    4. Ver relatorio              (historico de ganhos e perdas)
-
-  > Opcao [1]:
-
-### Opcao 1 — Iniciar direto (recomendado)
-
-Nao quer mexer em nada? Perfeito. O bot ja vem configurado com parametros conservadores e eficientes. Voce so precisa:
-
-1. Conectar sua conta MT5 (login + senha + servidor)
-2. Pronto. O bot opera sozinho.
-
-### Opcao 2 — Configurar no terminal
-
-Para quem quer ajustar fino: volume, ativos, estrategia, risco. Tudo via menus interativos no terminal. Pressione Enter em qualquer campo para manter o valor padrao.
-
-### Opcao 3 — Configurar no navegador
-
-Abre uma interface visual completa no seu browser. Formularios com todos os campos, dropdowns e validacao. Preencha, clique "Salvar e Iniciar", e volte ao terminal para acompanhar.
-
-### Opcao 4 — Ver relatorio
-
-Mostra o balanço completo: operacoes ganhas, perdidas, win rate, profit factor, drawdown, e performance por ativo e por setup. Disponivel no terminal (texto) ou no navegador (visual).
-
----
-
-## Conectando sua Conta MT5
-
-O primeiro passo sempre e conectar ao MetaTrader 5.
-
-### Conexao automatica
-
-Se o MT5 ja estiver aberto e logado, o bot detecta e conecta sozinho:
-
-  [CONEXAO MetaTrader 5]
-
-    Conectado automaticamente!
-
-    Conta                        12345678
-    Nome                         Seu Nome
-    Servidor                     SuaCorretora-Server
-    Balance                      10000.00 USD
-
-  > Usar esta conta? [s]:
-
-### Conexao manual
-
-Se o MT5 nao estiver logado, informe suas credenciais:
-
-  > Numero da conta (login): 12345678
-  > Senha da conta: ********
-  > Servidor (ex: MetaQuotes-Demo): SuaCorretora-Server
-
-*Onde encontrar esses dados:*
-
-- *Login*: numero da conta no email da corretora
-- *Senha*: a que voce definiu ao criar a conta
-- *Servidor*: aparece no MT5 em "Arquivo > Conectar a Conta"
-
-*Seguranca:*
-
-- Senha digitada em modo oculto (nao aparece na tela)
-- Nenhuma credencial e salva em arquivo
-- Conexao via API oficial MetaTrader 5
-
----
-
-## O que o Bot Faz por Voce
-
-### 🛡️ Módulo de Proteção de Capital & Calculadora de Risco (Risk Shield Engine)
-
-O **MT5Bot** é fundamentado na filosofia de **Preservação de Capital e Proteção Máxima contra Perdas**. O bot não busca operações arriscadas para tentar lucros desmedidos; o objetivo primário é gerenciar estritamente o risco, fazendo o trader **perder cada vez menos** e só autorizar ordens **100% alinhadas ao saldo da conta**.
-
-#### 1. 🧮 Calculadora de Lote Dinâmico (*Position Sizer*)
-Em vez de operar com lotes fixos arbitrários, o bot consulta o saldo da sua conta no MT5 em tempo real (`account_info().balance`) e calcula o tamanho exato do lote para que o risco financeiro do Stop Loss seja de exatamente **1.0% do seu saldo** (`MAX_RISK_PER_TRADE_PERCENT`).
-
-#### 2. 🚨 Escudo de Proteção do Patrimônio (*Absolute Risk Shield*)
-Se o mercado apresentar um Stop Loss muito longo onde a execução do lote mínimo do ativo (ex: 1 contrato ou 0.01 lote) resulte em uma perda financeira superior a **1.5% do seu saldo** (`ABSOLUTE_MAX_TRADE_RISK_PERCENT`), o bot **REJEITA A OPERAÇÃO IMEDIATAMENTE** antes de enviar a ordem para a corretora.
-
-- **Exemplo**: Se você possui R$ 1.000,00 de saldo e o limite de corte é 1.5% (R$ 15,00), caso uma entrada exija um Stop Loss de R$ 25,00 no lote mínimo, o bot cancela o envio da ordem e registra o aviso:
-  `[RISK SHIELD REJECTED] Operação cancelada: Risco do Stop Loss (R$ 25.00) excede o limite seguro de 1.5% do saldo (R$ 15.00).`
-
-#### 3. 🛑 Trava de Perda Diária Dinâmica (*Daily Max Loss*)
-O bot calcula continuamente o PnL líquido das operações encerradas no dia atual. Se as perdas acumuladas no dia atingirem **2.0% do saldo total da conta** (`MAX_DAILY_LOSS_PERCENT`), a abertura de novas posições é bloqueada no dia, protegendo a banca contra *overtrading* ou dias atípicos.
-
-#### 4. 📐 Filtro de Spread Máximo (*Max Spread Filter*)
-Antes de enviar qualquer ordem pendente (`BUY_STOP` / `SELL_STOP`), o bot verifica o spread atual do ativo no MT5 em tempo real. Se o spread ultrapassar **50 pontos** (`MAX_SPREAD_POINTS`), a ordem é abortada para evitar custos desfavoráveis (*slippage*).
-
-#### 5. 🎯 Breakeven Automático
-Assim que uma operação aberta atinge **1x ATR** (`BREAKEVEN_ATR_RATIO = 1.0`) de lucro a favor, o bot ajusta automaticamente o Stop Loss no MT5 para o preço de entrada (*Entry Price*). A partir deste momento, a operação torna-se **livre de risco financeiro**.
-
-#### 6. ⏰ Horários de Negociação Inteligentes por Ativo (Horário de Brasília - BRT)
-O bot valida a hora do sistema contra as janelas de negociação oficiais de cada ativo no fuso horário brasileiro (Horário de Brasília - BRT), suportando sessões noturnas que cruzam a meia-noite:
-
-| Ativo / Mercado | Início da Sessão (BRT) | Fim da Sessão (BRT) | Zeragem Forçada |
-| :--- | :---: | :---: | :---: |
-| **B3 (Mini Índice WIN / Mini Dólar WDO)** | `09:15` | `17:15` | `17:30` |
-| **Hong Kong (HK50 / Hang Seng)** | `22:15` (Noite) | `12:00` (Dia seguinte) | `12:30` |
-| **Índices EUA (US500, NAS100, US30)** | `10:30` | `17:00` | `17:30` |
-| **Forex (EURUSD, GBPUSD, USDJPY)** | `03:00` (Londres) | `18:00` (Nova York) | `18:30` |
-
-> [!TIP]
-> O bot reconhece automaticamente o ativo sendo negociado (ex: `HK50`, `WING24`) e aplica a janela de mercado real do ativo em horário de Brasília. Nenhuma entrada é permitida fora do fluxo de mercado real.
-
----
-
-### Setup 9.1 — Captura a virada do mercado
-
-Detecta o momento exato em que a tendencia de curto prazo muda de direcao (EMA9 vira), confirma com a tendencia maior (EMA21), e entra com ordem stop no ponto tecnico ideal.
-
-### Setup 9.2 — Aproveita o pullback apos lucro
-
-Quando o 9.1 fecha com lucro e o mercado continua favoravel, o bot identifica o primeiro retorno a EMA9 (pullback) e entra novamente. E como surfar a mesma onda duas vezes.
-
-### Setup 9.3 (Larry Williams) — Recuo Técnico de Consolidação
-
-Identifica quando o mercado está em tendência definida (EMA9 inclinada) e faz um recuo de 2 velas consecutivas sem virar a EMA9 para baixo. O bot posiciona a ordem de entrada no rompimento da máxima da vela de recuo.
-
-### Filtro Multi-Timeframe (MTF) — Confirmação no Timeframe Maior
-
-Antes de autorizar qualquer entrada, o bot consulta automaticamente o gráfico de timeframe superior (ex: analisa H1 quando operando no M15). A ordem só é disparada se a tendência no gráfico maior estiver 100% alinhada com a operação.
-
-### Filtro de Volume Relativo (RVOL) — Filtro Anti-Falso Rompimento
-
-Calcula o volume relativo em tempo real comparando a vela de gatilho com a média móvel das últimas 20 velas. Se o ativo for de bolsa (B3), usa o `real_volume`; se for Forex, usa o `tick_volume`. Entradas só são liberadas se o volume for pelo menos **15% superior à média** (`RVOL_THRESHOLD = 1.15`).
-
-
-### Alvo Adaptativo — Lucra o que o mercado esta pagando
-
-O bot calcula a *amplitude mediana dos ultimos 20 candles*. Se o candle de referencia for muito maior que a media, o alvo e reduzido (o mercado ja esticou). Se for menor, o alvo e aumentado. Resultado: *lucros menores mas muito mais frequentes*.
-
-| Mercado | Acao do bot |
-|---------|-------------|
-| Candle grande (esticou) | Alvo reduzido — trava lucro rapido |
-| Candle normal | Alvo padrao |
-| Candle pequeno (comprimido) | Alvo aumentado — mais espaco para correr |
-
-### ATR Dinamico — Stop inteligente
-
-Em momentos de alta volatilidade (ATR > 1.5x a media), o stop loss e alargado proporcionalmente. Isso evita ser "estopado" por ruido quando o mercado esta agitado, mas a direcao esta correta.
-
-### Saida Parcial — Trava lucro + deixa correr
-
-Ao atingir o alvo:
-1. *50% do volume* e fechado (lucro no bolso)
-2. *50% restante* continua correndo ate a EMA9 virar contra
-
-### Persistencia — Nunca perde o fio
-
-O estado e salvo a cada transicao em state.json. Se o PC reiniciar, se a luz cair, se o Windows atualizar — ao religar, o bot retoma exatamente de onde parou.
-
-### Shutdown Seguro (com comportamento seguro por padrão)
-
-Ao encerrar o bot (Ctrl+C ou comando `exit`), o comportamento padrao e seguro e *nao cancelar ordens abertas*: o bot salva o estado e encerra a conexao, deixando posicoes e ordens pendentes intactas. Isso evita que interrupcoes acidentais fechem trades lucrativos.
-
-Opcoes de shutdown (CLI ou comandos no console):
-
-- `save-only` (padrao): salva o estado e encerra; nao cancela ordens/posicoes.
-- `wait-flat`: salva e aguarda (por `SHUTDOWN_WAIT_SECONDS`) até que nao haja posicoes nem ordens pendentes antes de encerrar.
-- `cancel-open`: cancela ordens pendentes antes de encerrar (uso explicito; pode implicar perda de lucro).
-
-Uso via console enquanto o bot roda (digite no mesmo terminal):
-
-- `exit` ou `quit` — inicia shutdown com acao padrao (`save-only`).
-- `exit now` ou `exit cancel` — inicia shutdown com `cancel-open`.
-- `exit when flat` — inicia shutdown com `wait-flat`.
-
-Uso via CLI ao iniciar:
-
-```bash
-mt5bot --shutdown-action save-only
-mt5bot --shutdown-action wait-flat
-mt5bot --shutdown-action cancel-open
-```
-
-O padrao de mercado recomendado e `save-only` — seguro para a maior parte dos usuarios. Use `wait-flat` ou `cancel-open` apenas quando conscientemente desejar esses comportamentos.
-
----
-
-## Relatorio de Performance
-
-O bot registra *cada operacao* automaticamente e oferece analise completa.
-
-### No terminal
-
-mt5bot --report
-
-============================================================
-  RELATORIO DE PERFORMANCE — MT5Bot
-============================================================
-
-  Operacoes fechadas:              47
-  Vitorias:                        31 (66.0%)
-  Derrotas:                        14
-  PnL total (pips):                +0.04520
-  Profit Factor:                   2.14
-  Max Drawdown (pips):             0.00890
-
-  POR ATIVO:
-    HK50         18W/7L (72.0%)  PnL: +0.02800
-    EURUSD       13W/7L (65.0%)  PnL: +0.01720
-
-  POR SETUP:
-    Setup 9.1    22W/11L (66.7%)  PnL: +0.03100
-    Setup 9.2    9W/3L (75.0%)    PnL: +0.01420
-============================================================
-
-### No navegador (dashboard visual)
-
-mt5bot --dashboard
-
-Interface grafica com cards de metricas, tabelas por ativo, tabelas por setup, e historico completo de todas as operacoes.
-
-### Metricas que voce recebe
-
-| Metrica | O que significa |
-|---------|----------------|
-| *Win Rate* | % de trades que deram lucro |
-| *Profit Factor* | Quanto voce ganha para cada $1 que perde (>1 = lucrativo) |
-| *Max Drawdown* | Pior momento — maior sequencia de perdas acumuladas |
-| *PnL por ativo* | Qual instrumento esta performando melhor |
-| *PnL por setup* | Setup 9.1 ou 9.2 — qual gera mais resultado |
-| *Sequencias* | Maior numero de vitorias/derrotas seguidas |
-
----
-
-## Todos os Comandos
-
-| Comando | O que faz |
-|---------|-----------|
-| mt5bot | Menu principal (escolha como iniciar) |
-| mt5bot --quick | Inicia direto com config padrao |
-| mt5bot --report | Relatorio de performance no terminal |
-| mt5bot --dashboard | Relatorio visual no navegador |
-| mt5bot --version | Versao instalada |
-| mt5bot --help | Ajuda completa |
-
-Ou rode direto sem instalar:
-
-python main.py
-
----
-
-## Exemplos de Cenários de Uso
-
-### 1. Iniciar o bot rapidamente com configuração padrão
-Use quando você quer entrar em operação sem ajustar nada.
-
-```bash
-mt5bot --quick
-```
-
-O bot conecta ao MetaTrader 5, carrega todos os ativos configurados e começa a operar com os parâmetros de risco padrão.
-
-### 2. Consultar o relatório de performance depois de uma sessão
-Use este comando se você quer ver o resultado das operações fechadas sem abrir o dashboard.
-
-```bash
-mt5bot --report
-```
-
-### 3. Abrir o dashboard visual no navegador
-Use quando quiser uma visão gráfica das métricas, ativos e desempenho por setup.
-
-```bash
-mt5bot --dashboard
-```
-
-### 4. Encerrar o bot com comportamento seguro
-Enquanto o bot está rodando, digite no mesmo terminal:
-
-- `exit` ou `quit` — salva estado e encerra sem cancelar ordens abertas.
-- `exit when flat` — espera o fechamento de posições/ordens e encerra quando o mercado ficar flat.
-- `exit now` ou `exit cancel` — cancela ordens pendentes e encerra.
-
-### 5. Usar shutdown explícito ao iniciar
-Escolha o comportamento de desligamento antes de iniciar o bot. Exemplo:
-
-```bash
-mt5bot --shutdown-action wait-flat
-```
-
-Isso configura o shutdown para `wait-flat` antes mesmo do bot começar.
-
----
-
-## Configuracao Padrao (funciona sem alterar nada)
-
-O bot ja vem com esses valores — otimizados para operacao conservadora:
-
-| Parametro | Valor | Por que |
-|-----------|-------|---------|
-| Volume | 0.01 lote | Risco minimo por operacao |
-| Ativos | HK50, EURUSD, US500 | Liquidez alta, spreads baixos |
-| Timeframe | H1 | Equilibrio entre sinais e ruido |
-| Setup 9.1 | Ativado | Captura viradas |
-| Setup 9.2 | Ativado | Aproveita continuacoes |
-| Saida parcial | 50% a 100% amplitude | Trava lucro no alvo |
-| Alvo adaptativo | Ativado | Ajusta ao mercado real |
-| ATR dinamico | >1.5x alarga stop | Protege contra volatilidade |
-| Filtro Flat | Ativado | Ignora mercado lateral |
-
-### Parametros avancados (para quem quer personalizar)
-
-| Parametro | Default | Descricao |
-|-----------|---------|-----------|
-| EMA_PERIOD | 9 | Periodo da EMA de sinal |
-| EMA_FILTER_PERIOD | 21 | Periodo da EMA filtro |
-| PARTIAL_EXIT_PERCENT | 0.50 | % do volume fechado no alvo |
-| PARTIAL_EXIT_TARGET | 1.00 | Alvo em % da amplitude |
-| ADAPTIVE_TARGET_LOOKBACK | 20 | Candles para calcular mediana |
-| ATR_HIGH_VOL_THRESHOLD | 1.5 | Ratio para alargar stop |
-| ATR_DAMPING_FACTOR | 0.8 | Amortecimento do stop |
-| FLAT_THRESHOLD_TICKS | 5 | Limiar para detectar flat |
-| TICK_OFFSET | 1 | Distancia entry/SL do candle |
-| SCAN_INTERVAL_SECONDS | 10 | Intervalo de verificacao |
-| MAGIC | 20260731 | ID unico das ordens do bot |
-
----
-
-## Arquitetura
-
-mt5_bot-main/
-├── main.py            Ponto de entrada + loop principal
-├── tui.py             Configuracao via terminal
-├── dashboard.py       Configuracao + relatorio via navegador
-├── tracker.py         Registro de trades + calculo de performance
-├── config.py          Parametros centralizados
-├── indicators.py      EMA, ATR, alvo adaptativo, pullback
-├── strategy.py        Maquina de estados (cerebro do bot)
-├── executor.py        Envio de ordens ao MetaTrader 5
-├── persistence.py     Salvar/carregar estados (JSON)
-├── logger.py          Logs diarios em arquivo + terminal
-├── test_strategy.py   15 testes automatizados
-├── pyproject.toml     Empacotamento CLI
-├── state.json         Estado atual (gerado automaticamente)
-├── trades.json        Historico de operacoes (gerado automaticamente)
-└── logs/              Logs diarios
-
-### Fluxo de Estados
-
-SCANNING ──→ SIGNAL_READY ──→ IN_POSITION ──→ WATCHING_92
-   ↑              │                │                │
-   │         (cancelado)      (prejuizo)    (timeout/contra)
-   └──────────────┘────────────────┘────────────────┘
-                                   │
-                                   └──(lucro)──→ WATCHING_92 ──→ SIGNAL_READY
-
----
-
-## Perguntas Frequentes
-
-*Preciso entender de trading para usar?*
-Nao. O bot opera sozinho. Voce so precisa ter uma conta MT5 (pode ser demo para testar).
-
-*Funciona em conta demo?*
-Sim. Recomendamos comecar em demo para observar o comportamento antes de usar dinheiro real.
-
-*Posso deixar rodando sozinho?*
-Sim. Ele opera de forma autonoma. Para encerrar, pressione Ctrl+C.
-
-*E se o PC desligar?*
-Ao religar e executar mt5bot novamente, ele retoma de onde parou. Nenhuma operacao e perdida.
-
-*Qual o risco por operacao?*
-Com 0.01 lote (padrao), o risco e a distancia entre entry e stop loss. Tipicamente centavos por trade.
-
-*Funciona no Mac/Linux?*
-Nao diretamente. O MetaTrader 5 exige Windows. Use um VPS Windows ou maquina virtual.
-
-*Qual timeframe opera?*
-H1 (1 hora). Operacoes duram de horas a poucos dias.
-
-*O bot faz day trade?*
-Ele opera no intraday (H1), mas nao faz scalping. O foco e em movimentos tecnicos com risco controlado.
-
----
-
-## Testes
-
-O bot inclui 15 testes automatizados que validam toda a logica:
-
-python test_strategy.py
-
-Cobrem: deteccao de sinais, cancelamento, saidas parciais, saida total, Setup 9.2, ATR, alvo adaptativo, normalizacao de volume, e protecao contra crashes.
-
----
-
-## Atualizacoes e notas para desenvolvedores (v1.1.0)
-
-Estas notas explicam as mudancas implementadas recentemente para que qualquer IA ou desenvolvedor
-que leia o repositorio entenda o que foi feito e porque.
-
-- **Persistencia relocada:** os arquivos de estado (`state.json`) e trades (`trades.json`) agora sao gravados
-  em `%APPDATA%/mt5bot` no Windows (ou `~/.mt5bot` em outros sistemas). Isso evita gravar em `site-packages`
-  e problemas com permissões/arquivos corrompidos apos reinstalacao.
-- **Serializacao segura:** `persistence.save_states()` e `tracker._save_trades()` convertendo tipos nao-serializaveis
-  (ex: `numpy.int64`, `numpy.ndarray`, `datetime`) para tipos nativos antes de chamar `json.dump`.
-- **Backup de arquivo corrompido:** se o arquivo de estado estiver ilegivel, o bot faz backup com sufixo
-  `.corrupt.<timestamp>` e inicia do zero, gerando um warning para verificacao manual.
-- **Shutdown seguro (padrao):** o comportamento padrao ao encerrar e `save-only` — o bot salva estado e encerra
-  sem cancelar ordens/posicoes. Opcoes CLI/console: `save-only` (padrao), `wait-flat`, `cancel-open`.
-- **Watcher de console:** enquanto o bot roda, voce pode digitar `exit`, `exit now`, `exit when flat` no mesmo terminal
-  para iniciar shutdown com a acao desejada.
-- **Testes e mocks:** adicionado `conftest.py`/ajustes e `test_strategy.py` restaurado e estabilizado. Os testes usam
-  um mock compartilhado do `MetaTrader5` para garantir isolamento e confiabilidade.
-
-Como rodar testes:
-
-```bash
-py -3 -m pytest -q
-```
-
-Branch de testes criada/push: `testes` (commits com alteracoes de teste e documentacao).
-
-Estas atualizacoes foram feitas para deixar o codigo mais robusto, auditavel e facil de entender por outras
-IA/avaliares automatizados — se quiser, eu posso agora gerar um arquivo `DEVELOPER_GUIDE.md` mais formal e detalhado.
-
----
-
-## Licenca
-
-MIT — Use, modifique e distribua livremente.
-
----
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/MetaTrader_5_logo.png" width="120" alt="MT5 Logo">
+</p>
+
+<h1 align="center">MT5Bot Maestro ⚡</h1>
 
 <p align="center">
-<strong>MT5Bot</strong> — Feito para quem quer resultados, nao emocoes.
+  <strong>Lucros consistentes. Zero emoção. Risco Cravado em 1%.</strong><br>
+  <em>Measured, disciplined execution — performance varies with market conditions.</em>
+</p>
+
+---
+
+> [!IMPORTANT]
+> **Filosofia de Proteção ao Capital**
+> O robô não busca ganhos desmedidos na sorte. O objetivo central é **proteger o patrimônio, perder cada vez menos**, e só autorizar ordens quando o risco for estritamente controlado e proporcional ao saldo da sua conta.
+
+O **MT5Bot Maestro** é um robô de trading automatizado de nível institucional para MetaTrader 5. Baseado nos renomados setups de Alexandre Fernandes (Palex), ele opera com **disciplina absoluta** enquanto você foca no que importa. 
+
+Totalmente reconstruído em uma moderna arquitetura Híbrida (Golang + Python), o bot agora é **100% Stateless**, garantindo segurança absoluta contra quedas de energia e travamentos.
+
+---
+
+## 🌟 O Que Torna o MT5Bot Único?
+
+### 🛡️ Disaster Recovery Institucional (Arquitetura Stateless)
+Esqueça robôs amadores que quebram a sua conta se a energia acabar. O MT5Bot lê a tela do servidor da B3/Corretora em tempo real.
+- **Acabou a energia?** Sem pânico. Seu Trade está protegido por um **Hard Stop Loss** cravado na bolsa.
+- **O PC Reiniciou?** Ao religar, o bot mapeia os trades abertos e reassume o controle perfeitamente de onde parou.
+
+### 🧮 Position Sizer Dinâmico (Risco Fixo de 1%)
+Em vez de operar lotes fixos arbitrários, o robô calcula o lote exato baseado no saldo da sua conta, garantindo que o seu Stop Loss financeiro **jamais ultrapasse 1% do seu capital**. 
+
+### 🚀 Maestro CLI (Terminal Interativo)
+Assuma o controle no estilo hacker. Um terminal inspirado nas melhores ferramentas de IAs do mundo (como Claude Code e OpenCode) permite que você adicione ou pare ativos dinamicamente sem precisar desligar o sistema!
+
+---
+
+## ⚡ Comece em Minutos
+
+### Pré-requisitos
+- **Windows 10/11** (Exigência do MetaTrader 5)
+- **Python 3.10+**
+- **Go 1.20+**
+- MetaTrader 5 instalado e logado na sua conta (Demo ou Real).
+
+### Instalação & Execução
+
+1. Baixe o repositório e acesse a pasta raiz.
+2. Instale as dependências do Python:
+   ```bash
+   pip install .
+   ```
+3. Inicie o Maestro Go (Terminal Interativo):
+   ```bash
+   run.bat
+   ```
+
+O terminal do Maestro abrirá com nossa identidade visual laranja. Digite `/help` e comece a operar!
+
+---
+
+## 🕹️ Dominando a CLI (Comandos)
+
+No prompt interativo `mt5bot ❯`, você pode orquestrar o mercado em tempo real:
+
+| Comando | O que faz | Exemplo |
+|---------|-----------|---------|
+| `/add <ativo> [timeframe]` | Spawna uma thread Python rodando 100% focada no ativo escolhido. | `/add WIN M5` |
+| `/stop <ativo>` | Encerra as buscas de trades daquele ativo imediatamente. | `/stop WIN` |
+| `/list` | Mostra todos os robôs operando simultaneamente em background. | `/list` |
+| `/report` | Gera o relatório de performance no terminal (Ganhos vs Perdas). | `/report` |
+| `/dashboard` | Abre o dashboard visual completo em seu navegador web. | `/dashboard` |
+
+---
+
+## 🛑 Comandos de Saída (Shutdown Seguro)
+
+Quer fechar o bot para ir dormir, mas está com posições abertas? Não tem problema. Escolha o seu modo de saída:
+
+- **`/quit` (Padrão - "Modo Sleep")**: Fecha o PC local. Suas posições abertas continuam rolando na Bolsa protegidas pelo Stop Loss. Religue amanhã e ele reassume.
+- **`/quit cancel-open`**: Cancela armadilhas (ordens Stop pendentes) para não ativar na sua ausência, mas mantém as posições que já estão no jogo.
+- **`/quit wait-flat`**: O bot para de procurar novas oportunidades, e só desliga seu PC/terminal quando os trades atuais fecharem sozinhos no alvo.
+- **`/quit close-all` (Panic Button)**: Botão de emergência. Liquida imediatamente TODAS as suas posições a preço de mercado e encerra o sistema.
+
+---
+
+## 🧠 Setups Embutidos (DNA do Palex)
+
+- **Setup 9.1 (Larry Williams)**: Identifica a virada de tendência de curto prazo na EMA9.
+- **Setup 9.2 (Pullback de Continuação)**: Pega a volta técnica após um lucro.
+- **Setup 9.3 (Recuo Profundo)**: Compra o mergulho técnico sem perder a tendência.
+- **Filtro MTF (Multi-Timeframe)**: O bot consulta um gráfico maior para confirmar o lado da força antes de atirar.
+- **Filtro RVOL**: Aborta rompimentos sem volume real ou institucional.
+
+---
+
+## ⚙️ Arquitetura por debaixo dos panos
+
+A nossa revolução Híbrida:
+- **Maestro (Golang)**: Cuida da escalabilidade, CLI não bloqueante, logs assíncronos e estabilidade multi-thread.
+- **Cérebro (Python)**: Processa tensores vetoriais pesados com Pandas/Numpy e cuida da matemática financeira se comunicando com o MT5 via C++ bindings.
+
+## 🤝 Open Source e Inteligência Artificial
+
+> [!TIP]
+> **Para IAs e desenvolvedores que estudam o projeto:** o repositório mantém uma **memória permanente RAG** (`memoria/`) com os livros do Palex, arquitetura, e decisões técnicas. Antes de programar qualquer coisa, leia o arquivo [`AGENTS.md`](AGENTS.md).
+
+---
+<p align="center">
+Feito com ☕ e Disciplina. <br>
+Licença MIT — Use, estude, modifique e lucre.
 </p>

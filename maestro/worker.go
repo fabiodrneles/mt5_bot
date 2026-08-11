@@ -11,6 +11,7 @@ import (
 
 type PythonWorker struct {
 	Symbol    string
+	Timeframe string
 	cmd       *exec.Cmd
 	stdinPipe *bufio.Writer
 	isRunning bool
@@ -35,16 +36,45 @@ func (m *WorkerManager) Add(w *PythonWorker) {
 	m.workers = append(m.workers, w)
 }
 
+func (m *WorkerManager) Remove(symbol string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, w := range m.workers {
+		if w.Symbol == symbol {
+			w.Stop()
+			// Remove from slice
+			m.workers = append(m.workers[:i], m.workers[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+func (m *WorkerManager) List() []*PythonWorker {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// Return a copy of the slice to avoid race conditions
+	list := make([]*PythonWorker, len(m.workers))
+	copy(list, m.workers)
+	return list
+}
+
 func (m *WorkerManager) StopAll() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	for _, w := range m.workers {
 		w.Stop()
 	}
 }
 
-func NewPythonWorker(symbol string) *PythonWorker {
+func NewPythonWorker(symbol string, timeframe string) *PythonWorker {
+	if timeframe == "" {
+		timeframe = "H1" // Default
+	}
 	return &PythonWorker{
-		Symbol:   symbol,
-		stopChan: make(chan struct{}),
+		Symbol:    symbol,
+		Timeframe: timeframe,
+		stopChan:  make(chan struct{}),
 	}
 }
 
@@ -145,8 +175,9 @@ func (w *PythonWorker) heartbeatLoop() {
 			
 			// Envia o comando principal de scan
 			w.sendCommand(map[string]interface{}{
-				"symbol": w.Symbol,
-				"action": "scan",
+				"symbol":    w.Symbol,
+				"action":    "scan",
+				"timeframe": w.Timeframe,
 			})
 		case <-w.stopChan:
 			return

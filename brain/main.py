@@ -33,8 +33,20 @@ def process_payload(payload_str: str):
                 sys.stdout.flush()
                 return
             
-            # Puxar 200 velas do timeframe H1 (exemplo padrão)
-            rates = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_H1, 0, 200)
+            timeframe_str = data.get("timeframe", "H1").upper()
+            tf_map = {
+                "M1": mt5.TIMEFRAME_M1,
+                "M5": mt5.TIMEFRAME_M5,
+                "M15": mt5.TIMEFRAME_M15,
+                "M30": mt5.TIMEFRAME_M30,
+                "H1": mt5.TIMEFRAME_H1,
+                "H4": mt5.TIMEFRAME_H4,
+                "D1": mt5.TIMEFRAME_D1,
+            }
+            tf = tf_map.get(timeframe_str, mt5.TIMEFRAME_H1)
+            
+            # Puxar 200 velas do timeframe configurado
+            rates = mt5.copy_rates_from_pos(symbol, tf, 0, 200)
             if rates is None or len(rates) == 0:
                 sys.stdout.write(json.dumps({"error": "No candles found in MT5", "symbol": symbol}) + '\n')
                 sys.stdout.flush()
@@ -54,20 +66,15 @@ def process_payload(payload_str: str):
         # Adicionar os indicadores matemáticos (EMA9, SMA21, Bollinger, ATR...)
         df = add_all_indicators(df)
         
-        # Avaliar gatilhos na matriz do Palex
-        valid_setups = PalexScorer.evaluate_all(df)
+        # Invocar a maquina de estados stateless para o ciclo atual
+        import execution_manager
+        execution_manager.manage_cycle(symbol, df)
 
-        # Preparar a resposta (o melhor setup, se houver)
+        # Retornar que o processamento do tick foi concluído com sucesso
         response = {
             "symbol": symbol,
-            "has_signal": False,
-            "best_setup": None,
-            "all_setups": valid_setups
+            "status": "processed"
         }
-
-        if valid_setups:
-            response["has_signal"] = True
-            response["best_setup"] = valid_setups[0]
 
         sys.stdout.write(json.dumps(response) + '\n')
         sys.stdout.flush()

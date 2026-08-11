@@ -13,7 +13,7 @@ def test_ema9_reversal_setup_91():
     # Criamos um DataFrame fake simulando uma EMA9 caindo e depois virando pra cima
     # Precisamos de pelo menos 5 velas.
     data = {
-        'time': range(5),
+        'time': pd.date_range("2023-01-01", periods=5, freq='h'),
         'open': [10, 9, 8, 7, 8],
         'high': [11, 10, 9, 8, 10],
         'low': [9, 8, 7, 6, 7],
@@ -36,7 +36,7 @@ def test_ema9_reversal_setup_91():
     df['bollinger_upper'] = 20.0
     df['atr'] = 1.0
 
-    valid_setups = PalexScorer.evaluate_all(df)
+    valid_setups, _ = PalexScorer.evaluate_all(df)
     
     # Deve encontrar o Setup 9.1 de compra
     assert len(valid_setups) > 0, "Deveria ter encontrado um setup"
@@ -49,7 +49,7 @@ def test_ema9_reversal_setup_91():
 def test_bollinger_fffd():
     """Testa se o motor reconhece o setup Fechou Fora Fechou Dentro."""
     data = {
-        'time': range(5),
+        'time': pd.date_range("2023-01-01", periods=5, freq='h'),
         'open': [10, 10, 10, 5, 8],
         'high': [11, 11, 11, 6, 9],
         'low': [9, 9, 9, 3, 7],
@@ -71,7 +71,7 @@ def test_bollinger_fffd():
     df['bollinger_lower'] = [5.0, 5.0, 5.0, 5.0, 5.0]
     df['bollinger_upper'] = [15.0, 15.0, 15.0, 15.0, 15.0]
 
-    valid_setups = PalexScorer.evaluate_all(df)
+    valid_setups, _ = PalexScorer.evaluate_all(df)
     
     assert len(valid_setups) > 0
     best = valid_setups[0]
