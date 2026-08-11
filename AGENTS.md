@@ -86,7 +86,7 @@ python memoria\scripts\query_memory.py "saída parcial breakeven" --text
 | Setup | Nome | Status |
 |---|---|---|
 | 9.1 | Inversão da MME9 (Larry Williams) | ✅ implementado |
-| 9.2 | Correção rápida | 🟡 parcial (WATCHING_92) |
+| 9.2 | Correção rápida | ✅ implementado (`brain/setups.py`) |
 | 9.3 | Recuo profundo (2 fechamentos) | ✅ implementado |
 | 9.4 | Falso recuo | 🔲 Fase 2 |
 | PC | Ponto Contínuo (MM21) | 🔲 Fase 2 |

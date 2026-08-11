@@ -1,6 +1,6 @@
 # Setup 9.2 — Correção rápida
 
-Fonte: `raw/estrategias-operacionais.txt` · Status: em análise (WATCHING_92 no código)
+Fonte: `raw/estrategias-operacionais.txt` · Status: ✅ implementado e testado (`brain/setups.py` + `test_book_setups.py`)
 
 ## Regras (COMPRA)
 1. **Contexto**: MME9 apontando para cima (tendência de alta ativa).
@@ -18,8 +18,10 @@ Fonte: `raw/estrategias-operacionais.txt` · Status: em análise (WATCHING_92 no
 - Requer MME9 alinhada — sem isso não é 9.2 válido.
 
 ## No código (estado atual)
-- `strategy.py`: estado `WATCHING_92` (aguardando condições), `check_setup_92_buy/sell`.
-- Gerenciamento: no fluxo atual, após saída lucrativa volta ao 9.1 (mapear em `estado-atual-codigo.md`).
+- `brain/setups.py`: `StrategyScorer.evaluate_all` detecta 9.2 compra/venda (EMA9 alinhada + mínima/máxima quebrando a anterior; trigger no rompimento; score 15). É o motor em produção (Maestro roda `brain/main.py`).
+- `config.py`: `CONFIG_SETUPS["9.2"] = True` (habilitado por padrão).
+- Testes: `test_book_setups.py` — `test_setup_92_buy_trigger`, `test_setup_92_sell_trigger`, `test_setup_92_requires_ema9_aligned`.
+- O antigo estado `WATCHING_92` de `strategy.py` foi **descontinuado**: o `strategy.py` legado não é mais importado por nenhum fluxo (grep: nenhum `import strategy` no projeto).
 
 ## Observação de trading
 - Palex: 9.2/9.3 são ~60% das operações dele — o core da operação.

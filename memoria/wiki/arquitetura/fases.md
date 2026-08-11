@@ -15,7 +15,7 @@ Fonte: `raw/design-spec.md`, `ROADMAP_IMPROVEMENTS.md` · Status: mapa de implem
 - Novos setups: **9.4, Ponto Contínuo, FFFD, DiNapoli, Rompimento Falso, IFR2, SAR**.
 - Filtros: MM200, MM50, IFR9, VWAP.
 - Alvos: Fibonacci 100% / 161.8%, trailing.
-- Implementado até aqui: 9.1, 9.2 (parcial, WATCHING_92), 9.3, MTF filter, RVOL.
+- Implementado até aqui: 9.1, 9.2, 9.3, 9.4, Ponto Contínuo, FFFD, GAP, DiNapoli, Rompimento Falso, IFR2, SAR, MTF filter, RVOL.
 
 ## Fase 3 — Maestro Go (planejado)
 - `orchestrator/` com `go.mod`, `main.go`, `worker.go`, `heartbeat.go`, `cli.go`.

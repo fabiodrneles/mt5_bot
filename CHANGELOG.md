@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.8.3 — 2026-08-11
+
+Principais mudanças:
+
+- **Setup 9.2 validado como completo (antes marcado "parcial/WATCHING_92")**:
+  - Verificação contra o livro: a regra já estava fiel em `brain/setups.py` (EMA9 alinhada + mínima/máxima quebrando a anterior → entrada no rompimento, stop na extremidade do candle; score 15) e é o motor em produção (Maestro roda `brain/main.py`). O `strategy.py` legado (estado `WATCHING_92`) é descontinuado — não é importado por nenhum fluxo do projeto.
+  - Novos testes em `test_book_setups.py`: `test_setup_92_buy_trigger`, `test_setup_92_sell_trigger`, `test_setup_92_requires_ema9_aligned` (contexto inválido não dispara).
+  - Documentação atualizada: `AGENTS.md` (tabela de setups), wiki `setup-92.md`, `estado-atual-codigo.md`, `fases.md`.
+  - Total da suíte: **132 testes verdes**.
+  - Bump de versão para `1.8.3`.
+
 ## v1.8.2 — 2026-08-11
 
 Principais mudanças:

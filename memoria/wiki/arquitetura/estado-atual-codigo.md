@@ -45,6 +45,5 @@ Fonte: inspeção do repo (strategy.py, indicators.py, config.py, CHANGELOG.md)
 - Fases 1,2,3,5 do ROADMAP concluídas; Fase 4 desagregada.
 
 ## Observação
-- Setups implementados hoje: **9.1, 9.2 (parcial), 9.3**.
-- Faltam (Fase 2): **9.4, Ponto Contínuo, FFFD, DiNapoli, Rompimento Falso, IFR2, SAR**, scoring, filtros MM200/MM50/IFR9/VWAP, Fibonacci.
-- Fase 3 (maestro Go) não iniciada.
+- Setups implementados e testados: **9.1, 9.2, 9.3, 9.4, Ponto Contínuo, FFFD, GAP, DiNapoli, Rompimento Falso, IFR2, SAR** (todos via `StrategyScorer.evaluate_all`; `strategy.py` legado descontinuado — não é importado por nenhum fluxo).
+- Fase 3 (maestro Go): implementada em `maestro/` (CLI, workers, crash loop protection, heartbeat, testes Go).

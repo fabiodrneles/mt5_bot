@@ -123,6 +123,66 @@ def test_setup_rompimento_falso_buy_trigger():
     assert "RompFalso" in names
 
 
+def test_setup_92_buy_trigger():
+    # Regra do livro: EMA9 ascendente + candle fecha com a minima abaixo da
+    # minima anterior (correcao rapida); entrada no rompimento da maxima do
+    # candle de correcao; stop na minima do mesmo candle.
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    highs = [c + 0.5 for c in closes]
+    lows = [c - 0.5 for c in closes]
+    lows[-1] = lows[-2] - 1.0  # minima atual QUEBRA a minima anterior
+    df = _make_df(closes, highs, lows)
+    df.loc[df.index[-1], 'ema9_up'] = True
+    df.loc[df.index[-2], 'ema9_up'] = True
+    df.loc[df.index[-1], 'ema9_down'] = False
+    df.loc[df.index[-2], 'ema9_down'] = False
+
+    setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
+    names = [s["setup"] for s in setups]
+    assert "9.2" in names
+    best = next(s for s in setups if s["setup"] == "9.2")
+    assert best["action"] == "buy"
+    assert best["trigger_price"] == pytest.approx(df['high'].iloc[-1] + 0.01)
+    assert best["stop_loss"] == pytest.approx(df['low'].iloc[-1])
+
+
+def test_setup_92_sell_trigger():
+    # Simetrico: EMA9 descendente + maxima acima da maxima anterior.
+    closes = [110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100]
+    highs = [c + 0.5 for c in closes]
+    lows = [c - 0.5 for c in closes]
+    highs[-1] = highs[-2] + 1.0  # maxima atual supera a maxima anterior
+    df = _make_df(closes, highs, lows)
+    df.loc[df.index[-1], 'ema9_down'] = True
+    df.loc[df.index[-2], 'ema9_down'] = True
+    df.loc[df.index[-1], 'ema9_up'] = False
+    df.loc[df.index[-2], 'ema9_up'] = False
+
+    setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
+    names = [s["setup"] for s in setups]
+    assert "9.2" in names
+    best = next(s for s in setups if s["setup"] == "9.2")
+    assert best["action"] == "sell"
+    assert best["trigger_price"] == pytest.approx(df['low'].iloc[-1] - 0.01)
+    assert best["stop_loss"] == pytest.approx(df['high'].iloc[-1])
+
+
+def test_setup_92_requires_ema9_aligned():
+    # Sem EMA9 a favor, o 9.2 nao deve disparar (exige MME9 ascendente).
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    highs = [c + 0.5 for c in closes]
+    lows = [c - 0.5 for c in closes]
+    lows[-1] = lows[-2] - 1.0  # gatilho de correcao presente
+    df = _make_df(closes, highs, lows)
+    # EMA9 vira para baixo no ultimo candle -> contexto invalido para 9.2 buy
+    df.loc[df.index[-1], 'ema9_down'] = True
+    df.loc[df.index[-1], 'ema9_up'] = False
+
+    setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
+    names = [s["setup"] for s in setups]
+    assert "9.2" not in names
+
+
 def test_all_book_setups_in_config():
     for name in ["DiNapoli", "IFR2", "SAR", "RompFalso"]:
         assert config.CONFIG_SETUPS.get(name, False) is True
