@@ -134,11 +134,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.SetValue("")
 			if line != "" {
 				m.logs = append(m.logs, lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("> "+line))
-				m.handleCommand(line)
+				cmd := m.handleCommand(line)
+				if cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 			}
 			m.viewport.SetContent(strings.Join(m.logs, "\n"))
 			m.viewport.GotoBottom()
-			return m, nil
+			return m, tea.Batch(cmds...)
 		}
 
 	case tea.WindowSizeMsg:
@@ -229,7 +232,7 @@ func (m *model) updateStatus() {
 	m.viewport.Height = vpHeight
 }
 
-func (m *model) handleCommand(line string) {
+func (m *model) handleCommand(line string) tea.Cmd {
 	cmd := parseCommand(line)
 	green := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
 	red := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
@@ -240,34 +243,36 @@ func (m *model) handleCommand(line string) {
 	case "add":
 		if cmd.Symbol == "" {
 			m.logs = append(m.logs, red.Render(tr("usage_add")))
-			return
+			return nil
 		}
 		worker := NewPythonWorker(cmd.Symbol, cmd.Timeframe)
 		if err := m.manager.Add(worker); err != nil {
 			m.logs = append(m.logs, red.Render(err.Error()))
-			return
+			return nil
 		}
 		go worker.Start()
 		m.logs = append(m.logs, green.Render(fmt.Sprintf(tr("worker_started"), cmd.Symbol, cmd.Timeframe)))
+		return nil
 
 	case "study":
 		if cmd.Symbol == "" {
 			m.logs = append(m.logs, red.Render("Uso: /study <ATIVO> [TIMEFRAME]"))
-			return
+			return nil
 		}
 		worker := NewPythonWorker(cmd.Symbol, cmd.Timeframe)
 		worker.IsStudyMode = true
 		if err := m.manager.Add(worker); err != nil {
 			m.logs = append(m.logs, red.Render(err.Error()))
-			return
+			return nil
 		}
 		go worker.Start()
 		m.logs = append(m.logs, green.Render(fmt.Sprintf("Iniciando simulação (Study Mode) para %s (%s)", cmd.Symbol, cmd.Timeframe)))
+		return nil
 
 	case "stop":
 		if cmd.Symbol == "" {
 			m.logs = append(m.logs, red.Render(tr("usage_stop")))
-			return
+			return nil
 		}
 		if m.manager.Remove(cmd.Symbol) {
 			m.logs = append(m.logs, green.Render(fmt.Sprintf(tr("worker_stopped"), cmd.Symbol)))
@@ -279,7 +284,7 @@ func (m *model) handleCommand(line string) {
 		workers := m.manager.List()
 		if len(workers) == 0 {
 			m.logs = append(m.logs, dim.Render(tr("no_workers")))
-			return
+			return nil
 		}
 		m.logs = append(m.logs, bold.Render(tr("workers_active")))
 		for _, w := range workers {
@@ -317,7 +322,7 @@ func (m *model) handleCommand(line string) {
 	case "idioma":
 		if cmd.Symbol == "" || normalizeLang(cmd.Symbol) == "" {
 			m.logs = append(m.logs, red.Render(tr("lang_invalid")))
-			return
+			return nil
 		}
 		currentLang = normalizeLang(cmd.Symbol)
 		saveLang(currentLang)
@@ -337,14 +342,12 @@ func (m *model) handleCommand(line string) {
 		} else {
 			m.logs = append(m.logs, dim.Render(tr("shutdown_none")))
 		}
-		// Send quit command to tea
-		if p != nil {
-			p.Send(tea.Quit())
-		}
+		return tea.Quit
 
 	default:
-		m.logs = append(m.logs, red.Render(fmt.Sprintf(tr("unknown_cmd")+"\n", line)))
+		m.logs = append(m.logs, red.Render(tr("unknown_cmd")))
 	}
+	return nil
 }
 
 func (m model) View() string {
