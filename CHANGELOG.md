@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.8.9 — 2026-08-12
+
+Principais mudanças:
+
+- **Correção Visual do Maestro no Windows**:
+  - Removido caracteres acentuados ("mínima", "máxima", "não") dos logs de bloqueio da Estratégia 9.2 para resolver problema de encoding (caracteres `*` bugados) no terminal Windows executando o Maestro.
+
 ## v1.8.8 — 2026-08-12
 
 Principais mudanças:

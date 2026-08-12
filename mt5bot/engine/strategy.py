@@ -97,7 +97,7 @@ class StrategyScorer:
                         "stop_loss": c_last['low'], "score": 15
                     })
                 else:
-                    reasons.append("9.2 Compra Falhou: EMA9 aponta para cima, mas a mínima não perdeu a mínima anterior.")
+                    reasons.append("9.2 Compra Falhou: EMA9 aponta para cima, mas a minima nao perdeu a minima anterior.")
             elif df['ema9_down'].iloc[-1] and df['ema9_down'].iloc[-2]:
                 if c_last['high'] > c_prev['high']:
                     setups_found.append({
@@ -106,7 +106,7 @@ class StrategyScorer:
                         "stop_loss": c_last['high'], "score": 15
                     })
                 else:
-                    reasons.append("9.2 Venda Falhou: EMA9 aponta para baixo, mas a máxima não superou a máxima anterior.")
+                    reasons.append("9.2 Venda Falhou: EMA9 aponta para baixo, mas a maxima nao superou a maxima anterior.")
 
         # ----------------------------------------------------
         # SETUP 9.3 (Correção Profunda com 2 fechamentos)
