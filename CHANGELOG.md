@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.8.4 — 2026-08-12
+
+Principais mudanças:
+
+- **Ajuste de Proteção de Capital**:
+  - Alterado o modo padrão de trailing stop (`TRAILING_MODE`) de `ema9` para `mm21` em `config.py`. A média móvel de 21 períodos proporciona uma distância maior para o stop de proteção, dando mais "respiro" às operações de tendência antes de uma violinada.
+
+
 ## v1.8.3 — 2026-08-11
 
 Principais mudanças:
