@@ -152,7 +152,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, cmd)
 				}
 			}
-			m.viewport.SetContent(strings.Join(m.logs, "\n"))
+			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
+			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 			m.viewport.GotoBottom()
 			return m, tea.Batch(cmds...)
 		}
@@ -175,12 +176,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if !m.ready {
 			m.viewport = viewport.New(msg.Width, vpHeight)
-			m.viewport.SetContent(strings.Join(m.logs, "\n"))
+			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
+			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 			m.viewport.GotoBottom()
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
 			m.viewport.Height = vpHeight
+			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
+			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 		}
 
 	case LogMsg:
@@ -192,7 +196,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.logs) > 1000 {
 				m.logs = m.logs[len(m.logs)-1000:]
 			}
-			m.viewport.SetContent(strings.Join(m.logs, "\n"))
+			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
+			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 			m.viewport.GotoBottom()
 		}
 
