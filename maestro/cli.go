@@ -66,6 +66,9 @@ func parseCommand(line string) Command {
 	case "/help":
 		return Command{Name: "help"}
 
+	case "/mechanic", "/fix", "/heal":
+		return Command{Name: "mechanic"}
+
 	case "/quit", "/exit", "exit":
 		cmd := Command{Name: "quit"}
 		if len(parts) > 1 {

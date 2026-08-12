@@ -145,6 +145,26 @@ func (w *PythonWorker) recordFailure(now time.Time) bool {
 	return false
 }
 
+func (w *PythonWorker) IsDisabled() bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.disabled
+}
+
+func (w *PythonWorker) Heal() {
+	w.mu.Lock()
+	if !w.disabled {
+		w.mu.Unlock()
+		return
+	}
+	w.disabled = false
+	w.crashCount = 0
+	w.mu.Unlock()
+	// Re-creates stopChan if it was closed
+	w.stopChan = make(chan struct{})
+	go w.Start()
+}
+
 func (w *PythonWorker) Stop() {
 	close(w.stopChan)
 	if w.cmd != nil && w.cmd.Process != nil {

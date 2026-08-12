@@ -198,6 +198,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tickMsg:
 		m.updateStatus()
+		
+		// Update spinner color based on worker health
+		workers := m.manager.List()
+		hasDisabled := false
+		for _, w := range workers {
+			if w.IsDisabled() {
+				hasDisabled = true
+				break
+			}
+		}
+		if hasDisabled {
+			m.spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFF00")) // Yellow
+		} else {
+			m.spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00")) // Green
+		}
+		
 		cmds = append(cmds, tickCmd())
 	}
 
@@ -292,6 +308,21 @@ func (m *model) handleCommand(line string) tea.Cmd {
 		} else {
 			m.logs = append(m.logs, red.Render(fmt.Sprintf(tr("worker_notfound"), cmd.Symbol)))
 		}
+
+	case "mechanic":
+		workers := m.manager.List()
+		healed := 0
+		for _, w := range workers {
+			if w.IsDisabled() {
+				w.Heal()
+				healed++
+				m.logs = append(m.logs, green.Render(fmt.Sprintf("Mecânico consertou e reiniciou o robô de %s!", w.Symbol)))
+			}
+		}
+		if healed == 0 {
+			m.logs = append(m.logs, dim.Render("Nenhum robô precisando de reparos."))
+		}
+		return nil
 
 	case "list":
 		workers := m.manager.List()
