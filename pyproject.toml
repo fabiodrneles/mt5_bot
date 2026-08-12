@@ -27,7 +27,7 @@ dev = [
 ]
 
 [project.scripts]
-mt5bot = "main:main"
+mt5bot = "mt5bot.core.launcher:main"
 
 [tool.setuptools]
-py-modules = ["main", "config", "indicators", "strategy", "executor", "logger", "persistence", "dashboard", "tracker", "risk_calculator"]
+packages = ["mt5bot", "mt5bot.core", "mt5bot.engine", "mt5bot.execution", "mt5bot.data", "mt5bot.risk"]
