@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -168,8 +167,16 @@ func (w *PythonWorker) runProcess() error {
 		return err
 	}
 	
-	// Pass stderr to OS so we can see Python logs in the console
-	w.cmd.Stderr = os.Stderr
+	stderr, err := w.cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			log.Printf("%s", scanner.Text())
+		}
+	}()
 
 	if err := w.cmd.Start(); err != nil {
 		return err

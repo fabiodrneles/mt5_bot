@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.8.7 — 2026-08-12
+
+Principais mudanças:
+
+- **Correção TUI Maestro (Bubble Tea)**:
+  - Consertado o bug visual onde o terminal duplicava a interface e abandonava o frame antigo na tela quando o Cérebro Python printava logs no console. Agora o Maestro captura a saída padrão (`StderrPipe`) do Python e injeta no fluxo seguro de renderização do Go (`logWriter`).
+- **Arquitetura (Motor de Mentoria)**:
+  - Documentado o novo conceito de **Motor de Mentoria Adaptativo (Adaptive Supervisor)** na base de memória permanente (`memoria/wiki/arquitetura/motor-de-mentoria.md`). Este supervisor usará a base `virtual_rejections.json` no futuro para fazer *override* de filtros estáticos caso identifique um falso-positivo baseado em contexto de ativo/horário.
+
 ## v1.8.6 — 2026-08-12
 
 Principais mudanças:
