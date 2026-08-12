@@ -76,7 +76,7 @@ def process_payload(payload_str: str):
         df = add_all_indicators(df)
         
         # Invocar a maquina de estados stateless para o ciclo atual
-        from mt5bot import execution_manager
+        from mt5bot.execution import execution_manager
         
         action = data.get("action", "scan")
         is_study_mode = (action == "study")
