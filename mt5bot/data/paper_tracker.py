@@ -98,8 +98,8 @@ def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket
     return trade["id"]
 
 
-def record_rejection(symbol, setup_type, side, entry_price, reason):
-    """Registra uma rejeição de setup (telemetria de modo estudo)."""
+def record_rejection(symbol, setup_type, side, entry_price, sl_price, reason, timeframe="M5"):
+    """Grava um trade que foi bloqueado por algum filtro rígido para estudo do Otimizador."""
     if not os.path.exists(_REJECTIONS_FILE):
         rejections = []
     else:
@@ -114,7 +114,9 @@ def record_rejection(symbol, setup_type, side, entry_price, reason):
         "symbol": symbol,
         "side": side,
         "setup": setup_type,
+        "timeframe": timeframe,
         "entry_price": entry_price,
+        "sl_price": sl_price,
         "reason": reason,
         "time": datetime.now(tz=timezone.utc).isoformat()
     }

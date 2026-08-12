@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt5bot"
-version = "1.8.7"
+version = "1.8.8"
 description = "Bot de trading automatizado para MetaTrader 5 — Setup 9.2 validado completo + cobertura tracker 94% / dashboard 100%"
 readme = "README.md"
 requires-python = ">=3.10"

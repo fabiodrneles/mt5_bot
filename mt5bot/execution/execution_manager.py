@@ -159,6 +159,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
     """
     import time
     from mt5bot.data import paper_tracker
+    from mt5bot.mentorship.supervisor import AdaptiveSupervisor
     from mt5bot.engine.indicators import check_mtf_trend, check_rvol_filter
     
     open_trades = [t for t in paper_tracker.get_open_trades() if t['symbol'] == symbol]
@@ -222,22 +223,35 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         
         if not ranked:
             if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
-                logging.info(f"[STUDY] {symbol} Setups detectados, mas vetados por Scoring/RRR/Filtros.")
-                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
-                for s in valid_setups:
-                    paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], "Scoring/RRR/Macro")
-            return "🔵 STUDY_SCANNING"
+                override_approved = False
+                if AdaptiveSupervisor.check_override(symbol, "Scoring/RRR/Macro"):
+                    if valid_setups:
+                        best = valid_setups[0]
+                        override_approved = True
+                        
+                if not override_approved:
+                    logging.info(f"[STUDY] {symbol} Setups detectados, mas vetados por Scoring/RRR/Filtros.")
+                    _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                    for s in valid_setups:
+                        paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], s['stop_loss'], "Scoring/RRR/Macro", timeframe=timeframe_name)
+                    return "🔵 STUDY_SCANNING"
+            else:
+                return "🔵 STUDY_SCANNING"
             
-        best = ranked[0]
+        if 'best' not in locals():
+            best = ranked[0]
+            
         side = best['action'].upper()
         
         # Check rvol just like the real one
         if not check_rvol_filter(df, side):
-            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
-                logging.info(f"[STUDY] {symbol} Setup {best['setup']} de {side} rejeitado (filtro RVOL).")
-                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
-                paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], "RVOL")
-            return "🔵 STUDY_SCANNING"
+            current_rvol = df['rvol'].iloc[-1] if 'rvol' in df.columns else None
+            if not AdaptiveSupervisor.check_override(symbol, "RVOL", current_rvol=current_rvol):
+                if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+                    logging.info(f"[STUDY] {symbol} Setup {best['setup']} de {side} rejeitado (filtro RVOL).")
+                    _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                    paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "RVOL", timeframe=timeframe_name)
+                return "🔵 STUDY_SCANNING"
             
         ticket = int(time.time() * 1000) # fake ticket
         paper_tracker.record_entry(
@@ -417,8 +431,18 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             mtf_favoravel[s_side] = check_mtf_trend(symbol, timeframe_name, s_side)
     ranked_setups = aplicar_scoring(valid_setups, df, mtf_favoravel=mtf_favoravel)
     if not ranked_setups:
-        logging.info(f"[{symbol}] Setups detectados, mas todos vetados pelo scoring/RRR.")
-        return
+        override_approved = False
+        if AdaptiveSupervisor.check_override(symbol, "Scoring/RRR/Macro"):
+            if valid_setups:
+                # O supervisor mandou ignorar o macro e aprovar o melhor matematico
+                ranked_setups = [valid_setups[0]]
+                override_approved = True
+                
+        if not override_approved:
+            if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[{symbol}] Setups detectados, mas todos vetados pelo scoring/RRR.")
+                _scan_and_execute.last_logged_candle[symbol] = current_candle_time
+            return
     best_setup = ranked_setups[0]
     side = best_setup["action"].upper()
     setup_name = best_setup["setup"]
@@ -446,8 +470,12 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
 
     # 2.8 Filtro de Volume Relativo (RVOL): exige volume acima do limiar.
     if not check_rvol_filter(df, side):
-        logging.info(f"[{symbol}] Setup {setup_name} de {side} rejeitado (filtro RVOL: volume abaixo do limiar).")
-        return
+        current_rvol = df['rvol'].iloc[-1] if 'rvol' in df.columns else None
+        if not AdaptiveSupervisor.check_override(symbol, "RVOL", current_rvol=current_rvol):
+            if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[{symbol}] Setup {setup_name} de {side} rejeitado (filtro RVOL: volume abaixo do limiar).")
+                _scan_and_execute.last_logged_candle[symbol] = current_candle_time
+            return
 
         
     # 3. Calcular Tamanho da Posicao

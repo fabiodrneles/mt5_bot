@@ -1,6 +1,13 @@
 # Changelog
 
-## v1.8.7 — 2026-08-12
+## v1.8.8 — 2026-08-12
+
+Principais mudanças:
+
+- **Motor de Mentoria (Fase 1 e 2 - Aprimoramento)**:
+  - Adicionado suporte a `timeframe` na telemetria de rejeição (`/study`).
+  - Simulador agora busca até 10 dias de dados no timeframe original da operação para construir indicadores complexos (como SMA200 ou VWAP) perfeitamente antes de iniciar a simulação no M1.
+  - Implementado *Fallback SL*: O simulador usa 2x o ATR calculado com dados passados quando o preço de Stop Loss original não estiver disponível na telemetria.
 
 Principais mudanças:
 
