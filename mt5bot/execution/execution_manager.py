@@ -179,14 +179,14 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             if sl > 0 and low <= sl:
                 liquidar = True
                 exit_price = sl
-            elif current_candle['ema9_down']:
+            elif current_candle['ema9_down'] and trade.get('setup') != 'FFFD':
                 liquidar = True
                 exit_price = close
         else:
             if sl > 0 and high >= sl:
                 liquidar = True
                 exit_price = sl
-            elif current_candle['ema9_up']:
+            elif current_candle['ema9_up'] and trade.get('setup') != 'FFFD':
                 liquidar = True
                 exit_price = close
                 
@@ -196,40 +196,61 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             
     # Se nao ha trades abertos, procura setups
     if not open_trades:
+        if not hasattr(_manage_study_cycle, "last_logged_candle"):
+            _manage_study_cycle.last_logged_candle = {}
+
         info = mt5.symbol_info(symbol)
         tick_size = info.trade_tick_size if info else 0.01
         tick_offset = getattr(config, 'TICK_OFFSET', 1)
         valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
+        current_candle_time = df['time'].iloc[-1] if 'time' in df.columns else None
         
-        if valid_setups:
-            from mt5bot.engine.scoring import aplicar_scoring
-            mtf_favoravel = {}
-            for s in valid_setups:
-                s_side = str(s.get("action", "BUY")).upper()
-                if s_side not in mtf_favoravel:
-                    mtf_favoravel[s_side] = check_mtf_trend(symbol, timeframe_name, s_side)
-            ranked = aplicar_scoring(valid_setups, df, mtf_favoravel=mtf_favoravel)
+        if not valid_setups:
+            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[STUDY] {symbol} Aguardando: {rejection}")
+                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+            return "🔵 STUDY_SCANNING"
             
-            if ranked:
-                best = ranked[0]
-                side = best['action'].upper()
+        from mt5bot.engine.scoring import aplicar_scoring
+        mtf_favoravel = {}
+        for s in valid_setups:
+            s_side = str(s.get("action", "BUY")).upper()
+            if s_side not in mtf_favoravel:
+                mtf_favoravel[s_side] = check_mtf_trend(symbol, timeframe_name, s_side)
                 
-                # Check rvol just like the real one
-                if not check_rvol_filter(df, side):
-                    return
-                    
-                ticket = int(time.time() * 1000) # fake ticket
-                paper_tracker.record_entry(
-                    symbol=symbol,
-                    side=side,
-                    setup_type=best['setup'],
-                    entry_price=best['trigger_price'],
-                    sl_price=best['stop_loss'],
-                    volume=1.0, # fake volume
-                    ticket=ticket
-                )
-                logging.info(f"[STUDY] {symbol} Sinal {side} (Setup {best['setup']}). Entrada virtual.")
-                return f"🟣 PAPER_TRADE ({best['setup']} {side})"
+        ranked = aplicar_scoring(valid_setups, df, mtf_favoravel=mtf_favoravel)
+        
+        if not ranked:
+            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[STUDY] {symbol} Setups detectados, mas vetados por Scoring/RRR/Filtros.")
+                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                for s in valid_setups:
+                    paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], "Scoring/RRR/Macro")
+            return "🔵 STUDY_SCANNING"
+            
+        best = ranked[0]
+        side = best['action'].upper()
+        
+        # Check rvol just like the real one
+        if not check_rvol_filter(df, side):
+            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[STUDY] {symbol} Setup {best['setup']} de {side} rejeitado (filtro RVOL).")
+                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], "RVOL")
+            return "🔵 STUDY_SCANNING"
+            
+        ticket = int(time.time() * 1000) # fake ticket
+        paper_tracker.record_entry(
+            symbol=symbol,
+            side=side,
+            setup_type=best['setup'],
+            entry_price=best['trigger_price'],
+            sl_price=best['stop_loss'],
+            volume=1.0, # fake volume
+            ticket=ticket
+        )
+        logging.info(f"[STUDY] {symbol} Sinal {side} (Setup {best['setup']}). Entrada virtual.")
+        return f"🟣 PAPER_TRADE ({best['setup']} {side})"
 
     # Se chegou aqui, recarregue para ver o estado apos simulacoes
     open_trades = [t for t in paper_tracker.get_open_trades() if t['symbol'] == symbol]
@@ -318,16 +339,25 @@ def _manage_position(symbol, position, df):
     tick_offset = getattr(config, 'TICK_OFFSET', 1)
     offset = tick_size * tick_offset
 
-    if is_buy and df['ema9_down'].iloc[-1]:
-        new_sl = df['low'].iloc[-1] - offset
-        if position.sl == 0.0 or new_sl > position.sl:
-            logging.info(f"[{symbol}] EMA9 Virou Contra (Compra). Ajustando SL para a minima do candle: {new_sl}")
-            executor.modify_position_sl(position.ticket, symbol, new_sl)
-    elif not is_buy and df['ema9_up'].iloc[-1]:
-        new_sl = df['high'].iloc[-1] + offset
-        if position.sl == 0.0 or new_sl < position.sl:
-            logging.info(f"[{symbol}] EMA9 Virou Contra (Venda). Ajustando SL para a maxima do candle: {new_sl}")
-            executor.modify_position_sl(position.ticket, symbol, new_sl)
+    # Descobrir qual o setup (para proteger FFFD da saida pela EMA9)
+    open_trades = tracker.get_open_trades()
+    setup_name = "N/A"
+    for t in open_trades:
+        if t.get("ticket") == position.ticket:
+            setup_name = t.get("setup", "N/A")
+            break
+
+    if setup_name != "FFFD":
+        if is_buy and df['ema9_down'].iloc[-1]:
+            new_sl = df['low'].iloc[-1] - offset
+            if position.sl == 0.0 or new_sl > position.sl:
+                logging.info(f"[{symbol}] EMA9 Virou Contra (Compra). Ajustando SL para a minima do candle: {new_sl}")
+                executor.modify_position_sl(position.ticket, symbol, new_sl)
+        elif not is_buy and df['ema9_up'].iloc[-1]:
+            new_sl = df['high'].iloc[-1] + offset
+            if position.sl == 0.0 or new_sl < position.sl:
+                logging.info(f"[{symbol}] EMA9 Virou Contra (Venda). Ajustando SL para a maxima do candle: {new_sl}")
+                executor.modify_position_sl(position.ticket, symbol, new_sl)
 
 
 def _manage_pending_order(symbol, order, df):

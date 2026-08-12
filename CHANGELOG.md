@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.8.6 — 2026-08-12
+
+Principais mudanças:
+
+- **Modo Study (Telemetria Profissional)**:
+  - Adicionado telemetria de rejeição (`virtual_rejections.json`). O modo study agora grava todos os setups detectados que foram bloqueados pelos filtros rigorosos (como RRR, RVOL, MM50, MTF), garantindo massa de dados para construção futura da IA de mentoria e calibração de parâmetros.
+  - Adicionado logs detalhados e "throttled" indicando a causa exata da rejeição de cada sinal durante o `/study`.
+- **Correção Setup FFFD**:
+  - Evitada a saída prematura no FFFD (Fechamento Falso Fora Dentro) onde o trade estava sendo liquidado incorretamente pelo cruzamento da EMA9.
+
 ## v1.8.5 — 2026-08-12
 
 Principais mudanças:

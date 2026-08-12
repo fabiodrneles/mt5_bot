@@ -12,13 +12,16 @@ from mt5bot.core import logger
 _TRADES_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot')
 if not os.path.isabs(_TRADES_FILE):
     _TRADES_FILE = os.path.join(os.path.expanduser('~'), '.mt5bot', 'virtual_trades.json')
+    _REJECTIONS_FILE = os.path.join(os.path.expanduser('~'), '.mt5bot', 'virtual_rejections.json')
 else:
+    _REJECTIONS_FILE = os.path.join(_TRADES_FILE, 'virtual_rejections.json')
     _TRADES_FILE = os.path.join(_TRADES_FILE, 'virtual_trades.json')
 
 try:
     os.makedirs(os.path.dirname(_TRADES_FILE), exist_ok=True)
 except Exception:
     _TRADES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "virtual_trades.json")
+    _REJECTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "virtual_rejections.json")
 
 
 def _load_trades():
@@ -93,6 +96,45 @@ def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket
     _save_trades(trades)
     logger.debug(f"[Tracker] Entrada registrada: {symbol} {side} {setup_type} @ {entry_price}")
     return trade["id"]
+
+
+def record_rejection(symbol, setup_type, side, entry_price, reason):
+    """Registra uma rejeição de setup (telemetria de modo estudo)."""
+    if not os.path.exists(_REJECTIONS_FILE):
+        rejections = []
+    else:
+        try:
+            with open(_REJECTIONS_FILE, "r", encoding="utf-8") as f:
+                rejections = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            rejections = []
+
+    rej = {
+        "id": len(rejections) + 1,
+        "symbol": symbol,
+        "side": side,
+        "setup": setup_type,
+        "entry_price": entry_price,
+        "reason": reason,
+        "time": datetime.now(tz=timezone.utc).isoformat()
+    }
+    rejections.append(rej)
+
+    try:
+        def _convert(v):
+            try:
+                import numpy as _np
+                if isinstance(v, _np.floating):
+                    return float(v)
+            except Exception:
+                pass
+            return v
+            
+        safe_rej = [{k: _convert(v) for k, v in r.items()} for r in rejections]
+        with open(_REJECTIONS_FILE, "w", encoding="utf-8") as f:
+            json.dump(safe_rej, f, indent=2, ensure_ascii=False)
+    except IOError as e:
+        logger.error(f"Erro ao salvar rejeições: {e}")
 
 
 def record_partial_exit(ticket, exit_price, volume_closed):
