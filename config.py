@@ -139,7 +139,7 @@ BREAKEVEN_ATR_RATIO = 1.0
 # Modos: "candle" (extremidade do penultimo candle) | "ema9" | "mm21".
 # Se o preco perder a media de referencia do modo, o restante e liquidado.
 TRAILING_ENABLED = True
-TRAILING_MODE = "candle"
+TRAILING_MODE = "ema9"
 
 # --- Posicoes externas (entradas manuais do usuario no MT5) ---
 # Se True, o bot adota posicoes abertas manualmente no mesmo simbolo,
