@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.9.0 — 2026-08-12
+
+Principais mudanças:
+
+- **Mecânico (Heal System) no Maestro**:
+  - Novo comando `/mechanic` (ou `/fix`, `/heal`) para restaurar e religar ativos que foram desligados por falhas críticas (Crash Loop Protection) sem precisar reiniciar o terminal.
+- **Melhorias de UI/UX (Maestro)**:
+  - Adicionado Spinner visual (animação de carregamento `| / - \`) no canto inferior do terminal para mostrar que o Maestro está vivo.
+  - Spinner com Cores Dinâmicas: Gira em **Verde** quando todos os ativos estão saudáveis e **Amarelo** para indicar que algum ativo morreu ou precisa de reparo.
+- **Suporte a `--version`**:
+  - Implementado tratamento para `mt5bot --version` no `launcher.py` para visualizar a versão sem subir o servidor TUI.
+
 ## v1.8.9 — 2026-08-12
 
 Principais mudanças:
