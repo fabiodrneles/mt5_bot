@@ -4,6 +4,20 @@ import sys
 from datetime import datetime
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ["--version", "-v"]:
+        try:
+            base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            with open(os.path.join(base, "pyproject.toml"), "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("version ="):
+                        ver = line.split("=")[1].strip().strip('"')
+                        print(f"MT5Bot v{ver}")
+                        sys.exit(0)
+        except Exception:
+            pass
+        print("MT5Bot v(desconhecida)")
+        sys.exit(0)
+        
     # Caminho do pacote atual: mt5bot/core/launcher.py
     # Então base_dir será mt5_bot-main
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
