@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -20,6 +21,8 @@ type PythonWorker struct {
 	stopChan  chan struct{}
 	lastPong  time.Time
 	IsStudyMode bool
+	StatusText string
+	StartTime   time.Time
 
 	// Crash Loop Protection (spec 6.4)
 	crashFirst time.Time // instante da 1a falha dentro da janela de observacao
@@ -38,10 +41,18 @@ func NewWorkerManager() *WorkerManager {
 	}
 }
 
-func (m *WorkerManager) Add(w *PythonWorker) {
+func (m *WorkerManager) Add(w *PythonWorker) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	
+	for _, existing := range m.workers {
+		if existing.Symbol == w.Symbol {
+			return fmt.Errorf("robô para %s já está em execução", w.Symbol)
+		}
+	}
+	
 	m.workers = append(m.workers, w)
+	return nil
 }
 
 func (m *WorkerManager) Remove(symbol string) bool {
@@ -82,6 +93,7 @@ func NewPythonWorker(symbol string, timeframe string) *PythonWorker {
 	return &PythonWorker{
 		Symbol:    symbol,
 		Timeframe: timeframe,
+		StartTime: time.Now(),
 		stopChan:  make(chan struct{}),
 	}
 }
@@ -142,7 +154,8 @@ func (w *PythonWorker) Stop() {
 }
 
 func (w *PythonWorker) runProcess() error {
-	w.cmd = exec.Command("python", "../brain/main.py")
+	w.cmd = exec.Command("python", "-u", "-m", "interfaces.brain_worker")
+	w.cmd.Dir = ".."
 	
 	stdin, err := w.cmd.StdinPipe()
 	if err != nil {
@@ -197,8 +210,14 @@ func (w *PythonWorker) handleResponse(line string) {
 		return
 	}
 	
-	// Printar decisoes
-	log.Printf("[MAESTRO] [%s] Decision: %s", w.Symbol, line)
+	// Atualiza StatusText
+	if st, ok := resp["state_text"]; ok && st != nil {
+		if stStr, ok := st.(string); ok {
+			w.mu.Lock()
+			w.StatusText = stStr
+			w.mu.Unlock()
+		}
+	}
 }
 
 func (w *PythonWorker) heartbeatLoop() {
@@ -216,8 +235,8 @@ func (w *PythonWorker) heartbeatLoop() {
 			timeSincePong := time.Since(w.lastPong)
 			w.mu.Unlock()
 			
-			if timeSincePong > 3*time.Second {
-				log.Printf("[MAESTRO] [%s] WATCHDOG TIMEOUT (3s sem pong). Matando processo...", w.Symbol)
+			if timeSincePong > 15*time.Second {
+				log.Printf("[MAESTRO] [%s] WATCHDOG TIMEOUT (15s sem pong). Matando processo...", w.Symbol)
 				if w.cmd != nil && w.cmd.Process != nil {
 					w.cmd.Process.Kill()
 				}
