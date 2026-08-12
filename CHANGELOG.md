@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.9.1 — 2026-08-12
+
+Principais mudanças:
+
+- **UX / Word-Wrap Automático no Maestro**:
+  - Ajuste no terminal (viewport de logs) para suportar quebra de linha dinâmica automática. Textos muito longos agora não ficam ocultos se a janela for estreita, garantindo a visibilidade total das operações de estudo.
+
 ## v1.9.0 — 2026-08-12
 
 Principais mudanças:
