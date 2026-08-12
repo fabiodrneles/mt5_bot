@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -78,6 +79,7 @@ func getASCIIArt() string {
 type model struct {
 	viewport    viewport.Model
 	textInput   textinput.Model
+	spin        spinner.Model
 	manager     *WorkerManager
 	logs        []string
 	ready       bool
@@ -96,8 +98,13 @@ func initialModel() model {
 	ti.CharLimit = 156
 	ti.Width = 100
 
+	s := spinner.New()
+	s.Spinner = spinner.Line
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
+
 	m := model{
 		textInput: ti,
+		spin:      s,
 		manager:   NewWorkerManager(),
 		logs:      []string{},
 	}
@@ -107,6 +114,7 @@ func initialModel() model {
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
 		textinput.Blink,
+		m.spin.Tick,
 		tickCmd(),
 	)
 }
@@ -125,6 +133,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case spinner.TickMsg:
+		var spinCmd tea.Cmd
+		m.spin, spinCmd = m.spin.Update(msg)
+		cmds = append(cmds, spinCmd)
+
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -357,10 +370,11 @@ func (m model) View() string {
 
 	// Combine all parts (Header, Dashboard, Viewport Logs, Text Input)
 	return fmt.Sprintf(
-		"%s\n%s\n%s\n%s",
+		"%s\n%s\n%s\n %s%s",
 		getASCIIArt(),
 		m.dashboard,
 		m.viewport.View(),
+		m.spin.View(),
 		m.textInput.View(),
 	)
 }
