@@ -30,6 +30,16 @@ func parseCommand(line string) Command {
 		}
 		return cmd
 
+	case "/study", "/estudar":
+		cmd := Command{Name: "study", Timeframe: "H1"}
+		if len(parts) > 1 {
+			cmd.Symbol = strings.ToUpper(parts[1])
+		}
+		if len(parts) > 2 {
+			cmd.Timeframe = strings.ToUpper(parts[2])
+		}
+		return cmd
+
 	case "/stop", "/remove":
 		cmd := Command{Name: "stop"}
 		if len(parts) > 1 {

@@ -101,13 +101,17 @@ def _reconcile_closed_trades(symbol, df=None):
         tracker.record_exit(ticket, exit_price=exit_price, result=result)
 
 
-def manage_cycle(symbol, df, timeframe_name="H1"):
+def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
     """
     Funcao principal chamada a cada avaliacao do bot (via Go Maestro).
     Infera o estado atual do simbolo no MT5 e despacha para a funcao de gestao correta.
     100% Stateless: Toda a tomada de decisao se baseia no que esta no MT5.
     """
     if df is None or len(df) < 5:
+        return
+
+    if is_study_mode:
+        _manage_study_cycle(symbol, df, timeframe_name)
         return
 
     # 1. Sincronizar historico: se o usario fechou algo manualmente, registrar saida.
@@ -134,6 +138,85 @@ def manage_cycle(symbol, df, timeframe_name="H1"):
     else:
         # Nao temos nada, buscar novos setups
         _scan_and_execute(symbol, df, timeframe_name=timeframe_name)
+
+
+def _manage_study_cycle(symbol, df, timeframe_name):
+    """
+    Modo Telemetria / Simulador (Paper Trading).
+    Avalia a estrategia sem enviar ordens reais, e rastreia o andamento usando o paper_tracker.
+    """
+    import time
+    from brain import paper_tracker
+    from brain.indicators import check_mtf_trend, check_rvol_filter
+    
+    open_trades = [t for t in paper_tracker.get_open_trades() if t['symbol'] == symbol]
+    current_candle = df.iloc[-1]
+    
+    for trade in open_trades:
+        high = float(current_candle['high'])
+        low = float(current_candle['low'])
+        close = float(current_candle['close'])
+        
+        ticket = trade['ticket']
+        sl = trade.get('sl_price', 0.0)
+        
+        liquidar = False
+        exit_price = 0.0
+        
+        if trade['side'] == 'BUY':
+            if sl > 0 and low <= sl:
+                liquidar = True
+                exit_price = sl
+            elif current_candle['ema9_down']:
+                liquidar = True
+                exit_price = close
+        else:
+            if sl > 0 and high >= sl:
+                liquidar = True
+                exit_price = sl
+            elif current_candle['ema9_up']:
+                liquidar = True
+                exit_price = close
+                
+        if liquidar:
+            paper_tracker.record_exit(ticket, exit_price)
+            logging.info(f"[STUDY] {symbol} Posicao virtual encerrada a {exit_price}")
+            
+    # Se nao ha trades abertos, procura setups
+    if not open_trades:
+        info = mt5.symbol_info(symbol)
+        tick_size = info.trade_tick_size if info else 0.01
+        tick_offset = getattr(config, 'TICK_OFFSET', 1)
+        valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
+        
+        if valid_setups:
+            from brain.scoring import aplicar_scoring
+            mtf_favoravel = {}
+            for s in valid_setups:
+                s_side = str(s.get("action", "BUY")).upper()
+                if s_side not in mtf_favoravel:
+                    mtf_favoravel[s_side] = check_mtf_trend(symbol, timeframe_name, s_side)
+            ranked = aplicar_scoring(valid_setups, df, mtf_favoravel=mtf_favoravel)
+            
+            if ranked:
+                best = ranked[0]
+                side = best['action'].upper()
+                
+                # Check rvol just like the real one
+                if not check_rvol_filter(df, side):
+                    return
+                    
+                ticket = int(time.time() * 1000) # fake ticket
+                paper_tracker.record_entry(
+                    symbol=symbol,
+                    side=side,
+                    setup_type=best['setup'],
+                    entry_price=best['trigger_price'],
+                    sl_price=best['stop_loss'],
+                    volume=1.0, # fake volume
+                    ticket=ticket
+                )
+                logging.info(f"[STUDY] {symbol} Sinal {side} (Setup {best['setup']}). Entrada virtual.")
 
 
 def _manage_position(symbol, position, df):

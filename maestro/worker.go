@@ -19,6 +19,7 @@ type PythonWorker struct {
 	mu        sync.Mutex
 	stopChan  chan struct{}
 	lastPong  time.Time
+	IsStudyMode bool
 
 	// Crash Loop Protection (spec 6.4)
 	crashFirst time.Time // instante da 1a falha dentro da janela de observacao
@@ -227,10 +228,14 @@ func (w *PythonWorker) heartbeatLoop() {
 				"ping": true,
 			})
 			
-			// Envia o comando principal de scan
+			actionType := "scan"
+			if w.IsStudyMode {
+				actionType = "study"
+			}
+			// Envia o comando principal de scan ou study
 			w.sendCommand(map[string]interface{}{
 				"symbol":    w.Symbol,
-				"action":    "scan",
+				"action":    actionType,
 				"timeframe": w.Timeframe,
 			})
 		case <-w.stopChan:

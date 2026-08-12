@@ -79,6 +79,18 @@ func main() {
 				go worker.Start()
 				fmt.Printf(ColorGreen+tr("worker_started")+ColorReset+"\n", cmd.Symbol, cmd.Timeframe)
 
+			case "study":
+				if cmd.Symbol == "" {
+					fmt.Println(ColorRed + "Uso: /study <ATIVO> [TIMEFRAME]" + ColorReset)
+					continue
+				}
+				worker := NewPythonWorker(cmd.Symbol, cmd.Timeframe)
+				worker.IsStudyMode = true
+				manager.Add(worker)
+				go worker.Start()
+				fmt.Printf(ColorGreen+"Iniciando simulação (Study Mode) para %s (%s)"+ColorReset+"\n", cmd.Symbol, cmd.Timeframe)
+
+
 			case "stop":
 				if cmd.Symbol == "" {
 					fmt.Println(ColorRed + tr("usage_stop") + ColorReset)

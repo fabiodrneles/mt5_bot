@@ -77,7 +77,11 @@ def process_payload(payload_str: str):
         
         # Invocar a maquina de estados stateless para o ciclo atual
         from brain import execution_manager
-        execution_manager.manage_cycle(symbol, df, timeframe_name=timeframe_str)
+        
+        action = data.get("action", "scan")
+        is_study_mode = (action == "study")
+        
+        execution_manager.manage_cycle(symbol, df, timeframe_name=timeframe_str, is_study_mode=is_study_mode)
 
         # Retornar que o processamento do tick foi concluído com sucesso
         response = {

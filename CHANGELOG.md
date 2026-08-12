@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.8.5 — 2026-08-12
+
+Principais mudanças:
+
+- **Modo Study (Paper Trading)**:
+  - Adicionado comando `/study <ATIVO> [TIMEFRAME]` na CLI do Maestro.
+  - Implementado motor de paper trading (`brain/paper_tracker.py`) que salva operações em `virtual_trades.json` separando dados simulados dos reais.
+  - O bot calcula setups e acompanha o mercado validando saídas por stop loss/gain ou cruzamento de médias, criando um laboratório seguro para testes e otimização por IA.
+  - Documentação atualizada em `memoria/wiki/arquitetura/study_mode.md` com reindexação da memória (RAG).
+
 ## v1.8.4 — 2026-08-12
 
 Principais mudanças:
