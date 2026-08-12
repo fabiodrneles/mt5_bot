@@ -158,7 +158,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
     Avalia a estrategia sem enviar ordens reais, e rastreia o andamento usando o paper_tracker.
     """
     import time
-    from mt5bot import paper_tracker
+    from mt5bot.data import paper_tracker
     from mt5bot.engine.indicators import check_mtf_trend, check_rvol_filter
     
     open_trades = [t for t in paper_tracker.get_open_trades() if t['symbol'] == symbol]
