@@ -255,6 +255,19 @@ func (w *PythonWorker) handleResponse(line string) {
 		return
 	}
 	
+	// Tratar Erros Fatais reportados pelo Python
+	if errMsg, ok := resp["error"]; ok && errMsg != nil {
+		if errMsgStr, ok := errMsg.(string); ok {
+			w.mu.Lock()
+			w.StatusText = "ERRO: " + errMsgStr
+			w.mu.Unlock()
+			log.Printf("[MAESTRO] [%s] ERRO reportado pelo Python: %s", w.Symbol, errMsgStr)
+			// Forca o shutdown do processo pois o ativo é inválido
+			w.Stop()
+		}
+		return
+	}
+	
 	// Atualiza StatusText
 	if st, ok := resp["state_text"]; ok && st != nil {
 		if stStr, ok := st.(string); ok {

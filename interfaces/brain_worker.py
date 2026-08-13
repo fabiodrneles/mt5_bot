@@ -41,6 +41,11 @@ def process_payload(payload_str: str):
                 sys.stdout.flush()
                 return
             
+            if mt5.symbol_info(symbol) is None:
+                sys.stdout.write(json.dumps({"error": f"Ativo '{symbol}' não encontrado na corretora", "symbol": symbol}) + '\n')
+                sys.stdout.flush()
+                return
+
             tf_map = {
                 "M1": mt5.TIMEFRAME_M1,
                 "M5": mt5.TIMEFRAME_M5,
@@ -55,7 +60,7 @@ def process_payload(payload_str: str):
             # Puxar 200 velas do timeframe configurado
             rates = mt5.copy_rates_from_pos(symbol, tf, 0, 200)
             if rates is None or len(rates) == 0:
-                sys.stdout.write(json.dumps({"error": "No candles found in MT5", "symbol": symbol}) + '\n')
+                sys.stdout.write(json.dumps({"error": f"Sem dados históricos (candles) para {symbol}", "symbol": symbol}) + '\n')
                 sys.stdout.flush()
                 return
             
