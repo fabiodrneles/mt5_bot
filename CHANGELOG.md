@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2.3 — 2026-08-13
+
+Principais mudanças:
+
+- **Hotfix (Validação de Argumentos CLI)**:
+  - Adicionada validação rigorosa no `launcher.py` e no orquestrador Go (`maestro`) para rejeitar argumentos desconhecidos iniciados com `-` ou `--`. Com isso, comandos digitados incorretamente (ex: `--versin`) abortarão a execução em vez de ignorar e iniciar o robô acidentalmente.
+
 ## v2.2.2 — 2026-08-13
 
 Principais mudanças:
