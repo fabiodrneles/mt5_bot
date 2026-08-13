@@ -133,6 +133,7 @@ MAX_DAILY_LOSS_PERCENT = 2.0
 MAX_SPREAD_POINTS = 50
 ENABLE_BREAKEVEN = True
 BREAKEVEN_ATR_RATIO = 1.0
+MIN_STOP_SPREAD_MULTIPLIER = 1.5
 
 # --- Trailing Stop dinamico (spec 5.7) ---
 # Apos o breakeven, o SL acompanha o mercado barra a barra.

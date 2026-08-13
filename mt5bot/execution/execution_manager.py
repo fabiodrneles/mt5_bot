@@ -491,6 +491,10 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     
     if not is_safe:
         logging.warning(f"[{symbol}] Ordem rejeitada pelo Gestor de Risco: {reason}")
+        if "Spread Trap" in reason:
+            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Spread Trap", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
+        elif "Risco do Stop Loss" in reason:
+            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Max Risk Exceeded", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
         return
         
     # 4. Enviar Ordem
