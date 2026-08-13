@@ -4,6 +4,15 @@ import sys
 from datetime import datetime
 
 def main():
+    valid_flags = {"--version", "-v", "--help", "-h", "--report", "--dashboard", "--quick"}
+    
+    # Validação rigorosa de argumentos desconhecidos
+    for arg in sys.argv[1:]:
+        if arg.startswith("-") and arg not in valid_flags:
+            print(f"Erro crítico: flag desconhecida '{arg}'")
+            print("Flags permitidas: --help, --version, --report, --dashboard, --quick")
+            sys.exit(1)
+
     if len(sys.argv) > 1 and sys.argv[1] in ["--version", "-v"]:
         try:
             base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

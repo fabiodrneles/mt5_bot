@@ -433,8 +433,11 @@ func (m model) View() string {
 func main() {
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" || arg == "-v" {
-			fmt.Println("MT5Bot v2.1.0")
+			fmt.Println("MT5Bot v2.2.2")
 			os.Exit(0)
+		} else if strings.HasPrefix(arg, "-") && arg != "--report" && arg != "--dashboard" && arg != "--quick" && arg != "--help" && arg != "-h" {
+			fmt.Printf("Erro crítico: flag desconhecida '%s'\n", arg)
+			os.Exit(1)
 		}
 	}
 
