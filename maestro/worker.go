@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"sync"
 	"time"
-	"hash/fnv"
 
 	"github.com/charmbracelet/lipgloss"
 )
