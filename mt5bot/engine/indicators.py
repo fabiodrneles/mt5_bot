@@ -91,6 +91,46 @@ def calculate_sar(df: pd.DataFrame, af_step: float = 0.02, af_max: float = 0.20)
     return pd.Series(sar, index=df.index)
 
 
+def calculate_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """Calcula o ADX (Average Directional Index)."""
+    if len(df) < period + 1:
+        return pd.Series(np.nan, index=df.index)
+
+    high = df['high']
+    low = df['low']
+    close = df['close']
+
+    # True Range
+    tr1 = high - low
+    tr2 = (high - close.shift()).abs()
+    tr3 = (low - close.shift()).abs()
+    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+
+    # Directional Movement
+    up_move = high - high.shift()
+    down_move = low.shift() - low
+
+    plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
+    minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
+
+    plus_di = 100 * pd.Series(plus_dm, index=df.index).ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean() / atr
+    minus_di = 100 * pd.Series(minus_dm, index=df.index).ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean() / atr
+
+    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di)
+    adx = dx.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+    
+    return adx
+
+def calculate_zscore(series: pd.Series, period: int = 21) -> pd.Series:
+    """Calcula o Z-Score (Desvio em relação à media)."""
+    mean = series.rolling(window=period).mean()
+    std = series.rolling(window=period).std(ddof=0)
+    # Evitar divisao por zero
+    std = std.replace(0, np.nan)
+    return (series - mean) / std
+
+
 def add_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adiciona todas as metricas matematicas (EMAs, SMAs, Bollinger, IFR, SAR)
@@ -117,7 +157,7 @@ def add_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
     # Osciladores (IFR curto e longo)
     df['rsi2'] = calculate_rsi(df['close'], 2)
     df['rsi9'] = calculate_rsi(df['close'], 9)
-    df['rsi14'] = calculate_rsi(df['close'], 14)
+    df['rsi14'] = calculate_rsi(df['close'], period=14)
 
     # VWAP (ancorado por dia de negociacao, via 'time')
     df['vwap'] = calculate_vwap(df)
@@ -143,6 +183,10 @@ def add_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
     df['bollinger_upper'] = upper
     df['bollinger_lower'] = lower
     df['atr'] = calculate_atr(df, 14)
+    
+    # Machine Learning V2 Indicators
+    df['adx'] = calculate_adx(df, period=14)
+    df['z_score'] = calculate_zscore(df['close'], period=21)
     
     return df
 

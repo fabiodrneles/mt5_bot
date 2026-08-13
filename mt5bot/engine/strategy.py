@@ -281,6 +281,21 @@ class StrategyScorer:
                 except Exception:
                     return None
             
+            # Calculos V2: Distancias e Microestrutura
+            c_close = _safe_float(c_last.get('close'))
+            c_open = _safe_float(c_last.get('open'))
+            c_high = _safe_float(c_last.get('high'))
+            c_low = _safe_float(c_last.get('low'))
+            
+            def _rel_dist(val, ref):
+                if val is None or ref is None or ref == 0:
+                    return None
+                return (val - ref) / ref
+
+            body_size = abs(c_close - c_open) if c_close is not None and c_open is not None else None
+            upper_wick = c_high - max(c_open, c_close) if c_high is not None and c_open is not None and c_close is not None else None
+            lower_wick = min(c_open, c_close) - c_low if c_low is not None and c_open is not None and c_close is not None else None
+            
             ml_context = {
                 "ohlcv": {
                     "open": _safe_float(c_last.get('open')),
@@ -290,15 +305,30 @@ class StrategyScorer:
                     "tick_volume": _safe_float(c_last.get('tick_volume')),
                     "real_volume": _safe_float(c_last.get('real_volume'))
                 },
+                "microstructure": {
+                    "body_size": _safe_float(body_size),
+                    "upper_wick": _safe_float(upper_wick),
+                    "lower_wick": _safe_float(lower_wick)
+                },
                 "trend": {
                     "ema9": _safe_float(c_last.get('ema9')),
                     "sma21": _safe_float(c_last.get('sma21')),
                     "sma200": _safe_float(c_last.get('sma200')),
+                    "adx": _safe_float(c_last.get('adx'))
+                },
+                "relative_distances": {
+                    "dist_ema9": _safe_float(_rel_dist(c_close, c_last.get('ema9'))),
+                    "dist_sma21": _safe_float(_rel_dist(c_close, c_last.get('sma21'))),
+                    "dist_sma200": _safe_float(_rel_dist(c_close, c_last.get('sma200'))),
+                    "dist_vwap": _safe_float(_rel_dist(c_close, c_last.get('vwap')))
                 },
                 "momentum": {
                     "rsi9": _safe_float(c_last.get('rsi9')),
                     "rsi14": _safe_float(c_last.get('rsi14')),
                     "sar": _safe_float(c_last.get('sar'))
+                },
+                "regime": {
+                    "z_score": _safe_float(c_last.get('z_score'))
                 },
                 "volatility": {
                     "atr": _safe_float(c_last.get('atr')),
