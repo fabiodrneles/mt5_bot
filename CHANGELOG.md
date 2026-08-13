@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.5 — 2026-08-13
+
+Principais mudanças:
+
+- **Hotfix (KeyError e Panic)**:
+  - Corrigido um `KeyError: 'setup_type'` no `execution_manager.py` que causava falha na exibição do simulador (PAPER_TRADE) para novos ativos.
+  - Corrigido um bug no orquestrador (Go) onde tentar encerrar um worker que já havia se encerrado gerava um *Panic* por fechamento duplo de canal (`close of closed channel`).
+
 ## v2.2.4 — 2026-08-13
 
 Principais mudanças:
