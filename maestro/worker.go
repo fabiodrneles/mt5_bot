@@ -25,7 +25,7 @@ type PythonWorker struct {
 	IsStudyMode bool
 	StatusText string
 	StartTime   time.Time
-
+	ColorHex    string
 	// Crash Loop Protection (spec 6.4)
 	crashFirst time.Time // instante da 1a falha dentro da janela de observacao
 	crashCount int       // falhas na janela
@@ -52,6 +52,9 @@ func (m *WorkerManager) Add(w *PythonWorker) error {
 			return fmt.Errorf("robô para %s %s já está em execução", w.Symbol, w.Timeframe)
 		}
 	}
+	
+	colors := []string{"#00FFFF", "#00FF00", "#FF00FF", "#FFFF00", "#FFA500", "#FFC0CB", "#8A2BE2", "#00BFFF"}
+	w.ColorHex = colors[len(m.workers)%len(colors)]
 	
 	m.workers = append(m.workers, w)
 	return nil
@@ -195,12 +198,11 @@ func (w *PythonWorker) runProcess() error {
 		return err
 	}
 	// Gerar uma cor deterministica para o Simbolo
-	h := fnv.New32a()
-	h.Write([]byte(w.Symbol))
-	colors := []string{"#00FFFF", "#00FF00", "#FF00FF", "#FFFF00", "#FFA500", "#FFC0CB", "#8A2BE2", "#00BFFF"}
-	colorHex := colors[int(h.Sum32())%len(colors)]
-	prefixStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(colorHex)).Bold(true)
-	prefix := prefixStyle.Render(fmt.Sprintf("[%s|%s]", w.Symbol, w.Timeframe))
+	colorHex := w.ColorHex
+	if colorHex == "" {
+		colorHex = "#00FF00"
+	}
+	prefixStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(colorHex))
 
 	go func() {
 		scanner := bufio.NewScanner(stderr)
@@ -208,7 +210,9 @@ func (w *PythonWorker) runProcess() error {
 			text := scanner.Text()
 			// Evita logs vazios repetitivos
 			if text != "" && text != "\n" {
-				log.Printf("%s %s", prefix, text)
+				// Colorir a linha inteira!
+				formattedLine := prefixStyle.Render(fmt.Sprintf("[%s|%s] %s", w.Symbol, w.Timeframe, text))
+				log.Printf(formattedLine)
 			}
 		}
 	}()
