@@ -274,7 +274,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
     open_trades = [t for t in paper_tracker.get_open_trades() if t['symbol'] == symbol]
     if open_trades:
         trade = open_trades[0]
-        return f"🟣 PAPER_TRADE ({trade['setup_type']} {trade['side']})"
+        return f"🟣 PAPER_TRADE ({trade.get('setup', 'N/A')} {trade['side']})"
     return "🔵 STUDY_SCANNING"
 
 
