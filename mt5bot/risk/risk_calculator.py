@@ -318,4 +318,91 @@ def get_open_market_suggestions(configured_symbols: list) -> Dict[str, Any]:
     }
 
 
+def opening_gap_filter(symbol: str, max_gap_pips: float = 50.0, safe_minutes: int = 5) -> Tuple[bool, str]:
+    """
+    Filtro de Gap de Abertura (Fase 2).
+    Bloqueia operações nos primeiros minutos do pregão se o gap de abertura for violento.
+    """
+    try:
+        if not mt5.initialize():
+            return True, "Gap ignorado (Mock)"
+            
+        sym_info = mt5.symbol_info(symbol)
+        if sym_info is None:
+            return True, "Gap ignorado (Info ausente)"
+            
+        # Pega a vela do dia atual e a de ontem
+        rates = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_D1, 0, 2)
+        if rates is None or len(rates) < 2:
+            return True, "Gap ignorado (Sem histórico D1)"
+            
+        yesterday_close = rates[0]['close']
+        today_open = rates[1]['open']
+        
+        # Pega a hora atual do servidor
+        last_tick = mt5.symbol_info_tick(symbol)
+        if last_tick is None:
+            return True, "Gap ignorado (Sem tick)"
+            
+        current_time = datetime.fromtimestamp(last_tick.time)
+        open_time = datetime.fromtimestamp(rates[1]['time'])
+        
+        # Se ainda estivermos na janela inicial (ex: primeiros 5 min)
+        if (current_time - open_time).total_seconds() <= (safe_minutes * 60):
+            gap_size = abs(today_open - yesterday_close)
+            
+            # Converte pips/pontos (simplificado pelo point do ativo)
+            point = sym_info.point
+            gap_in_pips = gap_size / point if point > 0 else 0
+            
+            if gap_in_pips > max_gap_pips:
+                reason = f"[GAP FILTER] Rejeitado. Gap de {gap_in_pips:.1f} pips excede limite seguro de {max_gap_pips} pips na abertura."
+                logger.warning(reason)
+                return False, reason
+                
+        return True, "OK (Fora da janela de gap ou gap seguro)"
+    except Exception as e:
+        logger.error(f"Erro no opening_gap_filter: {e}")
+        return True, "Gap ignorado (Erro)"
+
+
+def check_correlation_risk(symbol: str, open_positions: list) -> Tuple[bool, str]:
+    """
+    Proteção de Risco de Correlação (Fase 5).
+    Evita dobrar o risco financeiro em ativos que andam quase idênticos (correlação > 0.8).
+    Ex: Se tem EURUSD aberto comprado, bloqueia GBPUSD na mesma direção para não inflar a exposição a 2%.
+    """
+    # Matriz de pares altamente correlacionados (positiva ou inversamente)
+    HIGH_CORRELATION_GROUPS = [
+        {"EURUSD", "GBPUSD", "NZDUSD", "AUDUSD"}, # Risco contra USD
+        {"USDCHF", "USDJPY"}, # Risco a favor do USD (Inverso ao de cima)
+        {"US30", "US500", "USTEC", "NAS100"}, # Índices Americanos
+        {"WTI", "USOIL"} # Petróleo
+    ]
+    
+    # Descobre a qual grupo de correlação o simbolo pretendido pertence
+    target_group = None
+    for group in HIGH_CORRELATION_GROUPS:
+        if symbol in group:
+            target_group = group
+            break
+            
+    if not target_group:
+        return True, "Sem risco de correlação conhecido."
+        
+    # Verifica se já temos posição em algum ativo do mesmo grupo
+    for pos in open_positions:
+        # A API de posições pode retornar objeto ou dict, dependendo do mock
+        pos_symbol = getattr(pos, 'symbol', None)
+        if pos_symbol is None and isinstance(pos, dict):
+            pos_symbol = pos.get('symbol')
+            
+        if pos_symbol and pos_symbol in target_group and pos_symbol != symbol:
+            reason = f"[CORRELATION RISK] Operação em {symbol} bloqueada. Posição já aberta em {pos_symbol} (Mesmo cluster sistêmico)."
+            logger.warning(reason)
+            return False, reason
+            
+    return True, "OK (Risco sistêmico pulverizado)"
+
+
 

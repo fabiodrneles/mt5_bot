@@ -37,6 +37,44 @@ def setup_logger():
     return logger
 
 
+import threading
+import urllib.request
+import urllib.error
+import json
+import os
+from mt5bot.core import config
+
+def send_telegram_alert_async(message: str, level: str):
+    """Envia alerta via Telegram em background sem travar o bot (Fire and Forget)."""
+    token = getattr(config, "TELEGRAM_BOT_TOKEN", os.getenv("TELEGRAM_BOT_TOKEN"))
+    chat_id = getattr(config, "TELEGRAM_CHAT_ID", os.getenv("TELEGRAM_CHAT_ID"))
+    
+    if not token or not chat_id:
+        return
+        
+    def _send():
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            prefix = "⚠️ [AVISO]" if level == "WARNING" else "🛑 [ERRO CRÍTICO]"
+            data = {
+                "chat_id": chat_id,
+                "text": f"{prefix}\n{message}"
+            }
+            req = urllib.request.Request(
+                url, 
+                data=json.dumps(data).encode('utf-8'),
+                headers={'Content-Type': 'application/json'},
+                method='POST'
+            )
+            urllib.request.urlopen(req, timeout=3.0)
+        except Exception:
+            pass # Falha silenciosa
+
+    # Dispara a thread sem aguardar retorno
+    t = threading.Thread(target=_send, daemon=True)
+    t.start()
+
+
 _bot_logger = setup_logger()
 
 
@@ -46,10 +84,12 @@ def info(msg, **kwargs):
 
 def warning(msg, **kwargs):
     _bot_logger.warning(msg, **kwargs)
+    send_telegram_alert_async(msg, "WARNING")
 
 
 def error(msg, **kwargs):
     _bot_logger.error(msg, **kwargs)
+    send_telegram_alert_async(msg, "ERROR")
 
 
 def debug(msg, **kwargs):
