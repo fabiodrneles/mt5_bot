@@ -164,14 +164,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 		m.updateStatus() // Force dashboard string update to calculate its height
 
+		headerHeight := lipgloss.Height(getASCIIArt())
 		footerHeight := 1 // text input
-		vpHeight := msg.Height - footerHeight
+		vpHeight := msg.Height - headerHeight - footerHeight
 		if vpHeight < 0 {
 			vpHeight = 0
 		}
 		
 		leftPanelWidth := 45
-		vpWidth := msg.Width - leftPanelWidth - 2
+		vpWidth := msg.Width - leftPanelWidth - 6 // left panel + margins + right panel border and padding
 		if vpWidth < 10 {
 			vpWidth = 10
 		}
@@ -258,8 +259,9 @@ func (m *model) updateStatus() {
 		Width(45). // Fixed width for left panel
 		Render(dashBuilder.String())
 		
-	// Recalculate viewport height since dashboard height might change
-	vpHeight := m.height - 1
+	// Recalculate viewport height
+	headerHeight := lipgloss.Height(getASCIIArt())
+	vpHeight := m.height - headerHeight - 1
 	if vpHeight < 0 {
 		vpHeight = 0
 	}
@@ -404,18 +406,25 @@ func (m model) View() string {
 		return "\n  Iniciando Maestro..."
 	}
 
+	header := getASCIIArt()
+
 	leftPanel := lipgloss.NewStyle().
 		Width(45).
 		MarginRight(2).
-		Render(fmt.Sprintf("%s\n%s", getASCIIArt(), m.dashboard))
+		Render(m.dashboard)
 
-	rightPanel := m.viewport.View()
+	rightPanel := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, false, true).
+		BorderForeground(lipgloss.Color("#444444")).
+		PaddingLeft(2).
+		Render(m.viewport.View())
 
-	topSection := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+	middleSection := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 
 	return fmt.Sprintf(
-		"%s\n %s%s",
-		topSection,
+		"%s\n%s\n %s%s",
+		header,
+		middleSection,
 		m.spin.View(),
 		m.textInput.View(),
 	)
