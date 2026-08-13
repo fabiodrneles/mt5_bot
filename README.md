@@ -80,10 +80,13 @@ Prompt: `mt5bot ❯`
 |---------|-----------|
 | `/help` | Lista os comandos disponíveis |
 | `/add <ativo> [timeframe]` | Adiciona e inicia uma thread Python dedicada ao ativo. Ex.: `/add WIN M5` |
+| `/study <ativo> [timeframe]` | Inicia o ativo em modo simulação (apenas envia logs, sem abrir ordens reais) |
 | `/stop <ativo>` | Para a operação em um ativo (ou `/remove` — mesmo efeito) |
 | `/list` | Lista os ativos operando |
 | `/report` | Relatório de performance no terminal (ganhos vs perdas) |
 | `/dashboard` | Abre o painel visual no navegador (servidor local) |
+| `/fix` | Repara/reinicia forçosamente um robô que entrou em "Crash Loop" |
+| `/idioma <pt\|en\|es>` | Troca o idioma da interface em tempo real |
 
 ### Saída segura (`/quit`)
 
