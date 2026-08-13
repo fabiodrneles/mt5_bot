@@ -171,7 +171,12 @@ func (w *PythonWorker) Heal() {
 }
 
 func (w *PythonWorker) Stop() {
-	close(w.stopChan)
+	select {
+	case <-w.stopChan:
+		// Already closed
+	default:
+		close(w.stopChan)
+	}
 	if w.cmd != nil && w.cmd.Process != nil {
 		w.cmd.Process.Kill()
 	}
