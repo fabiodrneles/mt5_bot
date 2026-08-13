@@ -35,7 +35,8 @@
 - **Arquitetura híbrida**: orquestrador em **Golang** (CLI não bloqueante, multi-worker) + cérebro em **Python** (cálculos com pandas/numpy, comunicação nativa com o MT5).
 - **Posição sizer dinâmico**: lote calculado pelo saldo da conta — o stop-loss financeiro **nunca passa de 1% do capital** por operação.
 - **Recuperação institucional (stateless)**: posições ficam protegidas por **hard stop-loss na corretora**. Se o PC cair ou reiniciar, o bot mapeia os trades abertos e reassume exatamente de onde parou — sem reprocessar decisões perdidas do estado local.
-- **CLI estilo terminal**: identidade visual laranja, adicione/pare ativos em tempo real sem reiniciar o sistema.
+- **CLI estilo terminal (Split-Screen)**: Maestro TUI com arquitetura visual avançada (Bubbletea + Lipgloss), layout dividido para acompanhamento real-time, controle de múltiplos robôs isolados e namespaces com `color-coding`.
+- **Machine Learning Context V2 (Elite Quant)**: Todo sinal e candle processado captura a "assinatura genética" do mercado extraindo ADX, Z-Score, distâncias relativas das médias macro (EMA9, SMA21, SMA200, VWAP) e microestrutura do candle (wicks, body) salvando direto no dataset JSON para modelagem preditiva externa (XGBoost/LightGBM).
 - **11 setups** da família 9.x, Ponto Contínuo, FFFD, DiNapoli e mais — cada um com scoring e filtros macro.
 
 ---
@@ -191,7 +192,7 @@ mt5_bot/
 └── main.py                  # entrypoint global (roteia para o Maestro Go)
 ```
 
-**Fluxo**: Maestro (Go) gerencia processos por ativo → `brain/main.py` hidrata candles e chama `StrategyScorer.evaluate_all` → `scoring.py` ranqueia → `execution_manager.py` valida risco/horário/filtros → `executor.py` envia a ordem ao MT5.
+**Fluxo**: Maestro Go (interface TUI Bubbletea, color-coding) gerencia processos isolados por ativo → `brain/main.py` (Worker) hidrata candles, extrai ML Context V2 e chama `StrategyScorer.evaluate_all` → `scoring.py` ranqueia → `execution_manager.py` valida risco/horário/filtros → `executor.py` envia a ordem ao MT5.
 
 ---
 

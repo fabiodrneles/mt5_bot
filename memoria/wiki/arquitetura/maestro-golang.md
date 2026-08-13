@@ -1,30 +1,29 @@
 # Arquitetura — Maestro Go (Supervisor)
 
-Fonte: `raw/design-spec.md`, `raw/aprofundamento.md` · Status: Fase 3 (planejado)
+Fonte: `raw/design-spec.md`, `raw/aprofundamento.md` · Status: **Concluído (Fase 3 Finalizada)**
 
 ## Papel
-O **maestro em Go** é o **supervisor** do sistema — NÃO calcula nada, NÃO está no caminho da ordem. Fica **fora do caminho crítico** (zero latência adicionada).
+O **maestro em Go** é o **supervisor** do sistema e o terminal principal do usuário — NÃO calcula sinais e NÃO está no caminho da ordem, focando apenas na orquestração, gestão de processos e interface de usuário.
 
 ## Responsabilidades
-1. **Acompanhamento** (heartbeat): monitora o cérebro Python (heartbeat a cada 1s, timeout 3s).
-2. **Orquestração**: fila de ordens, confirmação de execução.
+1. **Acompanhamento** (heartbeat): monitora o cérebro Python via pipes padrão (heartbeat a cada 1s, timeout 15s).
+2. **Orquestração**: gerencia os workers isolados e o `WorkerManager` (permitindo múltiplos timeframes).
 3. **Resiliência**: reinício automático do Python se cair (proteção contra crash loop: 3 tentativas com 2 min de espera).
-4. **Logging rotativo**: log girado por tamanho (5MB × 3 arquivos).
-5. **Graceful shutdown**: fecha janela/processo de forma limpa.
+4. **Interface Gráfica (TUI)**: Interface Split-Screen elegante baseada em `bubbletea` e `lipgloss` para visualização em tempo real.
+5. **Namespaces de Logs**: Intercepta o stderr do Python e aplica color-coding via Hash (`#00FFFF`, etc) baseando-se no ativo, resolvendo problemas visuais de spam/mistura de logs.
 
 ## Por que Go
 - Binário único, leve, sem runtime — roda no i3 4GB sem peso.
-- Goroutines para concorrência (heartbeat + supervisão) trivial.
-- Compilação cruzada e `-ldflags "-s -w -H=windowsgui"` para EXE sem console.
+- Goroutines para concorrência (heartbeat + supervisão e TUI assíncrona).
+- Compilação cruzada e `-ldflags "-s -w"` para EXE ultra responsivo.
 
 ## Por que NÃO Python como maestro
 - Go não tem biblioteca nativa de MT5 (L288-297 do `aprofundamento.md`); Python tem o pacote `MetaTrader5`.
-- Python é o "cérebro" (indica, pensa, fala com o MT5); Go é o "maestro" (supervisiona o fluxo).
+- Python é o "cérebro" (indica, pensa, fala com o MT5); Go é o "maestro" (supervisiona o fluxo e desenha a UI).
 
 ## No bot (estado atual)
-- `dashboard.py`, `tui.py` — interface de monitoramento.
-- `run_bot.py`, `__main__.py` — entry points.
-- Maestro Go ainda **não existe** (Fase 3).
+- **O Maestro Go já está implementado e compilado em `maestro.exe`**.
+- Trabalha roteando comandos (`/study`, `/add`, `/quit`, etc.) aos respectivos *Python Workers* de forma isolada e simultânea.
 
 ## Estrutura planejada (spec)
 ```

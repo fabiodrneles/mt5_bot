@@ -25,4 +25,13 @@ O treinamento de redes neurais profundas com TensorFlow é inviável no hardware
 
 ## 3. O Próximo Passo
 
-Por enquanto, o **Motor de Mentoria** trabalha coletando a base de dados (os "estudos" gerados pelo `simulator.py` e os logs de rejeição do `paper_tracker`). Quando esse banco de dados estiver populado com milhares de exemplos de mercado, teremos o insumo ("dataset") perfeito para dar o pontapé inicial no treinamento do modelo.
+O **Motor de Mentoria** trabalha coletando a base de dados (os "estudos" gerados pelo `simulator.py` e os logs de rejeição do `paper_tracker`).
+
+**ATUALIZAÇÃO IMPORTANTE (Fase 2 Concluída - ML Context V2):** 
+O bot agora extrai nativamente em `indicators.py` e `strategy.py` um contexto profundo para Machine Learning que inclui:
+- **ADX**: Para medir a força da tendência.
+- **Z-Score (21 períodos)**: Para medir desvios institucionais (estatística pura).
+- **Distâncias Relativas**: Percentual de distanciamento do preço frente à EMA9, SMA21, SMA200 e VWAP.
+- **Microestrutura**: Tamanho absoluto do body, upper wick e lower wick em percentual do ATR.
+
+Toda essa riqueza de dados já está sendo injetada e salva pelo `tracker.py` e `paper_tracker.py`. Quando o banco de dados possuir milhares de exemplos de mercado reais e simulados, teremos o *dataset perfeito* para dar o pontapé inicial no treinamento do modelo externo em XGBoost/LightGBM.
