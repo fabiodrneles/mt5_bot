@@ -431,6 +431,13 @@ func (m model) View() string {
 }
 
 func main() {
+	for _, arg := range os.Args[1:] {
+		if arg == "--version" || arg == "-v" {
+			fmt.Println("MT5Bot v2.0.0")
+			os.Exit(0)
+		}
+	}
+
 	// Remover arquivo de lock de shutdown antigo, se existir
 	os.Remove("../.no_new_trades")
 	os.Remove(".no_new_trades")
