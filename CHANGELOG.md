@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.2.2 — 2026-08-13
+
+Principais mudanças:
+
+- **Spread Trap Filter (Proteção Matemática)**:
+  - Adicionado `MIN_STOP_SPREAD_MULTIPLIER = 1.5` no core para evitar violinos artificiais durante mercado ilíquido.
+  - Se a distância do SL for menor que 1.5x o spread atual, a entrada é abortada pelo Risco.
+- **Telemetria de Rejeição de Risco**:
+  - `execution_manager.py` passa a gravar as rejeições de Risco e Spread Trap no banco `virtual_rejections.json`, preservando dados válidos para o Motor de Mentoria.
+
 ## v1.9.1 — 2026-08-12
 
 Principais mudanças:
