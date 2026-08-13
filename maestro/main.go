@@ -253,8 +253,6 @@ func (m *model) updateStatus() {
 	}
 	
 	m.dashboard = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#444444")).
 		Padding(0, 1).
 		Width(45). // Fixed width for left panel
 		Render(dashBuilder.String())
