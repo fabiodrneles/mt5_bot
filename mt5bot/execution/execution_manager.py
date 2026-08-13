@@ -207,9 +207,10 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         current_candle_time = df['time'].iloc[-1] if 'time' in df.columns else None
         
         if not valid_setups:
-            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+            log_key = f"{symbol}_{timeframe_name}"
+            if current_candle_time and _manage_study_cycle.last_logged_candle.get(log_key) != current_candle_time:
                 logging.info(f"[STUDY] {symbol} Aguardando: {rejection}")
-                _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                _manage_study_cycle.last_logged_candle[log_key] = current_candle_time
             return "🔵 STUDY_SCANNING"
             
         from mt5bot.engine.scoring import aplicar_scoring
@@ -222,7 +223,8 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         ranked = aplicar_scoring(valid_setups, df, mtf_favoravel=mtf_favoravel)
         
         if not ranked:
-            if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+            log_key = f"{symbol}_{timeframe_name}"
+            if current_candle_time and _manage_study_cycle.last_logged_candle.get(log_key) != current_candle_time:
                 override_approved = False
                 if AdaptiveSupervisor.check_override(symbol, "Scoring/RRR/Macro"):
                     if valid_setups:
@@ -231,7 +233,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
                         
                 if not override_approved:
                     logging.info(f"[STUDY] {symbol} Setups detectados, mas vetados por Scoring/RRR/Filtros.")
-                    _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                    _manage_study_cycle.last_logged_candle[log_key] = current_candle_time
                     for s in valid_setups:
                         paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], s['stop_loss'], "Scoring/RRR/Macro", timeframe=timeframe_name, ml_context=s.get('ml_context'))
                     return "🔵 STUDY_SCANNING"
@@ -247,9 +249,10 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         if not check_rvol_filter(df, side):
             current_rvol = df['rvol'].iloc[-1] if 'rvol' in df.columns else None
             if not AdaptiveSupervisor.check_override(symbol, "RVOL", current_rvol=current_rvol):
-                if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
+                log_key = f"{symbol}_{timeframe_name}"
+                if current_candle_time and _manage_study_cycle.last_logged_candle.get(log_key) != current_candle_time:
                     logging.info(f"[STUDY] {symbol} Setup {best['setup']} de {side} rejeitado (filtro RVOL).")
-                    _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
+                    _manage_study_cycle.last_logged_candle[log_key] = current_candle_time
                     paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "RVOL", timeframe=timeframe_name, ml_context=best.get('ml_context'))
                 return "🔵 STUDY_SCANNING"
             

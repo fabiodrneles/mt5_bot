@@ -8,6 +8,9 @@ import (
 	"os/exec"
 	"sync"
 	"time"
+	"hash/fnv"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type PythonWorker struct {
@@ -45,8 +48,8 @@ func (m *WorkerManager) Add(w *PythonWorker) error {
 	defer m.mu.Unlock()
 	
 	for _, existing := range m.workers {
-		if existing.Symbol == w.Symbol {
-			return fmt.Errorf("robô para %s já está em execução", w.Symbol)
+		if existing.Symbol == w.Symbol && existing.Timeframe == w.Timeframe {
+			return fmt.Errorf("robô para %s %s já está em execução", w.Symbol, w.Timeframe)
 		}
 	}
 	
@@ -191,10 +194,22 @@ func (w *PythonWorker) runProcess() error {
 	if err != nil {
 		return err
 	}
+	// Gerar uma cor deterministica para o Simbolo
+	h := fnv.New32a()
+	h.Write([]byte(w.Symbol))
+	colors := []string{"#00FFFF", "#00FF00", "#FF00FF", "#FFFF00", "#FFA500", "#FFC0CB", "#8A2BE2", "#00BFFF"}
+	colorHex := colors[int(h.Sum32())%len(colors)]
+	prefixStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(colorHex)).Bold(true)
+	prefix := prefixStyle.Render(fmt.Sprintf("[%s|%s]", w.Symbol, w.Timeframe))
+
 	go func() {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			log.Printf("%s", scanner.Text())
+			text := scanner.Text()
+			// Evita logs vazios repetitivos
+			if text != "" && text != "\n" {
+				log.Printf("%s %s", prefix, text)
+			}
 		}
 	}()
 

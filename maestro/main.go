@@ -164,24 +164,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 		m.updateStatus() // Force dashboard string update to calculate its height
 
-		headerHeight := lipgloss.Height(getASCIIArt())
-		dashHeight := lipgloss.Height(m.dashboard)
 		footerHeight := 1 // text input
-		verticalMarginHeight := headerHeight + dashHeight + footerHeight
-
-		vpHeight := msg.Height - verticalMarginHeight
+		vpHeight := msg.Height - footerHeight
 		if vpHeight < 0 {
 			vpHeight = 0
 		}
+		
+		leftPanelWidth := 45
+		vpWidth := msg.Width - leftPanelWidth - 2
+		if vpWidth < 10 {
+			vpWidth = 10
+		}
 
 		if !m.ready {
-			m.viewport = viewport.New(msg.Width, vpHeight)
+			m.viewport = viewport.New(vpWidth, vpHeight)
 			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
 			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 			m.viewport.GotoBottom()
 			m.ready = true
 		} else {
-			m.viewport.Width = msg.Width
+			m.viewport.Width = vpWidth
 			m.viewport.Height = vpHeight
 			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
 			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
@@ -253,13 +255,11 @@ func (m *model) updateStatus() {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#444444")).
 		Padding(0, 1).
-		Width(m.width - 2). // ensure it spans the screen width
+		Width(45). // Fixed width for left panel
 		Render(dashBuilder.String())
 		
 	// Recalculate viewport height since dashboard height might change
-	headerHeight := lipgloss.Height(getASCIIArt())
-	dashHeight := lipgloss.Height(m.dashboard)
-	vpHeight := m.height - headerHeight - dashHeight - 1
+	vpHeight := m.height - 1
 	if vpHeight < 0 {
 		vpHeight = 0
 	}
@@ -404,12 +404,18 @@ func (m model) View() string {
 		return "\n  Iniciando Maestro..."
 	}
 
-	// Combine all parts (Header, Dashboard, Viewport Logs, Text Input)
+	leftPanel := lipgloss.NewStyle().
+		Width(45).
+		MarginRight(2).
+		Render(fmt.Sprintf("%s\n%s", getASCIIArt(), m.dashboard))
+
+	rightPanel := m.viewport.View()
+
+	topSection := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+
 	return fmt.Sprintf(
-		"%s\n%s\n%s\n %s%s",
-		getASCIIArt(),
-		m.dashboard,
-		m.viewport.View(),
+		"%s\n %s%s",
+		topSection,
 		m.spin.View(),
 		m.textInput.View(),
 	)
