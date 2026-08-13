@@ -358,10 +358,12 @@ func (m *model) handleCommand(line string) tea.Cmd {
 	case "help":
 		m.logs = append(m.logs, bold.Render(tr("help_title")))
 		m.logs = append(m.logs, tr("help_add"))
+		m.logs = append(m.logs, tr("help_study"))
 		m.logs = append(m.logs, tr("help_stop"))
 		m.logs = append(m.logs, tr("help_list"))
 		m.logs = append(m.logs, tr("help_report"))
 		m.logs = append(m.logs, tr("help_dashboard"))
+		m.logs = append(m.logs, tr("help_fix"))
 		m.logs = append(m.logs, tr("help_quit"))
 		m.logs = append(m.logs, tr("help_quit_cancel"))
 		m.logs = append(m.logs, tr("help_quit_flat"))
