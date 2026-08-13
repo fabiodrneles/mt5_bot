@@ -104,6 +104,23 @@ def calculate_position_size(
     # Risco real em dinheiro para o volume final ajustado
     actual_risk_currency = final_volume * loss_per_lot
     
+    # --- FILTRO SPREAD TRAP ---
+    # Protege contra Stops muito curtos que seriam pegos imediatamente pelo spread (mercado ilíquido)
+    ask = getattr(symbol_info, "ask", 0.0)
+    bid = getattr(symbol_info, "bid", 0.0)
+    point = getattr(symbol_info, "point", 0.00001) or 0.00001
+    
+    if ask > 0 and bid > 0:
+        spread_pts = (ask - bid) / point
+        sl_distance_pts = sl_distance / point
+        min_multiplier = getattr(config, "MIN_STOP_SPREAD_MULTIPLIER", 1.5)
+        
+        limit_pts = spread_pts * min_multiplier
+        if sl_distance_pts < limit_pts:
+            reason = "Spread Trap"
+            logger.warning(f"[RISK SHIELD REJECTED] Operacao cancelada: {reason}. SL {sl_distance_pts:.1f} pts < Mínimo {limit_pts:.1f} pts (Spread: {spread_pts:.1f} x {min_multiplier})")
+            return 0.0, 0.0, False, reason
+    
     # FILTRO DE SEGURANCA MAXIMA:
     # Se o risco real em dinheiro exceder a trava de corte absoluto (ex: > 1.5% do saldo), REJEITA A ORDEM!
     if actual_risk_currency > abs_max_risk_currency:
