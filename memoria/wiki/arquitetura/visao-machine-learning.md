@@ -35,3 +35,12 @@ O bot agora extrai nativamente em `indicators.py` e `strategy.py` um contexto pr
 - **Microestrutura**: Tamanho absoluto do body, upper wick e lower wick em percentual do ATR.
 
 Toda essa riqueza de dados já está sendo injetada e salva pelo `tracker.py` e `paper_tracker.py`. Quando o banco de dados possuir milhares de exemplos de mercado reais e simulados, teremos o *dataset perfeito* para dar o pontapé inicial no treinamento do modelo externo em XGBoost/LightGBM.
+
+## 4. Por que não baixar dados da Internet? (A Vantagem Elite Quant)
+
+Se questionado sobre a razão de construirmos nosso próprio extrator de dados em tempo real em vez de simplesmente usar dados históricos do TradingView ou Yahoo Finance, a arquitetura se defende com 4 pilares inegociáveis:
+
+1. **Amostragem Cirúrgica (Redução de Ruído)**: Bancos de dados públicos contêm milhares de velas genéricas. O nosso robô captura a "foto" estatística do mercado *exatamente e apenas* quando um Setup da família 9.x é engatilhado. Isso entrega para a IA um dataset purificado, contendo apenas momentos de decisão crítica, evitando o overfitting clássico em ruídos de mercado.
+2. **Sincronia Perfeita (Fim da Ilusão de Backtest)**: Recriar Z-Scores e distâncias percentuais retroativamente a partir de dados OHLCV da internet introduz *look-ahead bias* ou erros de milissegundos devido a fusos e spreads divergentes. Nosso JSON captura a "visão de mundo do bot" no milissegundo exato da decisão, garantindo que o modelo treine sobre o ambiente exato em que vai operar no futuro.
+3. **Features Genéticas (Customizadas)**: Não existem dados públicos que entreguem proporções diretas de *body size* e *wick size* pareadas com *z-scores* e percentuais de distanciamento das médias (EMA9, SMA200). Nós extraímos essa assinatura microestrutural customizada direto da nossa engine, em tempo real.
+4. **Etiquetagem do Futuro (Forward Tracking)**: O bot observa o andamento real do trade (simulado ou em conta) e rotula o contexto inicial com os valores reais de *Future Max Profit*, *Future Max Drawdown* e *PnL Final*, já descontando spreads e slippages reais, e sob as rédeas das nossas regras específicas de condução e trailing stop. Bancos públicos não etiquetam trades de acordo com o nosso plano de risco.

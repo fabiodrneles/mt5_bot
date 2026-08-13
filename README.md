@@ -36,7 +36,7 @@
 - **Posição sizer dinâmico**: lote calculado pelo saldo da conta — o stop-loss financeiro **nunca passa de 1% do capital** por operação.
 - **Recuperação institucional (stateless)**: posições ficam protegidas por **hard stop-loss na corretora**. Se o PC cair ou reiniciar, o bot mapeia os trades abertos e reassume exatamente de onde parou — sem reprocessar decisões perdidas do estado local.
 - **CLI estilo terminal (Split-Screen)**: Maestro TUI com arquitetura visual avançada (Bubbletea + Lipgloss), layout dividido para acompanhamento real-time, controle de múltiplos robôs isolados e namespaces com `color-coding`.
-- **Machine Learning Context V2 (Elite Quant)**: Todo sinal e candle processado captura a "assinatura genética" do mercado extraindo ADX, Z-Score, distâncias relativas das médias macro (EMA9, SMA21, SMA200, VWAP) e microestrutura do candle (wicks, body) salvando direto no dataset JSON para modelagem preditiva externa (XGBoost/LightGBM).
+- **Machine Learning Context V2 (Elite Quant)**: Diferente de robôs amadores que usam datasets públicos cheios de ruído, o nosso "Cérebro Python" captura a **assinatura genética do mercado em tempo real** (ADX, Z-Score, distâncias para EMA9/SMA200, microestrutura do candle). O dataset é gerado *cirurgicamente* apenas quando o setup arma, registrando o contexto exato antes de prever resultados reais (Forward Tracking). É a base perfeita e livre de ilusões de backtest para treinar nossa futura Inteligência Artificial em XGBoost/LightGBM.
 - **11 setups** da família 9.x, Ponto Contínuo, FFFD, DiNapoli e mais — cada um com scoring e filtros macro.
 
 ---
