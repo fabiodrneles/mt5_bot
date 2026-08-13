@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from mt5bot.core import config
+from mt5bot.engine.indicators import swing_levels, fib_extension_targets
 
 
 class StrategyScorer:
@@ -267,6 +268,74 @@ class StrategyScorer:
                 reasons.append(f"{s['setup']} Falhou: Tendência de longo prazo (SMA200) contra a operação.")
 
         valid_setups = sorted(valid_setups, key=lambda x: x['score'], reverse=True)
+        
+        # Injeta o contexto de ML em cada setup valido retornado
+        if valid_setups:
+            swing_h, swing_l = swing_levels(df, lookback=20)
+            
+            # Formata os indicadores com tratamento para np.nan
+            def _safe_float(val):
+                try:
+                    f = float(val)
+                    return f if not np.isnan(f) else None
+                except Exception:
+                    return None
+            
+            ml_context = {
+                "ohlcv": {
+                    "open": _safe_float(c_last.get('open')),
+                    "high": _safe_float(c_last.get('high')),
+                    "low": _safe_float(c_last.get('low')),
+                    "close": _safe_float(c_last.get('close')),
+                    "tick_volume": _safe_float(c_last.get('tick_volume')),
+                    "real_volume": _safe_float(c_last.get('real_volume'))
+                },
+                "trend": {
+                    "ema9": _safe_float(c_last.get('ema9')),
+                    "sma21": _safe_float(c_last.get('sma21')),
+                    "sma200": _safe_float(c_last.get('sma200')),
+                },
+                "momentum": {
+                    "rsi9": _safe_float(c_last.get('rsi9')),
+                    "rsi14": _safe_float(c_last.get('rsi14')),
+                    "sar": _safe_float(c_last.get('sar'))
+                },
+                "volatility": {
+                    "atr": _safe_float(c_last.get('atr')),
+                    "bollinger_bandwidth": _safe_float((c_last.get('bollinger_upper', 0) - c_last.get('bollinger_lower', 0)) / c_last.get('bollinger_mid', 1)) if c_last.get('bollinger_mid') else None
+                },
+                "liquidity": {
+                    "vwap_dist": _safe_float(c_last.get('close') - c_last.get('vwap')) if c_last.get('vwap') else None
+                },
+                "fibonacci": {
+                    "swing_high": _safe_float(swing_h),
+                    "swing_low": _safe_float(swing_l)
+                },
+                "time": {}
+            }
+            
+            if 'time' in c_last and pd.notnull(c_last['time']):
+                try:
+                    dt = pd.to_datetime(c_last['time'])
+                    ml_context["time"] = {
+                        "hour": dt.hour,
+                        "minute": dt.minute,
+                        "day_of_week": dt.dayofweek
+                    }
+                except Exception:
+                    pass
+            
+            for s in valid_setups:
+                is_long = s.get('action', '').lower() == 'buy'
+                fib1, fib1618 = fib_extension_targets(s.get('trigger_price', c_last['close']), swing_h, swing_l, is_long)
+                
+                # Clone para evitar mutacao compartilhada caso um setup modifique depois
+                s_context = dict(ml_context)
+                s_context["fibonacci"] = dict(ml_context["fibonacci"])
+                s_context["fibonacci"]["fib_1_0"] = _safe_float(fib1)
+                s_context["fibonacci"]["fib_1_618"] = _safe_float(fib1618)
+                
+                s['ml_context'] = s_context
         
         # Seleciona o motivo mais relevante para informar o usuário caso não haja setups
         # Prioriza rejeição de 9.2 (que indica tendência ocorrendo) ou GAP

@@ -71,7 +71,7 @@ def _save_trades(trades):
         logger.error(f"Erro ao salvar trades: {e}", exc_info=True)
 
 
-def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket):
+def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket, ml_context=None):
     """Registra uma entrada (posicao aberta)."""
     trades = _load_trades()
     trade = {
@@ -92,13 +92,15 @@ def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket
         "partial_exit_price": None,
         "partial_volume": None,
     }
+    if ml_context is not None:
+        trade["ml_context"] = ml_context
     trades.append(trade)
     _save_trades(trades)
     logger.debug(f"[Tracker] Entrada registrada: {symbol} {side} {setup_type} @ {entry_price}")
     return trade["id"]
 
 
-def record_rejection(symbol, setup_type, side, entry_price, sl_price, reason, timeframe="M5"):
+def record_rejection(symbol, setup_type, side, entry_price, sl_price, reason, timeframe="M5", ml_context=None):
     """Grava um trade que foi bloqueado por algum filtro rígido para estudo do Otimizador."""
     if not os.path.exists(_REJECTIONS_FILE):
         rejections = []
@@ -120,6 +122,8 @@ def record_rejection(symbol, setup_type, side, entry_price, sl_price, reason, ti
         "reason": reason,
         "time": datetime.now(tz=timezone.utc).isoformat()
     }
+    if ml_context is not None:
+        rej["ml_context"] = ml_context
     rejections.append(rej)
 
     try:

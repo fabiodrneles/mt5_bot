@@ -233,7 +233,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
                     logging.info(f"[STUDY] {symbol} Setups detectados, mas vetados por Scoring/RRR/Filtros.")
                     _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
                     for s in valid_setups:
-                        paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], s['stop_loss'], "Scoring/RRR/Macro", timeframe=timeframe_name)
+                        paper_tracker.record_rejection(symbol, s['setup'], str(s.get("action", "BUY")).upper(), s['trigger_price'], s['stop_loss'], "Scoring/RRR/Macro", timeframe=timeframe_name, ml_context=s.get('ml_context'))
                     return "🔵 STUDY_SCANNING"
             else:
                 return "🔵 STUDY_SCANNING"
@@ -250,7 +250,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
                 if current_candle_time and _manage_study_cycle.last_logged_candle.get(symbol) != current_candle_time:
                     logging.info(f"[STUDY] {symbol} Setup {best['setup']} de {side} rejeitado (filtro RVOL).")
                     _manage_study_cycle.last_logged_candle[symbol] = current_candle_time
-                    paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "RVOL", timeframe=timeframe_name)
+                    paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "RVOL", timeframe=timeframe_name, ml_context=best.get('ml_context'))
                 return "🔵 STUDY_SCANNING"
             
         ticket = int(time.time() * 1000) # fake ticket
@@ -261,7 +261,8 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             entry_price=best['trigger_price'],
             sl_price=best['stop_loss'],
             volume=1.0, # fake volume
-            ticket=ticket
+            ticket=ticket,
+            ml_context=best.get('ml_context')
         )
         logging.info(f"[STUDY] {symbol} Sinal {side} (Setup {best['setup']}). Entrada virtual.")
         return f"🟣 PAPER_TRADE ({best['setup']} {side})"
@@ -506,7 +507,8 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             entry_price=entry_price,
             sl_price=sl_price,
             volume=volume,
-            ticket=result.order
+            ticket=result.order,
+            ml_context=best_setup.get('ml_context')
         )
     else:
         logging.error(f"[{symbol}] Falha ao colocar ordem. Erro: {result.retcode if result else 'N/A'}")
