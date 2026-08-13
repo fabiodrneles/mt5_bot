@@ -433,7 +433,7 @@ func (m model) View() string {
 func main() {
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" || arg == "-v" {
-			fmt.Println("MT5Bot v2.0.0")
+			fmt.Println("MT5Bot v2.1.0")
 			os.Exit(0)
 		}
 	}
