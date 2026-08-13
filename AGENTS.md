@@ -88,10 +88,10 @@ python memoria\scripts\query_memory.py "saída parcial breakeven" --text
 | 9.1 | Inversão da MME9 (Larry Williams) | ✅ implementado |
 | 9.2 | Correção rápida | ✅ implementado (`brain/setups.py`) |
 | 9.3 | Recuo profundo (2 fechamentos) | ✅ implementado |
-| 9.4 | Falso recuo | 🔲 Fase 2 |
-| PC | Ponto Contínuo (MM21) | 🔲 Fase 2 |
-| FFFD | Bollinger fora/dentro | 🔲 Fase 2 |
-| +4 | DiNapoli, Rompimento Falso, IFR2, SAR | 🔲 Fase 2 |
+| 9.4 | Falso recuo | ✅ implementado |
+| PC | Ponto Contínuo (MM21) | ✅ implementado |
+| FFFD | Bollinger fora/dentro | ✅ implementado |
+| +4 | DiNapoli, Rompimento Falso, IFR2, SAR | ✅ implementado |
 
 ### Proteção de capital (implementado)
 - Lote dinâmico: **1% do saldo** por operação (`risk_calculator.py`).
