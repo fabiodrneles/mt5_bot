@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.4 — 2026-08-13
+
+Principais mudanças:
+
+- **Hotfix (Símbolos Inválidos)**:
+  - Adicionada verificação no Python para rejeitar imediatamente e enviar um erro claro quando um ativo (símbolo) não existir ou não estiver disponível na corretora, prevenindo falhas silenciosas na extração de dados do MT5.
+  - Orquestrador (Go) atualizado para ler e processar erros emitidos pelos workers em Python. Se o ativo for inválido, o Maestro cancela o worker graciosamente e marca o estado como `ERRO`, evitando loops infinitos de status `INICIALIZANDO`.
+
 ## v2.2.3 — 2026-08-13
 
 Principais mudanças:
