@@ -199,12 +199,20 @@ def _manage_study_cycle(symbol, df, timeframe_name):
     if not open_trades:
         if not hasattr(_manage_study_cycle, "last_logged_candle"):
             _manage_study_cycle.last_logged_candle = {}
+        if not hasattr(_manage_study_cycle, "last_traded_candle"):
+            _manage_study_cycle.last_traded_candle = {}
 
         info = mt5.symbol_info(symbol)
         tick_size = info.trade_tick_size if info else 0.01
         tick_offset = getattr(config, 'TICK_OFFSET', 1)
-        valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
         current_candle_time = df['time'].iloc[-1] if 'time' in df.columns else None
+        log_key = f"{symbol}_{timeframe_name}"
+        
+        # PREVENT RE-ENTRY ON SAME CANDLE
+        if current_candle_time and _manage_study_cycle.last_traded_candle.get(log_key) == current_candle_time:
+            return "🔵 STUDY_SCANNING"
+
+        valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
         
         if not valid_setups:
             log_key = f"{symbol}_{timeframe_name}"
@@ -267,6 +275,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             ticket=ticket,
             ml_context=best.get('ml_context')
         )
+        _manage_study_cycle.last_traded_candle[log_key] = current_candle_time
         logging.info(f"[STUDY] {symbol} Sinal {side} (Setup {best['setup']}). Entrada virtual.")
         return f"🟣 PAPER_TRADE ({best['setup']} {side})"
 

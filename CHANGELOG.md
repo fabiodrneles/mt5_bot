@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.6] - 2026-08-13
+### Fixed
+- Fixed 'Machine Gun' effect in Study Mode by implementing a 1-trade-per-candle cooldown.
+
 ## v2.2.5 — 2026-08-13
 
 Principais mudanças:
@@ -281,3 +285,4 @@ Principais mudanças:
 - Bump de versão para `1.1.0` e atualização do tagline para inglês no banner.
 
 Detalhes de implementação e notas de desenvolvedor estão em `DEVELOPER_GUIDE.md`.
+
