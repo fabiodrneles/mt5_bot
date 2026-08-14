@@ -408,7 +408,7 @@ class StrategyScorer:
         
         # Seleciona o motivo mais relevante para informar o usuário caso não haja setups
         # Prioriza rejeição de 9.2 (que indica tendência ocorrendo) ou GAP
-        final_reason = "Nenhum setup configurado ou EMA9 está flat."
+        final_reason = "Aguardando: Condicoes tecnicas nao atingidas (Medias, BB ou RSI)."
         if not valid_setups and reasons:
             for r in reasons:
                 if "9.2" in r or "GAP" in r or "SMA200" in r:
