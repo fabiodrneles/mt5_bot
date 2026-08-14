@@ -127,10 +127,30 @@ func (m *model) loadSummary() Summary {
 	return computeSummary(trades)
 }
 
+// truncate limita o texto a width colunas visíveis, com reticências.
+func truncate(s string, width int) string {
+	if width < 0 {
+		return ""
+	}
+	r := []rune(s)
+	if len(r) <= width {
+		return s
+	}
+	if width <= 1 {
+		return "…"
+	}
+	return string(r[:width-1]) + "…"
+}
+
 // renderPerformance formata a linha única de métricas do painel inferior.
-func renderPerformance(s Summary) string {
+// width garante que o resultado não wrape dentro do painel (lipgloss Width
+// wrapparia, quebrando a altura do grid).
+func renderPerformance(s Summary, width int) string {
+	if width < 20 {
+		width = 20
+	}
 	if !s.HasData {
-		return dimStyle.Render("Sem dados ainda. Inicie /study ou /add.")
+		return dimStyle.Render(truncate("Sem dados ainda. Inicie /study ou /add.", width))
 	}
 	sign := "+"
 	pnlColor := ColorGreen
@@ -138,11 +158,16 @@ func renderPerformance(s Summary) string {
 		sign = "-"
 		pnlColor = ColorRed
 	}
-	pnl := lipgloss.NewStyle().
+	pnlPlain := fmt.Sprintf("%s$%.2f", sign, math.Abs(s.PnL))
+	plain := truncate(fmt.Sprintf("PnL Total: %s  |  Win Rate: %.1f%%  |  Trades: %d", pnlPlain, s.WinRate, s.Trades), width)
+	styled := lipgloss.NewStyle().
 		Foreground(pnlColor).
 		Bold(true).
-		Render(fmt.Sprintf("%s$%.2f", sign, math.Abs(s.PnL)))
-	return fmt.Sprintf("PnL Total: %s  |  Win Rate: %.1f%%  |  Trades: %d", pnl, s.WinRate, s.Trades)
+		Render(pnlPlain)
+	if strings.Contains(plain, pnlPlain) {
+		return strings.Replace(plain, pnlPlain, styled, 1)
+	}
+	return plain
 }
 
 // wrapLogs embrulha os logs na largura do viewport.
@@ -299,26 +324,6 @@ func (m *model) updateStatus() {
 	m.mode = detectMode(workers)
 	m.mt5Status = detectMT5(workers)
 
-	var b strings.Builder
-	if len(workers) == 0 {
-		b.WriteString(dimStyle.Render("Nenhum robô ativo. Digite /study <ATIVO> [TIMEFRAME]"))
-	} else {
-		b.WriteString(titleStyle.Render("ATIVOS EM EXECUÇÃO"))
-		b.WriteString("\n")
-		b.WriteString(dimStyle.Render("ATIVO    TF  STATUS"))
-		b.WriteString("\n")
-		b.WriteString(dimStyle.Render(strings.Repeat("─", 28)))
-		b.WriteString("\n")
-		for _, w := range workers {
-			badge := renderBadge(statusBadge(w.StatusText), 6)
-			uptime := time.Since(w.StartTime).Round(time.Second)
-			b.WriteString(fmt.Sprintf("%-8s %-5s %s  %s\n", w.Symbol, w.Timeframe, badge, dimStyle.Render(uptime.String())))
-		}
-	}
-	m.dashboard = b.String()
-
-	m.perfContent = renderPerformance(m.loadSummary())
-
 	// Dimensões do grid: esquerda ~33%, direita o restante.
 	m.leftWidth = m.width * 33 / 100
 	if m.leftWidth < 20 {
@@ -328,6 +333,33 @@ func (m *model) updateStatus() {
 	if m.rightWidth < 30 {
 		m.rightWidth = 30
 	}
+
+	// Rodapé: " " + spinner(1) + prompt " mt5bot ❯ " (9) + input. O input
+	// precisa encolher com o terminal para a linha não quebrar.
+	m.textInput.Width = m.width - 12
+	if m.textInput.Width < 10 {
+		m.textInput.Width = 10
+	}
+
+	var b strings.Builder
+	if len(workers) == 0 {
+		b.WriteString(dimStyle.Render("Nenhum robô ativo. Digite /study <ATIVO> [TIMEFRAME]"))
+	} else {
+		b.WriteString(titleStyle.Render("ATIVOS EM EXECUÇÃO"))
+		b.WriteString("\n")
+		b.WriteString(dimStyle.Render("ATIVO    TF  STATUS"))
+		b.WriteString("\n")
+		b.WriteString(dimStyle.Render(strings.Repeat("─", m.leftWidth-2)))
+		b.WriteString("\n")
+		for _, w := range workers {
+			badge := renderBadge(statusBadge(w.StatusText), 6)
+			uptime := time.Since(w.StartTime).Round(time.Second)
+			b.WriteString(fmt.Sprintf("%-8s %-5s %s  %s\n", w.Symbol, w.Timeframe, badge, dimStyle.Render(uptime.String())))
+		}
+	}
+	m.dashboard = b.String()
+
+	m.perfContent = renderPerformance(m.loadSummary(), m.rightWidth-2)
 
 	// Alturas: top bar (1) + rodapé (1) + painel performance (5) + chrome do log (4).
 	// vpHeight = m.height - 11 alinha o rodapé do log com o do painel esquerdo.
@@ -483,11 +515,14 @@ func (m model) View() string {
 
 	header := m.topBar()
 
+	// Nota lipgloss v1.1.0: Width/Height com border SOMAM a borda ao tamanho
+	// (Width(n) + borda = n+2). Por isso subtraímos 2 do frame para o total
+	// bater exatamente em m.leftWidth / m.rightWidth / (m.height-2).
 	leftPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBorder).
-		Width(m.leftWidth).
-		Height(m.height - 2).
+		Width(m.leftWidth - 2).
+		Height(m.height - 4).
 		Render(m.dashboard)
 
 	logTitle := "EVENT LOG (Live)"
@@ -498,7 +533,7 @@ func (m model) View() string {
 	logPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBorder).
-		Width(m.rightWidth).
+		Width(m.rightWidth - 2).
 		Render(lipgloss.JoinVertical(lipgloss.Left,
 			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render(logTitle),
 			dimStyle.Render(strings.Repeat("─", m.rightWidth-2)),
@@ -508,7 +543,7 @@ func (m model) View() string {
 	perfPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBorder).
-		Width(m.rightWidth).
+		Width(m.rightWidth - 2).
 		Render(lipgloss.JoinVertical(lipgloss.Left,
 			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render("PERFORMANCE RESUMO (Sessão Atual)"),
 			dimStyle.Render(strings.Repeat("─", m.rightWidth-2)),
