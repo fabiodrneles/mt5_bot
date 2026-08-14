@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.3.1] - 2026-08-14
+### Fixed
+- Atualizada a mensagem de fallback "Aguardando" na interface TUI para não citar especificamente a "EMA9", evitando confusão em ativos como HK50 onde o robô aguarda outros gatilhos (Bandas de Bollinger e IFR).
 ## [2.3.0] - 2026-08-14
 ### Adicionado
 - **Roteamento Multi-Ativos (HK50):** Novo sistema em `config.py` (`ASSET_SETUPS` e `ASSET_MIN_LOTS`) que permite isolar a inteligência do bot para ativos diferentes.
