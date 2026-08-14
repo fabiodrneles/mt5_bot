@@ -49,7 +49,7 @@ func TestViewRenderizaPainéis(t *testing.T) {
 
 	out := m.View()
 	for _, want := range []string{
-		"MAESTRO v2.4",
+		"MAESTRO v" + botVersion(),
 		"[ MODE: LIVE ]",
 		"[ MT5: ON ]",
 		"ATIVOS EM EXECUÇÃO",
@@ -59,6 +59,22 @@ func TestViewRenderizaPainéis(t *testing.T) {
 		if !strings.Contains(out, want) {
 			t.Fatalf("View sem %q:\n%s", want, out)
 		}
+	}
+}
+
+func TestParseProjectVersion(t *testing.T) {
+	content := "name = \"mt5bot\"\nversion = \"2.3.2\"\n[tool.something]\n"
+	if got := parseProjectVersion(content); got != "2.3.2" {
+		t.Fatalf("parseProjectVersion=%q, esperado 2.3.2", got)
+	}
+	if got := parseProjectVersion("sem versao aqui"); got != "" {
+		t.Fatalf("sem version deveria retornar vazio, veio %q", got)
+	}
+}
+
+func TestBotVersionNuncaVazia(t *testing.T) {
+	if v := botVersion(); v == "" {
+		t.Fatal("botVersion deveria ter fallback")
 	}
 }
 

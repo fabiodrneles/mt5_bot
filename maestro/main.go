@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -47,11 +48,48 @@ var (
 			Foreground(ColorDim)
 )
 
-const uiVersion = "2.4"
+const uiVersionFallback = "2.3.2"
+
+var cachedVersion string
+
+// botVersion retorna a versão real do projeto lida do ../pyproject.toml —
+// a mesma fonte única que o launcher usa no `mt5bot -v`. Cacheada após a
+// primeira leitura; fallback para uiVersionFallback se o arquivo não existir.
+func botVersion() string {
+	if cachedVersion != "" {
+		return cachedVersion
+	}
+	cachedVersion = readProjectVersion()
+	if cachedVersion == "" {
+		cachedVersion = uiVersionFallback
+	}
+	return cachedVersion
+}
+
+func readProjectVersion() string {
+	data, err := os.ReadFile(filepath.Join("..", "pyproject.toml"))
+	if err != nil {
+		return ""
+	}
+	return parseProjectVersion(string(data))
+}
+
+func parseProjectVersion(content string) string {
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "version =") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				return strings.Trim(strings.TrimSpace(parts[1]), `"`)
+			}
+		}
+	}
+	return ""
+}
 
 // topBar monta a linha superior: título à esquerda, badges à direita.
 func (m model) topBar() string {
-	title := " " + titleStyle.Render("MAESTRO v"+uiVersion)
+	title := " " + titleStyle.Render("MAESTRO v"+botVersion())
 
 	modeColor := ColorBlue
 	if m.mode == "SIMULATOR" {
@@ -486,7 +524,7 @@ func (m model) View() string {
 func main() {
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" || arg == "-v" {
-			fmt.Println("MT5Bot v2.2.5")
+			fmt.Println("MT5Bot v" + botVersion())
 			os.Exit(0)
 		} else if strings.HasPrefix(arg, "-") && arg != "--report" && arg != "--dashboard" && arg != "--quick" && arg != "--help" && arg != "-h" {
 			fmt.Printf("Erro crítico: flag desconhecida '%s'\n", arg)
