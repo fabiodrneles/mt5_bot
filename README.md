@@ -37,7 +37,8 @@
 - **Recuperação institucional (stateless)**: posições ficam protegidas por **hard stop-loss na corretora**. Se o PC cair ou reiniciar, o bot mapeia os trades abertos e reassume exatamente de onde parou — sem reprocessar decisões perdidas do estado local.
 - **CLI estilo terminal (Split-Screen)**: Maestro TUI com arquitetura visual avançada (Bubbletea + Lipgloss), layout dividido para acompanhamento real-time, controle de múltiplos robôs isolados e namespaces com `color-coding`.
 - **Machine Learning Context V2 (Elite Quant)**: Diferente de robôs amadores que usam datasets públicos cheios de ruído, o nosso "Cérebro Python" captura a **assinatura genética do mercado em tempo real** (ADX, Z-Score, distâncias para EMA9/SMA200, microestrutura do candle). O dataset é gerado *cirurgicamente* apenas quando o setup arma, registrando o contexto exato antes de prever resultados reais (Forward Tracking). É a base perfeita e livre de ilusões de backtest para treinar nossa futura Inteligência Artificial em XGBoost/LightGBM.
-- **11 setups** da família 9.x, Ponto Contínuo, FFFD, DiNapoli e mais — cada um com scoring e filtros macro.
+- **Roteamento Multi-Ativos Inteligente**: O bot adapta as regras operacionais, lotes obrigatórios e setups autorizados de acordo com o ativo negociado (ex: estratégia isolada de Reversão à Média no HK50 rodando lado a lado com Seguidores de Tendência no Forex).
+- **12 setups** da família 9.x, Ponto Contínuo, FFFD, DiNapoli, Russian BB (HK50) e mais — cada um com scoring e filtros macro.
 
 ---
 

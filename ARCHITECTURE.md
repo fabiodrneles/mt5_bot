@@ -445,6 +445,10 @@ AVAILABLE_SYMBOLS = ["HK50", "EURUSD", "US500"]  # Opcoes no menu
 SYMBOLS = []                                       # Preenchido no startup
 TIMEFRAME = mt5.TIMEFRAME_H1                       # Sempre H1
 
+# Roteamento Multi-Ativos
+ASSET_SETUPS = { "HK50": ["russian_bb"], "default": ["9.1", "9.2"...] } # Substitui lógica padrão por ativo
+ASSET_MIN_LOTS = { "HK50": 0.10, "HKG50": 0.10 }  # Força volume mínimo ignorando cálculo base do capital
+
 # EMAs
 EMA_PERIOD = 9                   # EMA rapida (sinal)
 EMA_FILTER_PERIOD = 21           # EMA lenta (filtro de tendencia)

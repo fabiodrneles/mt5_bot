@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.0] - 2026-08-14
+### Adicionado
+- **Roteamento Multi-Ativos (HK50):** Novo sistema em `config.py` (`ASSET_SETUPS` e `ASSET_MIN_LOTS`) que permite isolar a inteligência do bot para ativos diferentes.
+- **Setup Russo (Bandas de Bollinger + RSI):** Implementado o setup de Mean Reversion exclusivamente para o mercado asiático (HK50/HKG50).
+- **Filtro Anti-Tendência para HK50:** O robô só executa operações de reversão se as médias (EMA9, SMA21, EMA50) *não* estiverem apontando forte contra a operação.
+- **Bypass de Score Dinâmico:** Atualização no `scoring.py` garantindo que o Setup Russo tenha passe livre (Prioridade 100) contra as travas de RRR e MM50 vigentes para os setups da família 9.x.
+
+### Modificado
+- `risk_calculator.py` agora suporta a sobreposição de lotes mínimos baseada na flag `ASSET_MIN_LOTS`. No HK50, o lote foi estipulado em `0.10` para respeitar as exigências de volume.
 ## [2.2.7] - 2026-08-13
 ### Fixed
 - Connected Fibonacci targets to the Study Mode virtual tracker to allow registering proper take-profit wins.
