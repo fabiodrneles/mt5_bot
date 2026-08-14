@@ -28,11 +28,11 @@ func TestStatusBadge(t *testing.T) {
 }
 
 func TestRenderBadgeLarguraFixaAlinhadaDireita(t *testing.T) {
-	out := renderBadge(StatusBadge{Label: "POS", Color: ColorGreen}, 6)
+	out := stripAnsi(renderBadge(StatusBadge{Label: "POS", Color: ColorGreen}, 6))
 	if !strings.HasPrefix(out, " ") {
 		t.Fatalf("badge curto deveria ter padding à esquerda: %q", out)
 	}
-	outWide := renderBadge(StatusBadge{Label: "ERRO", Color: ColorRed}, 6)
+	outWide := stripAnsi(renderBadge(StatusBadge{Label: "ERRO", Color: ColorRed}, 6))
 	if len(outWide) != len(out) {
 		t.Fatalf("badges de larguras diferentes (%d vs %d) — largura fixa quebrada", len(outWide), len(out))
 	}

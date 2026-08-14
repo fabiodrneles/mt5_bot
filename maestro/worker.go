@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -52,8 +53,7 @@ func (m *WorkerManager) Add(w *PythonWorker) error {
 		}
 	}
 	
-	colors := []string{"#00FFFF", "#00FF00", "#FF00FF", "#FFFF00", "#FFA500", "#FFC0CB", "#8A2BE2", "#00BFFF"}
-	w.ColorHex = colors[len(m.workers)%len(colors)]
+	w.ColorHex = string(symbolColors[len(m.workers)%len(symbolColors)])
 	
 	m.workers = append(m.workers, w)
 	return nil
@@ -201,22 +201,13 @@ func (w *PythonWorker) runProcess() error {
 	if err != nil {
 		return err
 	}
-	// Gerar uma cor deterministica para o Simbolo
-	colorHex := w.ColorHex
-	if colorHex == "" {
-		colorHex = "#00FF00"
-	}
-	prefixStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(colorHex))
-
 	go func() {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			text := scanner.Text()
 			// Evita logs vazios repetitivos
 			if text != "" && text != "\n" {
-				// Colorir a linha inteira!
-				formattedLine := prefixStyle.Render(fmt.Sprintf("[%s|%s] %s", w.Symbol, w.Timeframe, text))
-				log.Print(formattedLine)
+				log.Print(formatLogLine(w.Symbol, w.Timeframe, w.ColorHex, text))
 			}
 		}
 	}()
@@ -337,4 +328,22 @@ func (w *PythonWorker) sendCommand(cmd map[string]interface{}) {
 	data, _ := json.Marshal(cmd)
 	w.stdinPipe.WriteString(string(data) + "\n")
 	w.stdinPipe.Flush()
+}
+
+// formatLogLine monta a linha de log: tag [ATIVO|TF] colorida pelo símbolo,
+// mensagem em texto neutro, erros em vermelho (hierarquia de severidade).
+func formatLogLine(symbol, timeframe, colorHex, text string) string {
+	tag := fmt.Sprintf("[%s|%s]", symbol, timeframe)
+	coloredTag := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(colorHex)).
+		Bold(true).
+		Render(tag)
+
+	upper := strings.ToUpper(text)
+	msgStyle := lipgloss.NewStyle().Foreground(ColorText)
+	if strings.Contains(upper, "ERRO") || strings.Contains(upper, "ERROR") ||
+		strings.Contains(upper, "FALHA") || strings.Contains(upper, "CRASH") {
+		msgStyle = lipgloss.NewStyle().Foreground(ColorRed)
+	}
+	return coloredTag + " " + msgStyle.Render(text)
 }
