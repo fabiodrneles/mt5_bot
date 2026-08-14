@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.3.2] - 2026-08-14
+### Changed
+- **Horário Institucional para HK50:** Baseado em dados massivos de backtest, a negociação do HK50/HKG50 foi restrita exclusivamente à Sessão da Manhã de Hong Kong (22:15 às 01:00 BRT). Isso impede o robô de operar durante o almoço asiático e a tarde de baixa volatilidade (after-hours no Brasil), blindando a conta contra o spread.
+
 ## [2.3.1] - 2026-08-14
 ### Fixed
 - Atualizada a mensagem de fallback "Aguardando" na interface TUI para não citar especificamente a "EMA9", evitando confusão em ativos como HK50 onde o robô aguarda outros gatilhos (Bandas de Bollinger e IFR).

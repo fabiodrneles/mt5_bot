@@ -129,6 +129,18 @@ Se você abrir uma posição **manualmente** no MT5, o Maestro detecta e **adota
 > [!NOTE]
 > A assistência é aplicada por ativo monitorado. Adicione o ativo com `/add <ativo> <timeframe>` para ele adotar posições manuais. Desligue com `MANAGE_EXTERNAL_POSITIONS = False` em `config.py`.
 
+## Ferramentas Úteis
+
+Você pode rodar simulações pesadas (backtest) na sua própria máquina sem alterar o robô ou depender da corretora, usando o simulador interno:
+
+```powershell
+# Rodar 12 meses de simulação financeira do HK50 (M5)
+python tools\backtest.py --months 12
+
+# Você pode personalizar o capital, lote e ativo:
+python tools\backtest.py --months 6 --balance 100.0 --lot 0.50 --symbol HK50
+```
+
 ---
 
 ## Setups embutidos
@@ -210,10 +222,14 @@ python -m pytest -q
 cd maestro && go test ./...
 ```
 
-### Ferramentas Analíticas (Backtest de Rejeições)
+### Ferramentas Analíticas (Backtest)
 Para testar a eficiência dos filtros de proteção (RVOL, Risco/Retorno, etc.), você pode rodar a ferramenta de simulação `test_filters.py`. Ela avalia os trades que o bot **rejeitou**, puxa o histórico de preços real pós-sinal e calcula se o trade daria Gain ou Loss caso o filtro estivesse desligado:
 - Dê um clique duplo no arquivo `testar_filtros.bat` na pasta principal.
 - Ou rode pelo terminal: `python tools\test_filters.py`
+
+**Simulador de Backtest Local (Campeonato Matemático)**
+Para simular as estratégias e testar novos parâmetros (como a Janela Institucional do HK50) contra milhares de candles do MetaTrader sem arriscar capital:
+- Rode: `python tools\backtest.py --months 24`
 
 - CI (`.github/workflows/ci.yml`) roda ambos no GitHub Actions: `pytest` em Python 3.12 e `go vet` + `go test` em Go 1.25.
 - Estado persistente da aplicação em `%APPDATA%/mt5bot`.

@@ -92,10 +92,12 @@ python memoria\scripts\query_memory.py "saída parcial breakeven" --text
 | PC | Ponto Contínuo (MM21) | ✅ implementado |
 | FFFD | Bollinger fora/dentro | ✅ implementado |
 | +4 | DiNapoli, Rompimento Falso, IFR2, SAR | ✅ implementado |
+| Russian | BB + IFR (Mean Reversion) | ✅ implementado (exclusivo p/ HK50) |
 
 ### Proteção de capital (implementado)
 - Lote dinâmico: **1% do saldo** por operação (`risk_calculator.py`).
 - **Risk Shield**: rejeita operação se o risco do lote mínimo exceder 1.5% do saldo.
+- **Janela Institucional (HK50)**: restrito a 22:15–01:00 BRT para fugir do spread em baixa liquidez.
 - **Daily Max Loss**: trava de 2% de perda diária.
 - **Max Spread**: aborta ordem se spread > 50 pontos.
 - **Breakeven automático** a 1x ATR.
@@ -125,6 +127,7 @@ SCANNING ──→ SIGNAL_READY ──→ IN_POSITION ──→ WATCHING_92
 ```powershell
 python main.py                 # Rodar o bot
 python -m pytest -q            # Testes (25+)
+python tools\backtest.py --months 12                # Simulador retroativo financeiro (Backtest)
 python memoria\scripts\query_memory.py "pergunta"   # Consultar memória RAG
 python memoria\scripts\build_memory.py              # Reindexar memória
 ```

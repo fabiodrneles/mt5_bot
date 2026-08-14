@@ -178,8 +178,8 @@ SYMBOL_TRADING_HOURS = {
     "BBDC4": {"start": "10:00", "end": "17:15", "force_close": "17:30"},
 
     # Bolsa de Hong Kong (HK50 / Hang Seng) — Abre as 22:15 BRT
-    "HK50":  {"start": "22:15", "end": "12:00", "force_close": "12:30"},
-    "HKG50": {"start": "22:15", "end": "12:00", "force_close": "12:30"},
+    "HK50":  {"start": "22:15", "end": "01:00", "force_close": "01:30"},
+    "HKG50": {"start": "22:15", "end": "01:00", "force_close": "01:30"},
 
     # Japao Nikkei 225
     "JPN225":{"start": "21:00", "end": "15:00", "force_close": "15:30"},
