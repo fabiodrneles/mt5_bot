@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -33,47 +34,85 @@ func (l logWriter) Write(data []byte) (n int, err error) {
 	return len(data), nil
 }
 
-// Styling (Lipgloss)
+// Styling (Lipgloss) — derivado dos design tokens de style.go
 var (
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF8C00")).
+			Foreground(ColorAmber).
 			Bold(true)
 
 	inputStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFB067"))
+			Foreground(ColorText)
+
+	dimStyle = lipgloss.NewStyle().
+			Foreground(ColorDim)
 )
 
-func getASCIIArt() string {
-	colors := []lipgloss.Color{
-		lipgloss.Color("#D35400"), // Dark orange
-		lipgloss.Color("#E67E22"), // Orange
-		lipgloss.Color("#F39C12"), // Orange-yellow
-		lipgloss.Color("#F1C40F"), // Lighter
-		lipgloss.Color("#F4D03F"), // Yellowish
-		lipgloss.Color("#F7DC6F"), // Yellow
-	}
+const uiVersion = "2.4"
 
-	lines := []string{
-		`███╗   ███╗  █████╗  ███████╗ ███████╗ ████████╗ ██████╗   ██████╗ `,
-		`████╗ ████║ ██╔══██╗ ██╔════╝ ██╔════╝ ╚══██╔══╝ ██╔══██╗ ██╔═══██╗`,
-		`██╔████╔██║ ███████║ █████╗   ███████╗    ██║    ██████╔╝ ██║   ██║`,
-		`██║╚██╔╝██║ ██╔══██║ ██╔══╝   ╚════██║    ██║    ██╔══██╗ ██║   ██║`,
-		`██║ ╚═╝ ██║ ██║  ██║ ███████╗ ███████║    ██║    ██║  ██║ ╚██████╔╝`,
-		`╚═╝     ╚═╝ ╚═╝  ╚═╝ ╚══════╝ ╚══════╝    ╚═╝    ╚═╝  ╚═╝  ╚═════╝ `,
-	}
+// topBar monta a linha superior: título à esquerda, badges à direita.
+func (m model) topBar() string {
+	title := " " + titleStyle.Render("MAESTRO v"+uiVersion)
 
-	var sb strings.Builder
-	sb.WriteString("\n")
-	for i, line := range lines {
-		style := lipgloss.NewStyle().Foreground(colors[i]).Bold(true)
-		sb.WriteString(style.Render(line) + "\n")
+	modeColor := ColorBlue
+	if m.mode == "SIMULATOR" {
+		modeColor = ColorAmber
 	}
-	sb.WriteString("\n")
-	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#888888"))
-	sb.WriteString(dimStyle.Render(tr("ascii_tag")) + "\n")
-	sb.WriteString(dimStyle.Render(tr("ascii_help")) + "\n\n")
+	modeBadge := lipgloss.NewStyle().
+		Foreground(modeColor).
+		Bold(true).
+		Render("[ MODE: " + m.mode + " ]")
 
-	return sb.String()
+	mt5Color := ColorGreen
+	if m.mt5Status == "OFF" {
+		mt5Color = ColorRed
+	}
+	mt5Badge := lipgloss.NewStyle().
+		Foreground(mt5Color).
+		Bold(true).
+		Render("[ MT5: " + m.mt5Status + " ]")
+
+	badges := "  " + modeBadge + "  " + mt5Badge + " "
+	fill := m.width - lipgloss.Width(title) - lipgloss.Width(badges)
+	if fill < 2 {
+		fill = 2
+	}
+	return title + lipgloss.NewStyle().Foreground(ColorBorder).Render(strings.Repeat("─", fill)) + badges
+}
+
+// loadSummary lê o JSON de trades conforme o modo ativo.
+func (m *model) loadSummary() Summary {
+	virtual := m.mode == "SIMULATOR"
+	trades, err := readTradesFile(tradesFilePath(virtual))
+	if err != nil {
+		return Summary{}
+	}
+	return computeSummary(trades)
+}
+
+// renderPerformance formata a linha única de métricas do painel inferior.
+func renderPerformance(s Summary) string {
+	if !s.HasData {
+		return dimStyle.Render("Sem dados ainda. Inicie /study ou /add.")
+	}
+	sign := "+"
+	pnlColor := ColorGreen
+	if s.PnL < 0 {
+		sign = "-"
+		pnlColor = ColorRed
+	}
+	pnl := lipgloss.NewStyle().
+		Foreground(pnlColor).
+		Bold(true).
+		Render(fmt.Sprintf("%s$%.2f", sign, math.Abs(s.PnL)))
+	return fmt.Sprintf("PnL Total: %s  |  Win Rate: %.1f%%  |  Trades: %d", pnl, s.WinRate, s.Trades)
+}
+
+// wrapLogs embrulha os logs na largura do viewport.
+func wrapLogs(logs []string, width int) string {
+	if width < 10 {
+		width = 10
+	}
+	return lipgloss.NewStyle().Width(width).Render(strings.Join(logs, "\n"))
 }
 
 type model struct {
@@ -84,6 +123,11 @@ type model struct {
 	logs        []string
 	ready       bool
 	dashboard   string
+	perfContent string
+	mode        string
+	mt5Status   string
+	leftWidth   int
+	rightWidth  int
 	width       int
 	height      int
 }
@@ -146,14 +190,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			line := strings.TrimSpace(m.textInput.Value())
 			m.textInput.SetValue("")
 			if line != "" {
-				m.logs = append(m.logs, lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("> "+line))
+				m.logs = append(m.logs, dimStyle.Render("> "+line))
 				cmd := m.handleCommand(line)
 				if cmd != nil {
 					cmds = append(cmds, cmd)
 				}
 			}
-			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
-			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
+			m.viewport.SetContent(wrapLogs(m.logs, m.viewport.Width))
 			m.viewport.GotoBottom()
 			return m, tea.Batch(cmds...)
 		}
@@ -161,34 +204,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		
-		m.updateStatus() // Force dashboard string update to calculate its height
-
-		headerHeight := lipgloss.Height(getASCIIArt())
-		footerHeight := 1 // text input
-		vpHeight := msg.Height - headerHeight - footerHeight
-		if vpHeight < 0 {
-			vpHeight = 0
-		}
-		
-		leftPanelWidth := 45
-		vpWidth := msg.Width - leftPanelWidth - 6 // left panel + margins + right panel border and padding
-		if vpWidth < 10 {
-			vpWidth = 10
-		}
 
 		if !m.ready {
-			m.viewport = viewport.New(vpWidth, vpHeight)
-			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
-			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
-			m.viewport.GotoBottom()
+			m.viewport = viewport.New(60, 10)
 			m.ready = true
-		} else {
-			m.viewport.Width = vpWidth
-			m.viewport.Height = vpHeight
-			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
-			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
 		}
+		m.updateStatus()
+		m.viewport.SetContent(wrapLogs(m.logs, m.viewport.Width))
+		m.viewport.GotoBottom()
 
 	case LogMsg:
 		// Clean ANSI reset for empty lines
@@ -199,8 +222,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.logs) > 1000 {
 				m.logs = m.logs[len(m.logs)-1000:]
 			}
-			wrapStyle := lipgloss.NewStyle().Width(m.viewport.Width)
-			m.viewport.SetContent(wrapStyle.Render(strings.Join(m.logs, "\n")))
+			m.viewport.SetContent(wrapLogs(m.logs, m.viewport.Width))
 			m.viewport.GotoBottom()
 		}
 
@@ -234,35 +256,50 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) updateStatus() {
-	var dashBuilder strings.Builder
 	workers := m.manager.List()
-	
+
+	m.mode = detectMode(workers)
+	m.mt5Status = detectMT5(workers)
+
+	var b strings.Builder
 	if len(workers) == 0 {
-		dashBuilder.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("Nenhum robô ativo. Digite /study <ATIVO> [TIMEFRAME]"))
+		b.WriteString(dimStyle.Render("Nenhum robô ativo. Digite /study <ATIVO> [TIMEFRAME]"))
 	} else {
-		dashBuilder.WriteString(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFA500")).Render("ATIVOS EM EXECUÇÃO:"))
-		dashBuilder.WriteString("\n")
+		b.WriteString(titleStyle.Render("ATIVOS EM EXECUÇÃO"))
+		b.WriteString("\n")
+		b.WriteString(dimStyle.Render("ATIVO    TF  STATUS"))
+		b.WriteString("\n")
+		b.WriteString(dimStyle.Render(strings.Repeat("─", 28)))
+		b.WriteString("\n")
 		for _, w := range workers {
-			status := w.StatusText
-			if status == "" {
-				status = "🟡 INICIALIZANDO"
-			}
+			badge := renderBadge(statusBadge(w.StatusText), 6)
 			uptime := time.Since(w.StartTime).Round(time.Second)
-			dashBuilder.WriteString(fmt.Sprintf("  %-10s | %-5s | %-8s | %s\n", w.Symbol, w.Timeframe, uptime, status))
+			b.WriteString(fmt.Sprintf("%-8s %-5s %s  %s\n", w.Symbol, w.Timeframe, badge, dimStyle.Render(uptime.String())))
 		}
 	}
-	
-	m.dashboard = lipgloss.NewStyle().
-		Padding(0, 1).
-		Width(45). // Fixed width for left panel
-		Render(dashBuilder.String())
-		
-	// Recalculate viewport height
-	headerHeight := lipgloss.Height(getASCIIArt())
-	vpHeight := m.height - headerHeight - 1
+	m.dashboard = b.String()
+
+	m.perfContent = renderPerformance(m.loadSummary())
+
+	// Dimensões do grid: esquerda ~33%, direita o restante.
+	m.leftWidth = m.width * 33 / 100
+	if m.leftWidth < 20 {
+		m.leftWidth = 20
+	}
+	m.rightWidth = m.width - m.leftWidth - 3
+	if m.rightWidth < 30 {
+		m.rightWidth = 30
+	}
+
+	// Alturas: top bar (1) + rodapé (1) + painel performance (5) + chrome do log (4).
+	// vpHeight = m.height - 11 alinha o rodapé do log com o do painel esquerdo.
+	const topBarHeight, footerHeight, perfPanelHeight, logChrome = 1, 1, 5, 4
+	panelsHeight := m.height - topBarHeight - footerHeight
+	vpHeight := panelsHeight - perfPanelHeight - logChrome
 	if vpHeight < 0 {
 		vpHeight = 0
 	}
+	m.viewport.Width = m.rightWidth - 2
 	m.viewport.Height = vpHeight
 }
 
@@ -406,28 +443,44 @@ func (m model) View() string {
 		return "\n  Iniciando Maestro..."
 	}
 
-	header := getASCIIArt()
+	header := m.topBar()
 
 	leftPanel := lipgloss.NewStyle().
-		Width(45).
-		MarginRight(2).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Width(m.leftWidth).
+		Height(m.height - 2).
 		Render(m.dashboard)
 
-	rightPanel := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, false, false, true).
-		BorderForeground(lipgloss.Color("#444444")).
-		PaddingLeft(2).
-		Render(m.viewport.View())
+	logTitle := "EVENT LOG (Live)"
+	if m.mode == "SIMULATOR" {
+		logTitle = "EVENT LOG (Simulador)"
+	}
 
-	middleSection := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+	logPanel := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Width(m.rightWidth).
+		Render(lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render(logTitle),
+			dimStyle.Render(strings.Repeat("─", m.rightWidth-2)),
+			m.viewport.View(),
+		))
 
-	return fmt.Sprintf(
-		"%s\n%s\n %s%s",
-		header,
-		middleSection,
-		m.spin.View(),
-		m.textInput.View(),
-	)
+	perfPanel := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Width(m.rightWidth).
+		Render(lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render("PERFORMANCE RESUMO (Sessão Atual)"),
+			dimStyle.Render(strings.Repeat("─", m.rightWidth-2)),
+			m.perfContent,
+		))
+
+	rightColumn := lipgloss.JoinVertical(lipgloss.Top, logPanel, perfPanel)
+	middle := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightColumn)
+
+	return fmt.Sprintf("%s\n%s\n %s%s", header, middle, m.spin.View(), m.textInput.View())
 }
 
 func main() {
