@@ -86,13 +86,18 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                 in_trade = False
             continue
             
+        # Filtro Institucional (MT5 Time: 04:15 a 07:00 == BRT: 22:15 a 01:00)
+        h = row['time'].hour
+        m = row['time'].minute
+        is_institutional = (h == 4 and m >= 15) or (h == 5) or (h == 6) or (h == 7 and m == 0)
+
         # Avaliacao do Setup Russo (HK50)
         width_ok = row['bb_width'] >= 50.0
         uptrend = row['ema9'] > row['sma21'] and row['sma21'] > row['ema50']
         downtrend = row['ema9'] < row['sma21'] and row['sma21'] < row['ema50']
         
         # BUY
-        if row['low'] < row['bb_lower'] and width_ok and not downtrend and row['rsi'] < 30:
+        if is_institutional and row['low'] < row['bb_lower'] and width_ok and not downtrend and row['rsi'] < 30:
             in_trade = True
             side = mt5.ORDER_TYPE_BUY
             entry_price = row['close']
@@ -100,7 +105,7 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
             tp = row['bb_upper']
                 
         # SELL
-        elif row['high'] > row['bb_upper'] and width_ok and not uptrend and row['rsi'] > 70:
+        elif is_institutional and row['high'] > row['bb_upper'] and width_ok and not uptrend and row['rsi'] > 70:
             in_trade = True
             side = mt5.ORDER_TYPE_SELL
             entry_price = row['close']
