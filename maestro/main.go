@@ -50,6 +50,13 @@ var (
 
 const uiVersionFallback = "2.3.2"
 
+// maxPerfPanelHeight limita o painel de performance: título(1) + divisor(1) +
+// borda(2) + até 6 linhas de workers, deixando espaço para o event log.
+const maxPerfPanelHeight = 10
+
+// maxPerfLines = linhas de conteúdo do painel de performance.
+const maxPerfLines = maxPerfPanelHeight - 4
+
 var cachedVersion string
 
 // botVersion retorna a versão real do projeto lida do ../pyproject.toml —
@@ -117,14 +124,66 @@ func (m model) topBar() string {
 	return title + lipgloss.NewStyle().Foreground(ColorBorder).Render(strings.Repeat("─", fill)) + badges
 }
 
-// loadSummary lê o JSON de trades conforme o modo ativo.
-func (m *model) loadSummary() Summary {
-	virtual := m.mode == "SIMULATOR"
-	trades, err := readTradesFile(tradesFilePath(virtual))
-	if err != nil {
-		return Summary{}
+// perfPanelContent gera as linhas do painel de performance, uma por worker
+// ativo. Em SIMULATOR cada linha reflete a sessão atual (entry_time >=
+// StartTime do worker); em LIVE reflete todo o histórico real do ativo.
+// Se houver mais workers que maxPerfLines, mostra os primeiros e indica o
+// restante, para o painel nunca ultrapassar a altura reservada.
+func perfPanelContent(workers []*PythonWorker, mode string, width int) string {
+	if len(workers) == 0 {
+		return dimStyle.Render(truncate("Sem dados ainda. Inicie /study ou /add.", width))
 	}
-	return computeSummary(trades)
+	limit := len(workers)
+	if limit > maxPerfLines {
+		limit = maxPerfLines
+	}
+	lines := make([]string, 0, limit+1)
+	for _, w := range workers[:limit] {
+		lines = append(lines, renderWorkerLine(w, workerSummary(w, mode), width))
+	}
+	if extra := len(workers) - limit; extra > 0 {
+		lines = append(lines, dimStyle.Render(fmt.Sprintf("+%d ativo(s) no painel esquerdo", extra)))
+	}
+	return strings.Join(lines, "\n")
+}
+
+// renderWorkerLine formata uma linha de performance de um worker:
+// [SYMBOL|TF] LOTE 0.10  PnL +$x.xx  WR xx.x%  N trades.
+// width garante que o resultado não wrape dentro do painel.
+func renderWorkerLine(w *PythonWorker, s Summary, width int) string {
+	if width < 30 {
+		width = 30
+	}
+	tagPlain := fmt.Sprintf("[%s|%s]", w.Symbol, w.Timeframe)
+	lotPlain := fmt.Sprintf("LOTE %.2f", assetMinLot(w.Symbol))
+	tag := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(w.ColorHex)).
+		Bold(true).
+		Render(tagPlain)
+	lot := dimStyle.Render(lotPlain)
+	if !s.HasData {
+		plain := truncate(fmt.Sprintf("%s %s  %s", tagPlain, lotPlain, "sem dados"), width)
+		plain = strings.Replace(plain, tagPlain, tag, 1)
+		return strings.Replace(plain, lotPlain, lot, 1)
+	}
+	sign := "+"
+	pnlColor := ColorGreen
+	if s.PnL < 0 {
+		sign = "-"
+		pnlColor = ColorRed
+	}
+	pnlPlain := fmt.Sprintf("%s$%.2f", sign, math.Abs(s.PnL))
+	plain := truncate(fmt.Sprintf("%s %s  %s  WR %.1f%%  %dT", tagPlain, lotPlain, pnlPlain, s.WinRate, s.Trades), width)
+	plain = strings.Replace(plain, tagPlain, tag, 1)
+	plain = strings.Replace(plain, lotPlain, lot, 1)
+	styledPnl := lipgloss.NewStyle().
+		Foreground(pnlColor).
+		Bold(true).
+		Render(pnlPlain)
+	if strings.Contains(plain, pnlPlain) {
+		plain = strings.Replace(plain, pnlPlain, styledPnl, 1)
+	}
+	return plain
 }
 
 // truncate limita o texto a width colunas visíveis, com reticências.
@@ -185,9 +244,10 @@ type model struct {
 	manager     *WorkerManager
 	logs        []string
 	ready       bool
-	dashboard   string
-	perfContent string
-	mode        string
+	dashboard        string
+	perfContent      string
+	perfPanelHeight  int
+	mode             string
 	mt5Status   string
 	leftWidth   int
 	rightWidth  int
@@ -359,13 +419,22 @@ func (m *model) updateStatus() {
 	}
 	m.dashboard = b.String()
 
-	m.perfContent = renderPerformance(m.loadSummary(), m.rightWidth-2)
+	m.perfContent = perfPanelContent(workers, m.mode, m.rightWidth-2)
+	contentLines := 1
+	if m.perfContent != "" {
+		contentLines = strings.Count(m.perfContent, "\n") + 1
+	}
+	m.perfPanelHeight = 4 + contentLines
+	if m.perfPanelHeight > maxPerfPanelHeight {
+		m.perfPanelHeight = maxPerfPanelHeight
+	}
 
-	// Alturas: top bar (1) + rodapé (1) + painel performance (5) + chrome do log (4).
-	// vpHeight = m.height - 11 alinha o rodapé do log com o do painel esquerdo.
-	const topBarHeight, footerHeight, perfPanelHeight, logChrome = 1, 1, 5, 4
+	// Alturas: top bar (1) + rodapé (1) + painel performance (dinâmico) +
+	// chrome do log (4). vpHeight = m.height - perfPanelHeight - 6 alinha o
+	// rodapé do log com o do painel esquerdo.
+	const topBarHeight, footerHeight, logChrome = 1, 1, 4
 	panelsHeight := m.height - topBarHeight - footerHeight
-	vpHeight := panelsHeight - perfPanelHeight - logChrome
+	vpHeight := panelsHeight - m.perfPanelHeight - logChrome
 	if vpHeight < 0 {
 		vpHeight = 0
 	}
@@ -540,12 +609,17 @@ func (m model) View() string {
 			m.viewport.View(),
 		))
 
+	perfTitle := "PERFORMANCE RESUMO (Por Ativo)"
+	if m.mode == "SIMULATOR" {
+		perfTitle = "PERFORMANCE RESUMO (Sessão Atual)"
+	}
 	perfPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBorder).
 		Width(m.rightWidth - 2).
+		Height(m.perfPanelHeight - 2).
 		Render(lipgloss.JoinVertical(lipgloss.Left,
-			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render("PERFORMANCE RESUMO (Sessão Atual)"),
+			lipgloss.NewStyle().Bold(true).Foreground(ColorText).Render(perfTitle),
 			dimStyle.Render(strings.Repeat("─", m.rightWidth-2)),
 			m.perfContent,
 		))

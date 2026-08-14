@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // Trade espelha o JSON gravado pelo tracker Python (mt5bot/data/tracker.py e paper_tracker.py).
 type Trade struct {
-	Result   string   `json:"result"`
-	PnLMoney *float64 `json:"pnl_money"`
+	Result    string   `json:"result"`
+	PnLMoney  *float64 `json:"pnl_money"`
+	Symbol    string   `json:"symbol"`
+	EntryTime string   `json:"entry_time"`
 }
 
 // Summary é o resumo de performance dos trades fechados.
@@ -55,11 +58,28 @@ func readTradesFile(path string) ([]Trade, error) {
 
 // computeSummary considera apenas trades fechados (result "win"/"loss").
 func computeSummary(trades []Trade) Summary {
+	return summarizeTrades(trades, "", time.Time{}, false)
+}
+
+// summarizeTrades agrega trades fechados com filtros opcionais:
+//   - symbol != ""  → só trades daquele ativo
+//   - since != zero → só trades com entry_time >= since (sessão atual)
+//   - useSince      → habilita o filtro temporal (exige entry_time parseável)
+func summarizeTrades(trades []Trade, symbol string, since time.Time, useSince bool) Summary {
 	var s Summary
 	wins, losses := 0, 0
 	for _, t := range trades {
 		if t.Result != "win" && t.Result != "loss" {
 			continue
+		}
+		if symbol != "" && t.Symbol != symbol {
+			continue
+		}
+		if useSince {
+			et, ok := parseEntryTime(t.EntryTime)
+			if !ok || et.Before(since) {
+				continue
+			}
 		}
 		if t.PnLMoney != nil {
 			s.PnL += *t.PnLMoney
@@ -76,4 +96,44 @@ func computeSummary(trades []Trade) Summary {
 		s.WinRate = float64(wins) / float64(s.Trades) * 100
 	}
 	return s
+}
+
+// workerSummary agrega as métricas de um worker: filtra pelo símbolo e, no
+// modo SIMULATOR, apenas pela sessão atual (entry_time >= StartTime). Isso
+// evita exibir todo o histórico acumulado do virtual_trades.json.
+func workerSummary(w *PythonWorker, mode string) Summary {
+	virtual := mode == "SIMULATOR"
+	trades, err := readTradesFile(tradesFilePath(virtual))
+	if err != nil {
+		return Summary{}
+	}
+	useSince := virtual && !w.StartTime.IsZero()
+	return summarizeTrades(trades, w.Symbol, w.StartTime, useSince)
+}
+
+// assetMinLot espelha config.ASSET_MIN_LOTS para exibição do lote por ativo:
+// HK50/HKG50 operam com 0.10; os demais com 0.01.
+func assetMinLot(symbol string) float64 {
+	switch symbol {
+	case "HK50", "HKG50":
+		return 0.10
+	default:
+		return 0.01
+	}
+}
+
+// parseEntryTime aceita RFC3339Nano ("...+00:00") e o formato sem fuso
+// gravado pelo tracker ("2006-01-02T15:04:05.999999"). Sem fuso assume UTC.
+func parseEntryTime(s string) (time.Time, bool) {
+	layouts := []string{
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05.999999",
+		"2006-01-02T15:04:05",
+	}
+	for _, l := range layouts {
+		if t, err := time.Parse(l, s); err == nil {
+			return t, true
+		}
+	}
+	return time.Time{}, false
 }
