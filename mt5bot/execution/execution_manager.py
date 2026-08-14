@@ -173,6 +173,12 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         ticket = trade['ticket']
         sl = trade.get('sl_price', 0.0)
         
+        # Extrai o Alvo calculado (Fibonacci fib_1_0) gravado pelo StrategyScorer
+        target = 0.0
+        ml_ctx = trade.get('ml_context', {})
+        if ml_ctx and 'fibonacci' in ml_ctx:
+            target = ml_ctx['fibonacci'].get('fib_1_0', 0.0)
+        
         liquidar = False
         exit_price = 0.0
         
@@ -180,6 +186,9 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             if sl > 0 and low <= sl:
                 liquidar = True
                 exit_price = sl
+            elif target > 0 and high >= target:
+                liquidar = True
+                exit_price = target
             elif current_candle['ema9_down'] and trade.get('setup') != 'FFFD':
                 liquidar = True
                 exit_price = close
@@ -187,6 +196,9 @@ def _manage_study_cycle(symbol, df, timeframe_name):
             if sl > 0 and high >= sl:
                 liquidar = True
                 exit_price = sl
+            elif target > 0 and low <= target:
+                liquidar = True
+                exit_price = target
             elif current_candle['ema9_up'] and trade.get('setup') != 'FFFD':
                 liquidar = True
                 exit_price = close

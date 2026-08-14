@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.7] - 2026-08-13
+### Fixed
+- Connected Fibonacci targets to the Study Mode virtual tracker to allow registering proper take-profit wins.
+
 ## [2.2.6] - 2026-08-13
 ### Fixed
 - Fixed 'Machine Gun' effect in Study Mode by implementing a 1-trade-per-candle cooldown.
@@ -285,4 +289,5 @@ Principais mudanças:
 - Bump de versão para `1.1.0` e atualização do tagline para inglês no banner.
 
 Detalhes de implementação e notas de desenvolvedor estão em `DEVELOPER_GUIDE.md`.
+
 
