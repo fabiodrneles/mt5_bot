@@ -95,6 +95,19 @@ CONFIG_SETUPS = {
     "SAR": True,
     "RompFalso": True
 }
+
+# --- Roteamento por Ativo (Fase 3: Maestro Multi-Estrategia) ---
+ASSET_SETUPS = {
+    "default": ["9.1", "9.2", "9.3", "9.4", "PC", "FFFD", "GAP", "DiNapoli", "IFR2", "SAR", "RompFalso"],
+    "HK50": ["russian_bb"],
+    "HKG50": ["russian_bb"]
+}
+
+ASSET_MIN_LOTS = {
+    "HK50": 0.10,
+    "HKG50": 0.10
+}
+
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {
     "rrr": 30.0,

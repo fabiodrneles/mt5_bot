@@ -224,7 +224,7 @@ def _manage_study_cycle(symbol, df, timeframe_name):
         if current_candle_time and _manage_study_cycle.last_traded_candle.get(log_key) == current_candle_time:
             return "🔵 STUDY_SCANNING"
 
-        valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
+        valid_setups, rejection = StrategyScorer.evaluate_all(df, tick_size, tick_offset, symbol=symbol)
         
         if not valid_setups:
             log_key = f"{symbol}_{timeframe_name}"
@@ -433,7 +433,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     info = mt5.symbol_info(symbol)
     tick_size = info.trade_tick_size if info else 0.01
     tick_offset = getattr(config, 'TICK_OFFSET', 1)
-    valid_setups, rejection_reason = StrategyScorer.evaluate_all(df, tick_size, tick_offset)
+    valid_setups, rejection_reason = StrategyScorer.evaluate_all(df, tick_size, tick_offset, symbol=symbol)
     current_candle_time = df['time'].iloc[-1] if 'time' in df.columns else None
 
     if not valid_setups:

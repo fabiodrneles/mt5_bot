@@ -62,6 +62,10 @@ def calcular_score(dados_sinal: dict, contexto: dict) -> float:
     if risco <= 0:
         return 0.0
     rrr = abs(alvo - entrada) / risco
+    
+    # Exceção para o Setup Russo (Reversão à média com alvos dinâmicos BB)
+    if dados_sinal.get("setup") == "russian_bb":
+        return 100.0  # Prioridade máxima, ignora filtros macro de tendência
 
     if rrr < getattr(config, "MIN_RISK_REWARD", 1.0):
         return 0.0  # trava de corte: nao paga o risco minimo

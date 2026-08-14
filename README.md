@@ -209,6 +209,11 @@ python -m pytest -q
 cd maestro && go test ./...
 ```
 
+### Ferramentas Analíticas (Backtest de Rejeições)
+Para testar a eficiência dos filtros de proteção (RVOL, Risco/Retorno, etc.), você pode rodar a ferramenta de simulação `test_filters.py`. Ela avalia os trades que o bot **rejeitou**, puxa o histórico de preços real pós-sinal e calcula se o trade daria Gain ou Loss caso o filtro estivesse desligado:
+- Dê um clique duplo no arquivo `testar_filtros.bat` na pasta principal.
+- Ou rode pelo terminal: `python tools\test_filters.py`
+
 - CI (`.github/workflows/ci.yml`) roda ambos no GitHub Actions: `pytest` em Python 3.12 e `go vet` + `go test` em Go 1.25.
 - Estado persistente da aplicação em `%APPDATA%/mt5bot`.
 

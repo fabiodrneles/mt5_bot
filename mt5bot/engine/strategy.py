@@ -12,7 +12,7 @@ class StrategyScorer:
     """
 
     @staticmethod
-    def evaluate_all(df: pd.DataFrame, tick_size: float = 0.01, tick_offset: float = 1) -> tuple[list, str]:
+    def evaluate_all(df: pd.DataFrame, tick_size: float = 0.01, tick_offset: float = 1, symbol: str = None) -> tuple[list, str]:
         """
         Avalia o último candle completado (df.iloc[-1]) e verifica se há um gatilho armado.
         Retorna:
@@ -30,8 +30,15 @@ class StrategyScorer:
         c_prev = df.iloc[-2]
         offset = tick_size * tick_offset
 
+        # Determina os setups permitidos para o ativo atual
+        asset_setups = getattr(config, 'ASSET_SETUPS', {})
+        if symbol and symbol in asset_setups:
+            allowed_setups_for_asset = asset_setups[symbol]
+        else:
+            allowed_setups_for_asset = asset_setups.get("default", ["9.1", "9.2", "9.3", "9.4", "PC", "FFFD", "GAP", "DiNapoli", "IFR2", "SAR", "RompFalso"])
+            
         def _enabled(setup_name: str) -> bool:
-            return enabled.get(setup_name, True)
+            return enabled.get(setup_name, True) and (setup_name in allowed_setups_for_asset)
         
         # ----------------------------------------------------
         # SETUP ABERTURA (Fechamento de GAP)
@@ -153,6 +160,38 @@ class StrategyScorer:
                         "stop_loss": df['high'].iloc[-2], "score": 25
                     })
 
+        # ----------------------------------------------------
+        # SETUP RUSSO (BB + RSI Mean Reversion)
+        # ----------------------------------------------------
+        if _enabled("russian_bb") and 'bb_lower' in df.columns and 'rsi' in df.columns:
+            min_width = 50.0 * tick_size # Adapta a largura para a pontuação (50 pontos HK)
+            # Filtro Anti-Tendência: não opere contra uma tendência forte alinhada
+            uptrend = c_last.get('ema9', 0) > c_last.get('sma21', 0) and c_last.get('sma21', 0) > c_last.get('ema50', 0)
+            downtrend = c_last.get('ema9', 0) < c_last.get('sma21', 0) and c_last.get('sma21', 0) < c_last.get('ema50', 0)
+            
+            width_ok = c_last['bb_width'] >= min_width
+            
+            if c_last['low'] < c_last['bb_lower'] and width_ok and not downtrend:
+                if c_last['rsi'] < 30:
+                    setups_found.append({
+                        "setup": "russian_bb",
+                        "action": "buy",
+                        "trigger_price": c_last['close'],
+                        "stop_loss": c_last['close'] - (c_last['bb_width'] / 2),
+                        "score": 100, # Prioridade Máxima
+                        "target": c_last['bb_upper']
+                    })
+            elif c_last['high'] > c_last['bb_upper'] and width_ok and not uptrend:
+                if c_last['rsi'] > 70:
+                    setups_found.append({
+                        "setup": "russian_bb",
+                        "action": "sell",
+                        "trigger_price": c_last['close'],
+                        "stop_loss": c_last['close'] + (c_last['bb_width'] / 2),
+                        "score": 100, # Prioridade Máxima
+                        "target": c_last['bb_lower']
+                    })
+                    
         # ----------------------------------------------------
         # PONTO CONTÍNUO (PC)
         # ----------------------------------------------------

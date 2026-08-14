@@ -13,6 +13,17 @@ def calculate_sma(series: pd.Series, period: int) -> pd.Series:
     """Calcula a Media Movel Simples."""
     return series.rolling(window=period).mean()
 
+def calculate_bollinger_bands(df: pd.DataFrame, window: int = 20, std: float = 2.0) -> pd.DataFrame:
+    """Calcula as Bandas de Bollinger e a largura da banda."""
+    rm = df['close'].rolling(window=window).mean()
+    rs = df['close'].rolling(window=window).std()
+    df['bb_mid'] = rm
+    df['bb_upper'] = rm + (rs * std)
+    df['bb_lower'] = rm - (rs * std)
+    df['bb_width'] = df['bb_upper'] - df['bb_lower']
+    return df
+
+
 
 def calculate_rsi(series: pd.Series, period: int = 2) -> pd.Series:
     """Calcula o Indice de Forca Relativa (IFR/RSI) — Wilder."""

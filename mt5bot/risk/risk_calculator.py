@@ -101,6 +101,13 @@ def calculate_position_size(
     # Garantir que respeite volume_min e volume_max
     final_volume = max(vol_min, min(vol_max, calculated_volume))
     
+    # --- Roteamento por Ativo (Fase 3: Lote Override para Indices/Centavos) ---
+    asset_min_lots = getattr(config, 'ASSET_MIN_LOTS', {})
+    if symbol in asset_min_lots:
+        override_lot = asset_min_lots[symbol]
+        final_volume = max(final_volume, override_lot)
+        final_volume = min(final_volume, vol_max)
+    
     # Risco real em dinheiro para o volume final ajustado
     actual_risk_currency = final_volume * loss_per_lot
     
