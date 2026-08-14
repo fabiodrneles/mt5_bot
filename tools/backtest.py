@@ -22,6 +22,7 @@ def calc_indicators(df):
     df['ema9'] = df['close'].ewm(span=9, adjust=False).mean()
     df['sma21'] = df['close'].rolling(window=21).mean()
     df['ema50'] = df['close'].ewm(span=50, adjust=False).mean()
+    df['sma200'] = df['close'].rolling(window=200).mean()
     return df
 
 def run_simulation(df, initial_balance, pip_value, lot, symbol):
@@ -91,13 +92,17 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
         m = row['time'].minute
         is_institutional = (h == 4 and m >= 15) or (h == 5) or (h == 6) or (h == 7 and m == 0)
 
+        # Filtro SMA200 (Somente a favor da macro)
+        buy_sma200_ok = row['close'] > row['sma200']
+        sell_sma200_ok = row['close'] < row['sma200']
+
         # Avaliacao do Setup Russo (HK50)
         width_ok = row['bb_width'] >= 50.0
         uptrend = row['ema9'] > row['sma21'] and row['sma21'] > row['ema50']
         downtrend = row['ema9'] < row['sma21'] and row['sma21'] < row['ema50']
         
         # BUY
-        if is_institutional and row['low'] < row['bb_lower'] and width_ok and not downtrend and row['rsi'] < 30:
+        if is_institutional and buy_sma200_ok and row['low'] < row['bb_lower'] and width_ok and not downtrend and row['rsi'] < 30:
             in_trade = True
             side = mt5.ORDER_TYPE_BUY
             entry_price = row['close']
@@ -105,7 +110,7 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
             tp = row['bb_upper']
                 
         # SELL
-        elif is_institutional and row['high'] > row['bb_upper'] and width_ok and not uptrend and row['rsi'] > 70:
+        elif is_institutional and sell_sma200_ok and row['high'] > row['bb_upper'] and width_ok and not uptrend and row['rsi'] > 70:
             in_trade = True
             side = mt5.ORDER_TYPE_SELL
             entry_price = row['close']
