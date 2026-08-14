@@ -216,7 +216,7 @@ func (w *PythonWorker) runProcess() error {
 			if text != "" && text != "\n" {
 				// Colorir a linha inteira!
 				formattedLine := prefixStyle.Render(fmt.Sprintf("[%s|%s] %s", w.Symbol, w.Timeframe, text))
-				log.Printf(formattedLine)
+				log.Print(formattedLine)
 			}
 		}
 	}()
