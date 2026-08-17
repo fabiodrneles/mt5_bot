@@ -73,8 +73,19 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                     profit = (points / 100.0) * 1.30 
                     if is_loss: profit = -profit
                 
-                # Desconto simulado de spread e comissoes (conservador)
-                profit -= 0.20
+                # Custo real do spread (HK50: ~4.5 de preco no lote operado), em
+                # moeda da conta via order_calc_profit. Fallback se API offline.
+                spread_cost = None
+                try:
+                    spread_cost = mt5.order_calc_profit(
+                        mt5.ORDER_TYPE_BUY, symbol, lot,
+                        entry_price, entry_price + 4.5
+                    )
+                except Exception:
+                    spread_cost = None
+                if spread_cost is None:
+                    spread_cost = (4.5 / 100.0) * 1.30 * (lot / 0.01)
+                profit -= spread_cost
                 
                 balance += profit
                 total_profit_usd += profit
@@ -123,7 +134,7 @@ def main():
     parser = argparse.ArgumentParser(description="Simulador financeiro retroativo para MT5Bot (Estrategia Original)")
     parser.add_argument("--months", type=int, default=1, help="Numero de meses para retroceder no backtest")
     parser.add_argument("--balance", type=float, default=16.47, help="Saldo inicial na conta")
-    parser.add_argument("--lot", type=float, default=0.10, help="Tamanho do lote operado")
+    parser.add_argument("--lot", type=float, default=0.01, help="Tamanho do lote operado")
     parser.add_argument("--symbol", type=str, default="HK50", help="Ativo para simular")
     
     args = parser.parse_args()

@@ -80,3 +80,62 @@ def test_bollinger_fffd():
     assert best['setup'] == 'FFFD'
     assert best['action'] == 'buy'
     assert best['score'] == 35 # O FFFD eh o mais alto na nossa regra
+
+
+def test_russian_bb_buy_fires_with_bollinger_and_rsi14():
+    """O setup russian_bb (HK50) deve disparar compra com bollinger_lower/rsi14
+    e largura de banda >= RUSSIAN_BB_MIN_WIDTH (50.0 em preco), nao 50*tick_size."""
+    data = {
+        'time': pd.date_range("2023-01-01", periods=6, freq='h'),
+        'open': [25000, 25020, 25040, 25010, 24980, 24960],
+        'high': [25050, 25060, 25060, 25020, 24990, 24970],
+        'low':  [24990, 25000, 25000, 24970, 24940, 24920],
+        'close':[25010, 25030, 25020, 24980, 24950, 24930],
+    }
+    df = pd.DataFrame(data)
+    df['sma21'] = 25000.0
+    df['sma200'] = 24000.0  # abaixo do preco -> permite compra (filtro macro)
+    df['ema9'] = 25010.0
+    df['ema50'] = 25020.0   # ema9<sma21<ema50? nao: ema9<ema50 e sma21<ema50 -> sem downtrend
+    df['bollinger_lower'] = 24955.0
+    df['bollinger_upper'] = 25045.0   # bb_width = 90 >= 50
+    df['rsi14'] = 25.0                # < RUSSIAN_BB_RSI_OVERSOLD (30)
+    df['atr'] = 20.0
+    df['ema9_up'] = False
+    df['ema9_down'] = False
+    df['sma21_up'] = False
+    df['sma21_down'] = False
+
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, symbol="HK50")
+    russian = [s for s in valid_setups if s['setup'] == 'russian_bb']
+    assert len(russian) == 1, f"russian_bb deveria disparar, obtive: {[s['setup'] for s in valid_setups]}"
+    assert russian[0]['action'] == 'buy'
+    assert russian[0]['score'] == 100
+
+
+def test_russian_bb_does_not_fire_when_width_below_minimum():
+    """Largura de banda < 50.0 em preco nao deve gerar sinal russian_bb."""
+    data = {
+        'time': pd.date_range("2023-01-01", periods=6, freq='h'),
+        'open': [25000, 25020, 25040, 25010, 24980, 24960],
+        'high': [25050, 25060, 25060, 25020, 24990, 24970],
+        'low':  [24990, 25000, 25000, 24970, 24940, 24920],
+        'close':[25010, 25030, 25020, 24980, 24950, 24930],
+    }
+    df = pd.DataFrame(data)
+    df['sma21'] = 25000.0
+    df['sma200'] = 24000.0
+    df['ema9'] = 25010.0
+    df['ema50'] = 25020.0
+    df['bollinger_lower'] = 24955.0
+    df['bollinger_upper'] = 24995.0   # bb_width = 40 < 50
+    df['rsi14'] = 25.0
+    df['atr'] = 20.0
+    df['ema9_up'] = False
+    df['ema9_down'] = False
+    df['sma21_up'] = False
+    df['sma21_down'] = False
+
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, symbol="HK50")
+    russian = [s for s in valid_setups if s['setup'] == 'russian_bb']
+    assert len(russian) == 0

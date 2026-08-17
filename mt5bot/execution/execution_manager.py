@@ -306,6 +306,15 @@ def _manage_position(symbol, position, df):
     current_close = df['close'].iloc[-1]
     is_buy = position.type == mt5.POSITION_TYPE_BUY
     
+    # --- 0. SAIDA FIM DE SESSAO (equivalente ao exit_both_sessions da otimizacao) ---
+    # Se o horario institucional do ativo ja terminou, liquidar a posicao em vez
+    # de manter abertas contra spreads de baixa liquidez.
+    if getattr(config, 'TRADING_HOURS_ENABLED', True):
+        if not risk_calculator.is_within_trading_hours(symbol=symbol):
+            logging.info(f"[{symbol}] Fim da sessao institucional. Liquidando posicao a mercado...")
+            executor.close_full_position(position.ticket, symbol, position.type)
+            return
+    
     # --- 1. SAIDA PARCIAL ---
     if getattr(config, 'PARTIAL_EXIT_ENABLED', True):
         deals = mt5.history_deals_get(position=position.ticket)

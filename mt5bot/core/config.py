@@ -104,9 +104,18 @@ ASSET_SETUPS = {
 }
 
 ASSET_MIN_LOTS = {
-    "HK50": 0.10,
-    "HKG50": 0.10
+    "HK50": 0.01,
+    "HKG50": 0.01
 }
+
+# --- Setup Russo (BB + RSI Mean Reversion) — HK50 ---
+# Parametros validados por otimizacao convexa (60k candles M5, spread 4.5,
+# 07/2025-08/2026). Config MELHOR: RSI 30/75, min_bw 50, SMA200, janela
+# institucional 22:15-01:00 BRT, saida no fim da sessao.
+# Resultado: PF 1.93, DD 9.6%, +25% do capital em 15 meses (~1.5%/mes).
+RUSSIAN_BB_MIN_WIDTH = 50.0          # largura minima da banda (unidade de preco)
+RUSSIAN_BB_RSI_OVERSOLD = 30.0       # compra quando IFR14 < 30
+RUSSIAN_BB_RSI_OVERBOUGHT = 75.0     # venda quando IFR14 > 75
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {
@@ -144,6 +153,12 @@ MAX_RISK_PER_TRADE_PERCENT = 1.0
 ABSOLUTE_MAX_TRADE_RISK_PERCENT = 1.5
 MAX_DAILY_LOSS_PERCENT = 2.0
 MAX_SPREAD_POINTS = 50
+# Limite de spread por simbolo (pontos). HK50 tem spread tipico de ~450 pts
+# em baixa liquidez; o limite global de 50 pontos bloquearia toda operacao.
+SYMBOL_MAX_SPREAD_POINTS = {
+    "HK50": 500,
+    "HKG50": 500,
+}
 ENABLE_BREAKEVEN = True
 BREAKEVEN_ATR_RATIO = 1.0
 MIN_STOP_SPREAD_MULTIPLIER = 1.5
@@ -242,4 +257,4 @@ SETUP_93_MAX_PULLBACK_CANDLES = 2
 RVOL_FILTER_ENABLED = True
 RVOL_LOOKBACK = 20
 RVOL_THRESHOLD = 1.15
-
+

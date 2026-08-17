@@ -85,7 +85,19 @@ def calculate_position_size(
     # Perda monetaria por 1.0 lote inteiro
     ticks_in_sl = sl_distance / tick_size
     loss_per_lot = ticks_in_sl * tick_value
-    
+
+    # --- CONVERSAO DE MOEDA (FIX HK50): tick_value pode estar em moeda do simbolo
+    # (ex: HKD), enquanto a conta e USD. order_calc_profit retorna o valor real
+    # na moeda da conta. Usa-lo quando disponivel evita risco superestimado
+    # que faz o RISK SHIELD rejeitar operacoes validas com saldo pequeno.
+    try:
+        side = mt5.ORDER_TYPE_SELL if sl_price > entry_price else mt5.ORDER_TYPE_BUY
+        probe_loss = mt5.order_calc_profit(side, symbol, 1.0, entry_price, sl_price)
+        if probe_loss is not None and probe_loss < 0:
+            loss_per_lot = abs(float(probe_loss))
+    except Exception:
+        pass  # mantem o calculo por ticks se a API falhar
+
     if loss_per_lot <= 0:
         return vol_min, 0.0, False, "Cálculo de perda por lote inválido."
 

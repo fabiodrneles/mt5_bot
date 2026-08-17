@@ -81,10 +81,10 @@ def test_is_within_trading_hours(monkeypatch):
 def test_is_within_trading_hours_hk50_and_symbol_specific(monkeypatch):
     """Valida janela de horario especifica para HK50 (sessao noturna 22:15-12:00 BRT) e WIN."""
     monkeypatch.undo()
-    # HK50 (22:15 as 12:00 BRT do dia seguinte)
+    # HK50 (sessao institucional 22:15 as 01:00 BRT)
     assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="23:00") is True
-    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="08:00") is True
-    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="15:00") is False
+    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="00:30") is True
+    assert risk_calculator.is_within_trading_hours(symbol="HK50", current_time_str="08:00") is False
 
     # WIN (Mini Indice 09:15 as 17:15 BRT)
     assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="11:30") is True

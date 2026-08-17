@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.4.0] - 2026-08-17
+### Adicionado
+- **Parâmetros ótimos do Setup Russo (HK50) validados por otimização convexa** (60k candles M5, spread 4.5, 07/2025-08/2026): `RUSSIAN_BB_MIN_WIDTH=50.0`, `RUSSIAN_BB_RSI_OVERSOLD=30.0`, `RUSSIAN_BB_RSI_OVERBOUGHT=75.0`. Config MELHOR → PF 1.93, DD 9.6%, +25% de capital em 15 meses (~1.5%/mês).
+- **Saída no fim da sessão institucional** (`exit_both_sessions`): o bot agora liquida posições abertas quando o horário institucional do ativo termina (HK50: 01:00 BRT), evitando manter risco contra spread de baixa liquidez.
+- **Testes do Setup Russo** (`test_russian_bb_*`): garantem disparo com `bollinger_lower`/`rsi14` e largura mínima de 50.0 em preço.
+### Corrigido
+- **Bug crítico: Setup Russo nunca disparava no bot real.** O motor checava `'bb_lower'`/`'rsi'` no DataFrame, mas `add_all_indicators` gera `bollinger_lower`/`rsi14` → o bloco era ignorado para HK50.
+- **Largura mínima da banda 100x errada:** `min_width = 50.0 * tick_size` (0.5 no HK50) vs o valor ótimo de 50.0 em preço validado no backtest/otimização.
+- **Conversão de moeda no gestor de risco:** `loss_per_lot` via `tick_value` usava moeda do símbolo (HKD) como USD, superestimando o risco ~787x e fazendo o Risk Shield rejeitar operações válidas. Agora usa `mt5.order_calc_profit` (moeda da conta) com fallback por ticks.
+- **Lote mínimo HK50/HKG50:** `ASSET_MIN_LOTS` de 0.10 → 0.01 (risco de lote mínimo ficava em 3.86% > trava de 1.5% e bloqueava tudo).
+- **Limite de spread por símbolo:** `SYMBOL_MAX_SPREAD_POINTS` (HK50=500 pts) aplicado no executor, já que o spread real (~450 pts) excedia o limite global de 50 pontos e abortava todas as ordens.
+- **`tools/backtest.py`:** custo de spread agora calculado via `order_calc_profit` (4.5 de preço) em vez de desconto fixo de $0.20; lote default 0.10 → 0.01.
+### Modificado
+- `config.py`: novos parâmetros `RUSSIAN_BB_*`; `ASSET_MIN_LOTS` HK50/HKG50 = 0.01; `SYMBOL_MAX_SPREAD_POINTS`.
+- `strategy.py`: bloco russian_bb usa `bollinger_lower`/`bollinger_upper`/`rsi14` e `RUSSIAN_BB_MIN_WIDTH`.
+- `execution_manager.py`: força fechamento ao fim da sessão institucional.
+- `executor.py`: filtro de spread lê limite por símbolo.
+- `risk_calculator.py`: conversão de moeda via `order_calc_profit`.
+- `tests/test_risk_management.py`: teste de janela HK50 alinhado à sessão institucional (22:15–01:00 BRT).
+
 ## [2.3.2] - 2026-08-14
 ### Changed
 - **Horário Institucional para HK50:** Baseado em dados massivos de backtest, a negociação do HK50/HKG50 foi restrita exclusivamente à Sessão da Manhã de Hong Kong (22:15 às 01:00 BRT). Isso impede o robô de operar durante o almoço asiático e a tarde de baixa volatilidade (after-hours no Brasil), blindando a conta contra o spread.

@@ -107,12 +107,13 @@ def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume
         return None
 
     # FILTRO DE SPREAD:
-    if config.MAX_SPREAD_POINTS is not None:
+    max_spread = getattr(config, "SYMBOL_MAX_SPREAD_POINTS", {}).get(symbol, config.MAX_SPREAD_POINTS)
+    if max_spread is not None:
         current_spread = get_current_spread(symbol)
-        if current_spread is not None and current_spread > config.MAX_SPREAD_POINTS:
+        if current_spread is not None and current_spread > max_spread:
             logger.warning(
                 f"[SPREAD FILTER REJECTED] Simbolo {symbol}: Spread atual ({current_spread} pts) "
-                f"excede o limite maximo de {config.MAX_SPREAD_POINTS} pontos."
+                f"excede o limite maximo de {max_spread} pontos."
             )
             return None
 

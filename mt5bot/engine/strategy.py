@@ -163,33 +163,36 @@ class StrategyScorer:
         # ----------------------------------------------------
         # SETUP RUSSO (BB + RSI Mean Reversion)
         # ----------------------------------------------------
-        if _enabled("russian_bb") and 'bb_lower' in df.columns and 'rsi' in df.columns:
-            min_width = 50.0 * tick_size # Adapta a largura para a pontuação (50 pontos HK)
+        if _enabled("russian_bb") and 'bollinger_lower' in df.columns and 'rsi14' in df.columns:
+            min_width = getattr(config, 'RUSSIAN_BB_MIN_WIDTH', 50.0)
+            bb_width = c_last.get('bollinger_upper', 0) - c_last.get('bollinger_lower', 0)
+            rsi_oversold = getattr(config, 'RUSSIAN_BB_RSI_OVERSOLD', 30.0)
+            rsi_overbought = getattr(config, 'RUSSIAN_BB_RSI_OVERBOUGHT', 70.0)
             # Filtro Anti-Tendência: não opere contra uma tendência forte alinhada
             uptrend = c_last.get('ema9', 0) > c_last.get('sma21', 0) and c_last.get('sma21', 0) > c_last.get('ema50', 0)
             downtrend = c_last.get('ema9', 0) < c_last.get('sma21', 0) and c_last.get('sma21', 0) < c_last.get('ema50', 0)
             
-            width_ok = c_last['bb_width'] >= min_width
+            width_ok = bb_width >= min_width
             
-            if c_last['low'] < c_last['bb_lower'] and width_ok and not downtrend:
-                if c_last['rsi'] < 30:
+            if c_last['low'] < c_last['bollinger_lower'] and width_ok and not downtrend:
+                if c_last['rsi14'] < rsi_oversold:
                     setups_found.append({
                         "setup": "russian_bb",
                         "action": "buy",
                         "trigger_price": c_last['close'],
-                        "stop_loss": c_last['close'] - (c_last['bb_width'] / 2),
+                        "stop_loss": c_last['close'] - (bb_width / 2),
                         "score": 100, # Prioridade Máxima
-                        "target": c_last['bb_upper']
+                        "target": c_last['bollinger_upper']
                     })
-            elif c_last['high'] > c_last['bb_upper'] and width_ok and not uptrend:
-                if c_last['rsi'] > 70:
+            elif c_last['high'] > c_last['bollinger_upper'] and width_ok and not uptrend:
+                if c_last['rsi14'] > rsi_overbought:
                     setups_found.append({
                         "setup": "russian_bb",
                         "action": "sell",
                         "trigger_price": c_last['close'],
-                        "stop_loss": c_last['close'] + (c_last['bb_width'] / 2),
+                        "stop_loss": c_last['close'] + (bb_width / 2),
                         "score": 100, # Prioridade Máxima
-                        "target": c_last['bb_lower']
+                        "target": c_last['bollinger_lower']
                     })
                     
         # ----------------------------------------------------
