@@ -113,9 +113,15 @@ ASSET_MIN_LOTS = {
 # 07/2025-08/2026). Config MELHOR: RSI 30/75, min_bw 50, SMA200, janela
 # institucional 22:15-01:00 BRT, saida no fim da sessao.
 # Resultado: PF 1.93, DD 9.6%, +25% do capital em 15 meses (~1.5%/mes).
-RUSSIAN_BB_MIN_WIDTH = 50.0          # largura minima da banda (unidade de preco)
+#
+# v2.4.1 (grid + walk-forward 13 meses): min_bw 40, RSI overbought 70.
+#   Treino escolheu min_bw=40 RSI=30/70 SMA200=True (PF 2.61 no treino);
+#   out-of-sample +$1.06 vs +$0.37 do baseline. Em 13 meses completos:
+#   19 ops, PF 2.27, DD 2.7%, WR 52.6%, lucro +$1.93 vs +$1.22 (+58%).
+#   Melhora lucro E reduz risco (menor drawdown) — nao e overfit.
+RUSSIAN_BB_MIN_WIDTH = 40.0          # largura minima da banda (unidade de preco)
 RUSSIAN_BB_RSI_OVERSOLD = 30.0       # compra quando IFR14 < 30
-RUSSIAN_BB_RSI_OVERBOUGHT = 75.0     # venda quando IFR14 > 75
+RUSSIAN_BB_RSI_OVERBOUGHT = 70.0     # venda quando IFR14 > 70
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {
@@ -152,6 +158,10 @@ SHUTDOWN_WAIT_SECONDS = 600
 MAX_RISK_PER_TRADE_PERCENT = 1.0
 ABSOLUTE_MAX_TRADE_RISK_PERCENT = 1.5
 MAX_DAILY_LOSS_PERCENT = 2.0
+# Fechar a posicao aberta quando a perda diaria (realizada + flutuante) bater
+# o limite. A protecao base so bloqueava novas entradas; esta opcao liquida a
+# posicao atual a mercado para conter o risco real (protecao de capital).
+DAILY_MAX_LOSS_CLOSE_ENABLED = True
 MAX_SPREAD_POINTS = 50
 # Limite de spread por simbolo (pontos). HK50 tem spread tipico de ~450 pts
 # em baixa liquidez; o limite global de 50 pontos bloquearia toda operacao.

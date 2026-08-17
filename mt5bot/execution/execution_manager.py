@@ -306,6 +306,24 @@ def _manage_position(symbol, position, df):
     current_close = df['close'].iloc[-1]
     is_buy = position.type == mt5.POSITION_TYPE_BUY
     
+    # --- 0. DAILY MAX LOSS CLOSE (protecao de capital) ---
+    # Se a perda diaria (realizada + flutuante da posicao aberta) bater o limite,
+    # liquida a posicao a mercado imediatamente. O shield base apenas bloqueava
+    # novas entradas; aqui contemos o risco real da posicao atual.
+    if getattr(config, 'DAILY_MAX_LOSS_CLOSE_ENABLED', True):
+        try:
+            limits = risk_calculator.calculate_risk_limits()
+            daily_pnl = tracker.get_daily_pnl()
+            floating = float(getattr(position, "profit", 0.0) or 0.0)
+            if daily_pnl is not None and (daily_pnl + floating) <= -limits["max_daily_loss_currency"]:
+                logging.warning(f"[{symbol}] Daily Max Loss Close ativo (perda diaria {daily_pnl:.2f}"
+                                f" + flutuante {floating:.2f} = {daily_pnl + floating:.2f}"
+                                f" <= -{limits['max_daily_loss_currency']:.2f}). Liquidando posicao {position.ticket} a mercado...")
+                executor.close_full_position(position.ticket, symbol, position.type)
+                return
+        except Exception as e:
+            logging.warning(f"[{symbol}] Falha ao avaliar Daily Max Loss Close: {e}")
+    
     # --- 0. SAIDA FIM DE SESSAO (equivalente ao exit_both_sessions da otimizacao) ---
     # Se o horario institucional do ativo ja terminou, liquidar a posicao em vez
     # de manter abertas contra spreads de baixa liquidez.

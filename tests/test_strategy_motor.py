@@ -114,7 +114,7 @@ def test_russian_bb_buy_fires_with_bollinger_and_rsi14():
 
 
 def test_russian_bb_does_not_fire_when_width_below_minimum():
-    """Largura de banda < 50.0 em preco nao deve gerar sinal russian_bb."""
+    """Largura de banda < 40.0 em preco nao deve gerar sinal russian_bb."""
     data = {
         'time': pd.date_range("2023-01-01", periods=6, freq='h'),
         'open': [25000, 25020, 25040, 25010, 24980, 24960],
@@ -127,8 +127,8 @@ def test_russian_bb_does_not_fire_when_width_below_minimum():
     df['sma200'] = 24000.0
     df['ema9'] = 25010.0
     df['ema50'] = 25020.0
-    df['bollinger_lower'] = 24955.0
-    df['bollinger_upper'] = 24995.0   # bb_width = 40 < 50
+    df['bollinger_lower'] = 24965.0
+    df['bollinger_upper'] = 24995.0   # bb_width = 30 < 40
     df['rsi14'] = 25.0
     df['atr'] = 20.0
     df['ema9_up'] = False

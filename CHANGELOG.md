@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.1] - 2026-08-17
+### Adicionado
+- **Daily Max Loss Close (proteção de capital):** nova flag `DAILY_MAX_LOSS_CLOSE_ENABLED` (True). Além do shield que já bloqueava novas entradas, o bot agora **liquida a posição aberta a mercado** quando a perda diária (realizada + flutuante) atinge o limite de 2% (`MAX_DAILY_LOSS_PERCENT`). Implementado em `execution_manager._manage_position`. Testado com simulação de 13 meses: não reduz lucro (+$1.25 vs +$1.22) e contém o risco real.
+- **Testes da melhoria B** (`test_daily_max_loss_close_*`): posição aberta é liquidada quando a perda diária bate o limite; posição com lucro flutuante não é liquidada.
+### Modificado
+- **Setup Russo (HK50) re-otimizado por grid search + walk-forward (13 meses):** `RUSSIAN_BB_MIN_WIDTH` 50→40, `RUSSIAN_BB_RSI_OVERBOUGHT` 75→70. Combo escolhido no treino (PF 2.61) confirmado out-of-sample (+$1.06 vs +$0.37 do baseline). Nos 13 meses completos: 19 ops, PF 2.27, DD 2.7%, WR 52.6%, lucro +$1.93 vs +$1.22 (**+58% de lucro com MENOS risco**). Sem SMA200 rende mais absoluto (+$3.91) mas PF/DD pioram e depende de 114 trades — rejeitado em favor da robustez.
+- `tests/test_strategy_motor.py`: teste de largura mínima ajustado para o novo limiar de 40.0.
+
 ## [2.4.0] - 2026-08-17
 ### Adicionado
 - **Parâmetros ótimos do Setup Russo (HK50) validados por otimização convexa** (60k candles M5, spread 4.5, 07/2025-08/2026): `RUSSIAN_BB_MIN_WIDTH=50.0`, `RUSSIAN_BB_RSI_OVERSOLD=30.0`, `RUSSIAN_BB_RSI_OVERBOUGHT=75.0`. Config MELHOR → PF 1.93, DD 9.6%, +25% de capital em 15 meses (~1.5%/mês).

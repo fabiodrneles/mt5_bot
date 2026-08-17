@@ -150,6 +150,99 @@ def test_daily_max_loss_shield(monkeypatch):
     place_mock.assert_not_called()
 
 
+def test_daily_max_loss_close_liquidates_open_position(monkeypatch):
+    """Melhoria B: quando a perda diaria (realizada + flutuante) bate o limite,
+    a posicao aberta e liquidada a mercado."""
+    import MetaTrader5 as mt5
+    from mt5bot.execution import execution_manager
+
+    from unittest.mock import Mock
+    # Posicao BUY aberta com prejuizo flutuante de -$220 -> juntando com
+    # perda diaria realizada de -$40 totaliza -$260 <= limite de 2% ($200).
+    class DummyPosition:
+        type = mt5.POSITION_TYPE_BUY
+        ticket = 999
+        volume = 0.05
+        price_open = 100.0
+        sl = 90.0
+        profit = -220.0
+    monkeypatch.setattr(mt5, "positions_get", lambda symbol=None: [DummyPosition()])
+    monkeypatch.setattr(mt5, "orders_get", lambda symbol=None: [])
+    monkeypatch.setattr(tracker, "get_daily_pnl", lambda target_date=None: -40.0)
+    monkeypatch.setattr(risk_calculator, "calculate_risk_limits", lambda balance=None: {
+        "balance": 10000.0,
+        "max_trade_risk_currency": 100.0,
+        "absolute_max_trade_risk_currency": 150.0,
+        "max_daily_loss_currency": 200.0,
+    })
+
+    close_mock = Mock(return_value=None)
+    monkeypatch.setattr(executor, "close_full_position", close_mock)
+
+    # df minimo aceito pelo manage_cycle (len >= 5)
+    import pandas as pd
+    df = pd.DataFrame({
+        'time': pd.date_range("2023-01-01", periods=5, freq='h'),
+        'open': [10, 10, 10, 10, 10],
+        'high': [11, 11, 11, 11, 11],
+        'low': [9, 9, 9, 9, 9],
+        'close': [10, 10, 10, 10, 10],
+    })
+
+    execution_manager.manage_cycle("EURUSD", df)
+
+    close_mock.assert_called_once()
+    assert close_mock.call_args[0][0] == 999
+    assert close_mock.call_args[0][1] == "EURUSD"
+
+
+def test_daily_max_loss_close_does_not_trigger_when_under_limit(monkeypatch):
+    """Melhoria B: posicao com lucro flutuante nao e liquidada pelo Daily Max Loss."""
+    import MetaTrader5 as mt5
+    from mt5bot.execution import execution_manager
+
+    from unittest.mock import Mock
+    class DummyPosition:
+        type = mt5.POSITION_TYPE_BUY
+        ticket = 999
+        volume = 0.05
+        price_open = 100.0
+        sl = 90.0
+        profit = +250.0  # lucro flutuante
+    monkeypatch.setattr(mt5, "positions_get", lambda symbol=None: [DummyPosition()])
+    monkeypatch.setattr(mt5, "orders_get", lambda symbol=None: [])
+    monkeypatch.setattr(tracker, "get_daily_pnl", lambda target_date=None: 0.0)
+    monkeypatch.setattr(risk_calculator, "calculate_risk_limits", lambda balance=None: {
+        "balance": 10000.0,
+        "max_trade_risk_currency": 100.0,
+        "absolute_max_trade_risk_currency": 150.0,
+        "max_daily_loss_currency": 200.0,
+    })
+
+    close_mock = Mock(return_value=None)
+    monkeypatch.setattr(executor, "close_full_position", close_mock)
+
+    import pandas as pd
+    df = pd.DataFrame({
+        'time': pd.date_range("2023-01-01", periods=5, freq='h'),
+        'open': [10, 10, 10, 10, 10],
+        'high': [11, 11, 11, 11, 11],
+        'low': [9, 9, 9, 9, 9],
+        'close': [10, 10, 10, 10, 10],
+    })
+    df['atr'] = 1.0
+    df['ema9'] = [10.0] * 5
+    df['sma21'] = [10.0] * 5
+    df['ema9_down'] = [False] * 5
+    df['ema9_up'] = [False] * 5
+    monkeypatch.setattr(mt5, "symbol_info", lambda sym: type("DummyInfo", (), {
+        "trade_tick_size": 0.01, "point": 0.01, "filling_mode": 1})())
+
+    execution_manager.manage_cycle("EURUSD", df)
+
+    close_mock.assert_not_called()
+
+
 def _make_scannable_df(ema_down_prev=False):
     """Monta um DataFrame mínimo com indicadores para o StrategyScorer (setup 9.1 de compra)."""
     import pandas as pd
