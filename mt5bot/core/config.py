@@ -279,9 +279,6 @@ SYMBOL_TRADING_HOURS = {
     "USOIL": {"start": "03:00", "end": "18:00", "force_close": "18:30"},
 }
 
-    # B3 Sessoes Expandidas (Indice e Dolar com pre-leilao)
-    "WIN": {"start": "09:15", "end": "17:15", "force_close": "17:30"},
-
 # --- Filtro Multi-Timeframe (MTF) ---
 MTF_FILTER_ENABLED = True
 MTF_TIMEFRAME_MAP = {
