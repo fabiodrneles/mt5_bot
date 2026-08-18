@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.8.0] - 2026-08-18
+- **Continuous Machine Learning (MLOps):** O robô agora possui integração direta com o GitHub Actions! Quando o repositório recebe um commit contendo a sigla "ML", a nuvem cria um servidor, instala o `xgboost` e o `scikit-learn`, consome os arquivos `.csv` (como `dataset_live_experience_HK50.csv`), treina a Inteligência Artificial, e faz o upload automático dos arquivos `.json` atualizados para o projeto.
+- **Roteamento Dinâmico de Modelos no MLOps:** O script da nuvem detecta automaticamente o nome do ativo no CSV e gera/atualiza arquivos dedicados, como `mt5bot_xgboost_EURUSD_v1.json` ou `mt5bot_xgboost_JP225_v1.json`, suportando treinamento em lote.
+
 ## [2.7.2] - 2026-08-18
 - **Data Flywheel (Harvester Mode):** O comando `/study` foi evoluído para gravar também ordens "fantasmas" das operações que a IA rejeita. A nova ferramenta `tools/export_live_dataset.py` permite exportar na sexta-feira um dataset consolidado (Wins/Losses aprovados e Wins/Losses fantasmas) para retreinar a inteligência neural, completando o ciclo quantitativo.
 
