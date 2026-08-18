@@ -1,2 +1,2 @@
 """MT5Bot — Bot de trading automatizado para MetaTrader 5."""
-__version__ = "2.6.0"
+__version__ = "2.7.0"

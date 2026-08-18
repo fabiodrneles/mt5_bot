@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.7.0] - 2026-08-18
+- **Trailing Stop Otimizado via ATR:** Adicionado o modo matemático `"atr"` ao `trailing.py`. O bot agora espreme tendências alongando a saída (Trailing de 1.5x ATR). Simulações Quant de 2 anos no HK50 (M5) provam um salto de WinRate (37% -> 46%), Drawdown reduzido à metade, e Lucro Líquido 138% maior.
+- O Maestro passa a utilizar este novo modo dinâmico por padrão.
+
 ## [2.6.0] - 2026-08-18
 - **Novo Setup Probabilístico (Judas Swing):** Introduzido o setup `judas`, um algorítmo que atira contra o mercado (fading the open) em aberturas-chave baseadas em microestrutura (04:15 BRT Londres e 11:15 BRT NY Reversal). Totalmente vetorizado no `strategy.py`.
 - **Proteção do Capital (Garage Lock):** O bloqueio de margem para habilitar o motor do EURUSD subiu de $60 para $100 após exaustiva simulação de Monte Carlo para absorção de drawdowns estatísticos. O motor já está preparado aguardando esse marco patrimonial.

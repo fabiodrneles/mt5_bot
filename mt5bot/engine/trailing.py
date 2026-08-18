@@ -7,6 +7,7 @@ Modos (config.TRAILING_MODE):
   - "candle": BUY segue a minima do penultimo candle; SELL a maxima.
   - "ema9"  : cola o SL na EMA9 (colunar refere-se a "colar abaixo/acima").
   - "mm21"  : cola o SL na SMA21.
+  - "atr"   : trailing baseado na volatilidade (1.5x ATR).
 
 Se o preco perder a media de referencia do modo, o restante deve ser
 liquidado a mercado (retorno `liquidar=True`).
@@ -57,6 +58,14 @@ def calcular_sl_trailing(df: pd.DataFrame, side: str, modo: str = "candle"):
         return float(ref), False
     if modo == "mm21":
         return float(ref), False
+        
+    if modo == "atr":
+        atr = float(df["atr"].iloc[-1])
+        if pd.isna(atr):
+            return None, False
+        if side == "BUY":
+            return close - (atr * 1.5), False
+        return close + (atr * 1.5), False
 
     # Modo "candle": SL = extremo do penultimo candle.
     if side == "BUY":
