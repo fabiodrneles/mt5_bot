@@ -109,8 +109,6 @@ ASSET_SETUPS = {
     # Motor Otimizado JP225: Ponto Contínuo (PC) na Sessão Asiática
     "JP225": ["PC"],
     "JPN225": ["PC"],
-    # Degrau 1: Sobrevivencia para saldo de $10
-    "BCHUSD": ["9.1", "PC"],
 }
 
 ASSET_MIN_LOTS = {
@@ -118,7 +116,6 @@ ASSET_MIN_LOTS = {
     "HKG50": 0.01,
     "JP225": 0.01,
     "JPN225": 0.01,
-    "BCHUSD": 0.10,
 }
 
 # --- Bloqueio de Garagem (Capital Mínimo) ---
@@ -126,10 +123,7 @@ ASSET_MIN_LOTS = {
 MIN_BALANCE_REQUIREMENTS = {
     "JP225": 300.00,
     "JPN225": 300.00,
-    "HK50": 150.00,
-    "HKG50": 150.00,
     "EURUSD": 60.00,
-    "BCHUSD": 10.00,
 }
 
 # --- Setup Russo (BB + RSI Mean Reversion) — HK50 ---
