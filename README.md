@@ -141,6 +141,16 @@ python tools\backtest.py --months 12
 python tools\backtest.py --months 6 --balance 100.0 --lot 0.50 --symbol HK50
 ```
 
+### Data Flywheel (O Modo Harvester)
+Se você deixou o robô rodando no comando `/study`, ele atuou como uma "colheitadeira", registrando não só os *Wins* e *Losses* reais da estratégia, mas também **Ordens Fantasmas** (operações que a IA vetou, mas ele rastreou para ver o que teria acontecido). 
+Para exportar essa sabedoria semanal e treinar sua IA, rode este comando, preferencialmente **toda sexta-feira à noite**:
+
+```powershell
+# Exporta um arquivo CSV com todo o contexto + rótulos de Win/Loss reais e fantasmas
+python tools\export_live_dataset.py --symbol HK50
+```
+Isso gerará o `dataset_live_experience_HK50.csv` pronto para ingestão no Colab!
+
 ---
 
 ## Setups embutidos

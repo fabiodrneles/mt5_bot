@@ -71,7 +71,7 @@ def _save_trades(trades):
         logger.error(f"Erro ao salvar trades: {e}", exc_info=True)
 
 
-def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket, ml_context=None):
+def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket, ml_context=None, is_vetoed=False, veto_reason=""):
     """Registra uma entrada (posicao aberta)."""
     trades = _load_trades()
     trade = {
@@ -91,12 +91,14 @@ def record_entry(symbol, side, setup_type, entry_price, sl_price, volume, ticket
         "result": "open",
         "partial_exit_price": None,
         "partial_volume": None,
+        "is_vetoed": is_vetoed,
+        "veto_reason": veto_reason
     }
     if ml_context is not None:
         trade["ml_context"] = ml_context
     trades.append(trade)
     _save_trades(trades)
-    logger.debug(f"[Tracker] Entrada registrada: {symbol} {side} {setup_type} @ {entry_price}")
+    logger.debug(f"[Tracker] Entrada registrada: {symbol} {side} {setup_type} @ {entry_price} (Vetoed={is_vetoed})")
     return trade["id"]
 
 

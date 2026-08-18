@@ -1,0 +1,2 @@
+time,side,setup,result,pnl_pips,is_vetoed,veto_reason,adx,rsi14,bollinger_bandwidth
+2026-08-18T22:49:51.589260+00:00,BUY,9.1,1,1000.0,True,ML Veto Test,25.5,40.2,100.5

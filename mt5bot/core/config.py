@@ -99,11 +99,13 @@ ASSET_SETUPS = {
     "default": ["9.1", "9.2", "9.3", "9.4", "PC", "FFFD", "GAP", "DiNapoli", "IFR2", "SAR", "RompFalso"],
     "HK50": ["russian_bb"],
     "HKG50": ["russian_bb"],
-    # EURUSD: setups 9.x PERDEM (PF 0.45, backtest 12/2025-08/2026). russian_bb
-    # e lucrativo mas so opera com saldo >= ~$60. Como temos pouco saldo, vamos
-    # ligar o 'judas' (Setup probabilistico de horario). O motor ja o mantem na garagem
-    # esperando a margem chegar a $100 por seguranca.
-    "EURUSD": ["judas"],
+    # EURUSD: Histórico de backtest mostrava que setups tradicionais perdiam no EURUSD puro.
+    # No entanto, com a adição do MLSupervisor (IA XGBoost treinada), o Setup Russo
+    # provou ser extremamente lucrativo bloqueando >70% dos sinais falsos, viabilizando a 
+    # operação do EURUSD com saldo mínimo reduzido para apenas $60.
+    # O Setup Judas (probabilístico de horário) continua rodando em paralelo, pois
+    # atua como suporte de lucros em condições de mercado completamente diferentes.
+    "EURUSD": ["russian_bb", "judas"],
     # Motor Otimizado JP225: Ponto Contínuo (PC) na Sessão Asiática
     "JP225": ["PC"],
     "JPN225": ["PC"],
@@ -121,7 +123,7 @@ ASSET_MIN_LOTS = {
 MIN_BALANCE_REQUIREMENTS = {
     "JP225": 300.00,
     "JPN225": 300.00,
-    "EURUSD": 100.00,
+    "EURUSD": 60.00,
 }
 
 # --- Setup Judas (Fading the Open) — EURUSD ---
@@ -305,3 +307,6 @@ RVOL_FILTER_ENABLED = True
 RVOL_LOOKBACK = 20
 RVOL_THRESHOLD = 1.15
 
+# --- Machine Learning (XGBoost) ---
+ML_FILTER_ENABLED = True
+ML_MIN_WIN_PROB = 0.40

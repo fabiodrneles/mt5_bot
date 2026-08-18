@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.7.2] - 2026-08-18
+- **Data Flywheel (Harvester Mode):** O comando `/study` foi evoluído para gravar também ordens "fantasmas" das operações que a IA rejeita. A nova ferramenta `tools/export_live_dataset.py` permite exportar na sexta-feira um dataset consolidado (Wins/Losses aprovados e Wins/Losses fantasmas) para retreinar a inteligência neural, completando o ciclo quantitativo.
+
 ## [2.7.1] - 2026-08-18
 - **Fix (Maestro UI):** Corrigido o painel do Maestro escrito em Go que exibia um texto chumbado visual "LOTE 0.10" para o HK50. O display agora respeita a configuração base (0.01) de contas pequenas.
 - **Limpeza de Código (Linting):** Limpeza de dependências no `go.mod`, refatoração de Clean Code no `main.go` e atualização do padrão de licença no `pyproject.toml`.

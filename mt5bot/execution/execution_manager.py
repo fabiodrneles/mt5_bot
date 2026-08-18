@@ -276,6 +276,38 @@ def _manage_study_cycle(symbol, df, timeframe_name):
                     paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "RVOL", timeframe=timeframe_name, ml_context=best.get('ml_context'))
                 return "🔵 STUDY_SCANNING"
             
+        # Filtro de Machine Learning (XGBoost Supervisor) no modo Study
+        from mt5bot.mentorship.ml_xgboost import MLSupervisor
+        ml_context = best.get('ml_context', {})
+        if ml_context:
+            is_approved, prob_win, ml_reason = MLSupervisor.predict_trade(symbol, best['setup'], ml_context)
+            if not is_approved:
+                log_key = f"{symbol}_{timeframe_name}"
+                if current_candle_time and _manage_study_cycle.last_logged_candle.get(log_key) != current_candle_time:
+                    logging.warning(f"[STUDY] {symbol} Setup {best['setup']} de {side} VETADO pela IA (Win Prob: {prob_win:.2f}): {ml_reason}. Criando Ordem Fantasma.")
+                    _manage_study_cycle.last_logged_candle[log_key] = current_candle_time
+                paper_tracker.record_rejection(symbol, best['setup'], side, best['trigger_price'], best['stop_loss'], "ML Veto", timeframe=timeframe_name, ml_context=ml_context)
+                
+                # DATA FLYWHEEL: Abrir a ordem fantasma para acompanhar o futuro do veto!
+                ticket = int(time.time() * 1000)
+                paper_tracker.record_entry(
+                    symbol=symbol,
+                    side=side,
+                    setup_type=best['setup'],
+                    entry_price=best['trigger_price'],
+                    sl_price=best['stop_loss'],
+                    volume=0.01,
+                    ticket=ticket,
+                    ml_context=ml_context,
+                    is_vetoed=True,
+                    veto_reason=f"ML Veto (Prob: {prob_win:.2f})"
+                )
+                return "🔵 STUDY_SCANNING"
+            elif prob_win < 1.0:
+                log_key = f"{symbol}_{timeframe_name}"
+                if current_candle_time and _manage_study_cycle.last_logged_candle.get(log_key) != current_candle_time:
+                    logging.info(f"[STUDY] {symbol} IA APROVOU Trade de {side} (Win Prob: {prob_win:.2f})")
+
         ticket = int(time.time() * 1000) # fake ticket
         paper_tracker.record_entry(
             symbol=symbol,
@@ -563,6 +595,21 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
                 logging.info(f"[{symbol}] Setup {setup_name} de {side} rejeitado (filtro RVOL: volume abaixo do limiar).")
                 _scan_and_execute.last_logged_candle[symbol] = current_candle_time
             return None
+
+    # 2.9 Filtro de Machine Learning (XGBoost Supervisor)
+    from mt5bot.mentorship.ml_xgboost import MLSupervisor
+    ml_context = best_setup.get('ml_context', {})
+    if ml_context:
+        is_approved, prob_win, ml_reason = MLSupervisor.predict_trade(symbol, setup_name, ml_context)
+        if not is_approved:
+            if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
+                logging.warning(f"[{symbol}] Setup {setup_name} de {side} VETADO pela IA (Win Prob: {prob_win:.2f}): {ml_reason}")
+                _scan_and_execute.last_logged_candle[symbol] = current_candle_time
+            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "ML Veto", timeframe=timeframe_name, ml_context=ml_context)
+            return "🔴 ML VETO"
+        elif prob_win < 1.0:
+            if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
+                logging.info(f"[{symbol}] IA APROVOU Trade de {side} (Win Prob: {prob_win:.2f})")
 
         
     # 3. Calcular Tamanho da Posicao

@@ -3,32 +3,51 @@ import sys
 from datetime import datetime
 import pandas as pd
 import MetaTrader5 as mt5
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from mt5bot.engine.indicators import add_all_indicators
+from mt5bot.mentorship.ml_xgboost import MLSupervisor
+from mt5bot.core import config
 
 def calc_indicators(df):
-    window = 20
-    rm = df['close'].rolling(window=window).mean()
-    rs = df['close'].rolling(window=window).std()
-    df['bb_mid'] = rm
-    df['bb_upper'] = rm + (rs * 2)
-    df['bb_lower'] = rm - (rs * 2)
-    df['bb_width'] = df['bb_upper'] - df['bb_lower']
+    df = add_all_indicators(df)
     
-    delta = df['close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs_val = gain / loss
-    df['rsi'] = 100 - (100 / (1 + rs_val))
+    # Criar colunas de microestrutura (body_size, wicks)
+    df['body_size'] = abs(df['close'] - df['open']) / df['atr']
+    df['upper_wick'] = (df['high'] - df[['close', 'open']].max(axis=1)) / df['atr']
+    df['lower_wick'] = (df[['close', 'open']].min(axis=1) - df['low']) / df['atr']
     
-    df['ema9'] = df['close'].ewm(span=9, adjust=False).mean()
-    df['sma21'] = df['close'].rolling(window=21).mean()
-    df['ema50'] = df['close'].ewm(span=50, adjust=False).mean()
-    df['sma200'] = df['close'].rolling(window=200).mean()
+    # Distâncias relativas
+    df['dist_ema9'] = (df['close'] - df['ema9']) / df['ema9']
+    df['dist_sma21'] = (df['close'] - df['sma21']) / df['sma21']
+    df['dist_sma200'] = (df['close'] - df['sma200']) / df['sma200']
+    if 'vwap' in df.columns:
+        df['dist_vwap'] = (df['close'] - df['vwap']) / df['vwap']
+    else:
+        df['dist_vwap'] = 0.0
+    
+    # Largura de bollinger (Bandwidth)
+    if 'bollinger_upper' in df.columns and 'bollinger_lower' in df.columns and 'bollinger_mid' in df.columns:
+        df['bb_width'] = df['bollinger_upper'] - df['bollinger_lower']
+        df['bollinger_bandwidth'] = df['bb_width'] / df['bollinger_mid']
+        df['bb_upper'] = df['bollinger_upper']
+        df['bb_lower'] = df['bollinger_lower']
+    else:
+        df['bb_width'] = 0.0
+        df['bollinger_bandwidth'] = 0.0
+        df['bb_upper'] = 0.0
+        df['bb_lower'] = 0.0
+        
+    df['rsi'] = df.get('rsi14', 0.0)
     return df
 
 def run_simulation(df, initial_balance, pip_value, lot, symbol):
     balance = initial_balance
     wins = 0
     losses = 0
+    ml_rejections = 0
     in_trade = False
     side = 0
     entry_price = 0.0
@@ -65,26 +84,39 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                     exit_price = sl
             
             if is_win or is_loss:
-                # Tenta pegar valor exato, senao calcula aproximado
+                # Tenta pegar valor exato via MT5
                 profit = mt5.order_calc_profit(side, symbol, lot, entry_price, exit_price)
                 if profit is None:
+                    # Fallback matematico generico se broker offline
+                    info = mt5.symbol_info(symbol)
+                    tick_size = info.trade_tick_size if info else 0.01
+                    tick_value = info.trade_tick_value if info else 1.0
                     points = abs(exit_price - entry_price)
-                    # Estimativa para HK50 se broker estiver offline
-                    profit = (points / 100.0) * 1.30 
+                    profit = (points / tick_size) * tick_value * (lot / info.volume_step if info else lot)
                     if is_loss: profit = -profit
                 
-                # Custo real do spread (HK50: ~4.5 de preco no lote operado), em
-                # moeda da conta via order_calc_profit. Fallback se API offline.
+                # Custo real do spread no MT5 (Spread atual do broker)
                 spread_cost = None
                 try:
+                    info = mt5.symbol_info(symbol)
+                    spread_points = info.spread * info.point if info else 0.0
+                    if spread_points == 0:
+                        # Fallbacks caso fds/mercado fechado
+                        spread_points = 4.5 if "HK50" in symbol else 0.00015
+                        
                     spread_cost = mt5.order_calc_profit(
                         mt5.ORDER_TYPE_BUY, symbol, lot,
-                        entry_price, entry_price + 4.5
+                        entry_price, entry_price + spread_points
                     )
                 except Exception:
                     spread_cost = None
+                    
                 if spread_cost is None:
-                    spread_cost = (4.5 / 100.0) * 1.30 * (lot / 0.01)
+                    # Fallback generico
+                    tick_size = info.trade_tick_size if info else 0.01
+                    tick_value = info.trade_tick_value if info else 1.0
+                    spread_points = 4.5 if "HK50" in symbol else 0.00015
+                    spread_cost = (spread_points / tick_size) * tick_value * (lot / info.volume_step if info else lot)
                 profit -= spread_cost
                 
                 balance += profit
@@ -98,37 +130,72 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                 in_trade = False
             continue
             
-        # Filtro Institucional (MT5 Time: 04:15 a 07:00 == BRT: 22:15 a 01:00)
-        h = row['time'].hour
-        m = row['time'].minute
-        is_institutional = (h == 4 and m >= 15) or (h == 5) or (h == 6) or (h == 7 and m == 0)
+        # Chamada à engine dinâmica
+        from mt5bot.engine.strategy import StrategyScorer
+        from mt5bot.engine.scoring import aplicar_scoring
 
-        # Filtro SMA200 (Somente a favor da macro)
-        buy_sma200_ok = row['close'] > row['sma200']
-        sell_sma200_ok = row['close'] < row['sma200']
-
-        # Avaliacao do Setup Russo (HK50)
-        width_ok = row['bb_width'] >= 50.0
-        uptrend = row['ema9'] > row['sma21'] and row['sma21'] > row['ema50']
-        downtrend = row['ema9'] < row['sma21'] and row['sma21'] < row['ema50']
+        # Pega as últimas 10 velas para o motor
+        sub_df = df.iloc[i-10:i+1]
         
-        # BUY
-        if is_institutional and buy_sma200_ok and row['low'] < row['bb_lower'] and width_ok and not downtrend and row['rsi'] < 30:
-            in_trade = True
-            side = mt5.ORDER_TYPE_BUY
-            entry_price = row['close']
-            sl = row['close'] - (row['bb_width'] / 2)
-            tp = row['bb_upper']
+        info = mt5.symbol_info(symbol)
+        tick_size = info.trade_tick_size if info and info.trade_tick_size > 0 else (info.point if info else 0.01)
+        
+        setups_found, _ = StrategyScorer.evaluate_all(sub_df, tick_size=tick_size, tick_offset=1, symbol=symbol)
+        
+        if setups_found:
+            setups_found = aplicar_scoring(setups_found, sub_df)
+            if not setups_found:
+                continue
                 
-        # SELL
-        elif is_institutional and sell_sma200_ok and row['high'] > row['bb_upper'] and width_ok and not uptrend and row['rsi'] > 70:
-            in_trade = True
-            side = mt5.ORDER_TYPE_SELL
-            entry_price = row['close']
-            sl = row['close'] + (row['bb_width'] / 2)
-            tp = row['bb_lower']
+            best_setup = setups_found[0]
+            setup_name = best_setup['setup']
+            
+            ml_context = {
+                'microstructure': {
+                    'body_size': row['body_size'],
+                    'upper_wick': row['upper_wick'],
+                    'lower_wick': row['lower_wick']
+                },
+                'trend': {
+                    'adx': row.get('adx', 0.0)
+                },
+                'regime': {
+                    'z_score': row.get('z_score', 0.0)
+                },
+                'volatility': {
+                    'atr': row.get('atr', 0.0),
+                    'bollinger_bandwidth': row['bollinger_bandwidth']
+                },
+                'momentum': {
+                    'rsi14': row['rsi']
+                },
+                'relative_distances': {
+                    'dist_ema9': row['dist_ema9'],
+                    'dist_sma21': row['dist_sma21'],
+                    'dist_sma200': row['dist_sma200'],
+                    'dist_vwap': row['dist_vwap']
+                },
+                'time': {
+                    'hour': row['time'].hour,
+                    'day_of_week': row['time'].dayofweek
+                }
+            }
+            
+            is_approved, prob, reason = MLSupervisor.predict_trade(symbol, setup_name, ml_context)
+            
+            if is_approved:
+                in_trade = True
+                side = mt5.ORDER_TYPE_BUY if str(best_setup['action']).upper() == 'BUY' else mt5.ORDER_TYPE_SELL
+                entry_price = best_setup['trigger_price']
+                sl = best_setup['stop_loss']
+                tp = best_setup.get('target')
+                if tp is None:
+                    # Se, mesmo após aplicar scoring, não tiver alvo (algo muito raro), não opera
+                    in_trade = False
+            else:
+                ml_rejections += 1
                 
-    return balance, wins, losses, total_profit_usd
+    return balance, wins, losses, total_profit_usd, ml_rejections
 
 def main():
     parser = argparse.ArgumentParser(description="Simulador financeiro retroativo para MT5Bot (Estrategia Original)")
@@ -198,7 +265,7 @@ def main():
     end_date = df['time'].iloc[-1]
     
     print(f"Executando simulacao de {start_date} ate {end_date}...")
-    final_balance, wins, losses, total_profit = run_simulation(
+    final_balance, wins, losses, total_profit, ml_rejections = run_simulation(
         df, args.balance, pip_value, args.lot, args.symbol
     )
     
@@ -209,12 +276,13 @@ def main():
     print("          RESULTADO DO BACKTEST")
     print("="*40)
     print(f"Periodo:         {start_date.date()} a {end_date.date()}")
-    print(f"Estrategia:      Setup Russo Original (BB + RSI + EMAs Anti-Trend)")
+    print(f"Estrategia:      Setup Russo Original (BB + RSI + EMAs Anti-Trend) + IA (XGBoost)")
     print(f"Ativo:           {args.symbol}")
     print(f"Lote Fixo:       {args.lot}")
     print(f"Operacoes:       {total_trades}")
     print(f"Vitorias:        {wins} ({win_rate:.1f}%)")
     print(f"Derrotas:        {losses} ({100 - win_rate:.1f}%)")
+    print(f"Sinais Vetados:  {ml_rejections} (Filtro IA)")
     print("-" * 40)
     print(f"Saldo Inicial:   ${args.balance:.2f}")
     print(f"Lucro Liquido:   ${total_profit:.2f}")
