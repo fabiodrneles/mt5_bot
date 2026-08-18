@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.5.0] - 2026-08-17
+### Adicionado
+- **Override por ativo dos parâmetros do Setup Russo (`RUSSIAN_BB_PARAMS`):** cada ativo pode ter `min_width`/`rsi_oversold`/`rsi_overbought` próprios, com fallback para os globais. HK50/HKG50 mantêm 40/30/70; **EURUSD** recebe `0.0008/35/75`.
+- **EURUSD pronto para operar (engavetado):** `ASSET_SETUPS["EURUSD"] = ["russian_bb"]`. Aviso claro no config: só ativar com saldo ≥ ~$60 (SL = meia banda ~$0.59 = 3.6% do saldo a $16.47 → Risk Shield 1.5% rejeita tudo abaixo disso).
+- **Testes do override** (`test_russian_bb_eurusd_*`): EURUSD dispara com banda 0.0015 (abaixo do global 40.0); ativo sem override usa o global.
+### Corrigido
+- **Números do EURUSD recalculados com o filtro SMA200:** a primeira otimização omitiu o filtro macro que o motor real aplica (buy: close > SMA200; sell: close < SMA200), inflando os PF para 1.5. Revalidado por grid + walk-forward COM SMA200 (50k candles M5, spread 9 ticks, dez/2025–ago/2026): treino PF 1.28, teste fora da amostra PF 1.85 (não overfit), dataset intacto 60 ops PF 1.42 +$15.33 a $100. Combo final: `min_width=0.0008`, `RSI<35`, `RSI>75`.
+- **9.x confirmado perdedor no EURUSD:** baseline 1164 ops, −$200.38, PF 0.45, WR 31.4% — substituído pelo russian_bb via `ASSET_SETUPS`.
+
 ## [2.4.1] - 2026-08-17
 ### Adicionado
 - **Daily Max Loss Close (proteção de capital):** nova flag `DAILY_MAX_LOSS_CLOSE_ENABLED` (True). Além do shield que já bloqueava novas entradas, o bot agora **liquida a posição aberta a mercado** quando a perda diária (realizada + flutuante) atinge o limite de 2% (`MAX_DAILY_LOSS_PERCENT`). Implementado em `execution_manager._manage_position`. Testado com simulação de 13 meses: não reduz lucro (+$1.25 vs +$1.22) e contém o risco real.

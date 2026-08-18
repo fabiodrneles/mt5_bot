@@ -164,10 +164,15 @@ class StrategyScorer:
         # SETUP RUSSO (BB + RSI Mean Reversion)
         # ----------------------------------------------------
         if _enabled("russian_bb") and 'bollinger_lower' in df.columns and 'rsi14' in df.columns:
-            min_width = getattr(config, 'RUSSIAN_BB_MIN_WIDTH', 50.0)
+            # Parametros especificos do ativo (fallback: globais)
+            _bb_params = (getattr(config, 'RUSSIAN_BB_PARAMS', None) or {}).get(symbol, {})
+            min_width = _bb_params.get('min_width',
+                                       getattr(config, 'RUSSIAN_BB_MIN_WIDTH', 50.0))
+            rsi_oversold = _bb_params.get('rsi_oversold',
+                                          getattr(config, 'RUSSIAN_BB_RSI_OVERSOLD', 30.0))
+            rsi_overbought = _bb_params.get('rsi_overbought',
+                                            getattr(config, 'RUSSIAN_BB_RSI_OVERBOUGHT', 70.0))
             bb_width = c_last.get('bollinger_upper', 0) - c_last.get('bollinger_lower', 0)
-            rsi_oversold = getattr(config, 'RUSSIAN_BB_RSI_OVERSOLD', 30.0)
-            rsi_overbought = getattr(config, 'RUSSIAN_BB_RSI_OVERBOUGHT', 70.0)
             # Filtro Anti-Tendência: não opere contra uma tendência forte alinhada
             uptrend = c_last.get('ema9', 0) > c_last.get('sma21', 0) and c_last.get('sma21', 0) > c_last.get('ema50', 0)
             downtrend = c_last.get('ema9', 0) < c_last.get('sma21', 0) and c_last.get('sma21', 0) < c_last.get('ema50', 0)

@@ -139,3 +139,68 @@ def test_russian_bb_does_not_fire_when_width_below_minimum():
     valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, symbol="HK50")
     russian = [s for s in valid_setups if s['setup'] == 'russian_bb']
     assert len(russian) == 0
+
+
+def test_russian_bb_eurusd_uses_asset_specific_min_width():
+    """EURUSD usa RUSSIAN_BB_PARAMS (min_width 0.0008), nao o global (40.0).
+
+    Uma banda de largura 0.0015 (>= 0.0008, mas << 40.0) deve disparar
+    no EURUSD, mesmo estando abaixo do minimo global.
+    """
+    data = {
+        'time': pd.date_range("2023-01-01", periods=6, freq='h'),
+        'open': [1.0850, 1.0855, 1.0860, 1.0855, 1.0850, 1.0845],
+        'high': [1.0860, 1.0870, 1.0865, 1.0860, 1.0855, 1.0848],
+        'low':  [1.0845, 1.0850, 1.0855, 1.0850, 1.0842, 1.0828],
+        'close':[1.0855, 1.0860, 1.0858, 1.0852, 1.0845, 1.0840],
+    }
+    df = pd.DataFrame(data)
+    df['sma21'] = 1.0850
+    df['sma200'] = 1.0800
+    df['ema9'] = 1.0855
+    df['ema50'] = 1.0845      # sem downtrend (ema9 > sma21 > ema50 = uptrend)
+    df['bollinger_lower'] = 1.0830
+    df['bollinger_upper'] = 1.0845    # bb_width = 0.0015 >= 0.0008 (EURUSD)
+    df['rsi14'] = 20.0                # < rsi_oversold do EURUSD (35)
+    df['atr'] = 0.0008
+    df['ema9_up'] = False
+    df['ema9_down'] = False
+    df['sma21_up'] = False
+    df['sma21_down'] = False
+
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.00001, symbol="EURUSD")
+    russian = [s for s in valid_setups if s['setup'] == 'russian_bb']
+    assert len(russian) == 1, f"russian_bb deveria disparar no EURUSD, obtive: {[s['setup'] for s in valid_setups]}"
+    assert russian[0]['action'] == 'buy'
+
+
+def test_russian_bb_eurusd_fallback_to_global_without_override():
+    """Ativo SEM override no RUSSIAN_BB_PARAMS usa os valores globais.
+
+    Um symbol arbitrario (ex: "XXXUSD") com banda largura 1.5 (>= 40? nao)
+    NAO deve disparar, pois o minimo global (40.0) continua valido.
+    """
+    data = {
+        'time': pd.date_range("2023-01-01", periods=6, freq='h'),
+        'open': [25000, 25020, 25040, 25010, 24980, 24960],
+        'high': [25050, 25060, 25060, 25020, 24990, 24970],
+        'low':  [24990, 25000, 25000, 24970, 24940, 24920],
+        'close':[25010, 25030, 25020, 24980, 24950, 24930],
+    }
+    df = pd.DataFrame(data)
+    df['sma21'] = 25000.0
+    df['sma200'] = 24000.0
+    df['ema9'] = 25010.0
+    df['ema50'] = 25020.0
+    df['bollinger_lower'] = 24965.0
+    df['bollinger_upper'] = 24980.0   # bb_width = 15 < 40
+    df['rsi14'] = 25.0
+    df['atr'] = 20.0
+    df['ema9_up'] = False
+    df['ema9_down'] = False
+    df['sma21_up'] = False
+    df['sma21_down'] = False
+
+    valid_setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, symbol="XXXUSD")
+    russian = [s for s in valid_setups if s['setup'] == 'russian_bb']
+    assert len(russian) == 0

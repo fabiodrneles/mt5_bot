@@ -100,7 +100,12 @@ CONFIG_SETUPS = {
 ASSET_SETUPS = {
     "default": ["9.1", "9.2", "9.3", "9.4", "PC", "FFFD", "GAP", "DiNapoli", "IFR2", "SAR", "RompFalso"],
     "HK50": ["russian_bb"],
-    "HKG50": ["russian_bb"]
+    "HKG50": ["russian_bb"],
+    # EURUSD: setups 9.x PERDEM (PF 0.45, backtest 12/2025-08/2026). russian_bb
+    # e lucrativo mas so opera com saldo >= ~$60 (SL meia banda > shield 1.5%
+    # abaixo disso). Config pronto; manter EURUSD desligado/nao monitorado
+    # enquanto o saldo for menor que ~$60.
+    "EURUSD": ["russian_bb"],
 }
 
 ASSET_MIN_LOTS = {
@@ -122,6 +127,20 @@ ASSET_MIN_LOTS = {
 RUSSIAN_BB_MIN_WIDTH = 40.0          # largura minima da banda (unidade de preco)
 RUSSIAN_BB_RSI_OVERSOLD = 30.0       # compra quando IFR14 < 30
 RUSSIAN_BB_RSI_OVERBOUGHT = 70.0     # venda quando IFR14 > 70
+
+# --- Override por ativo (Fase 3: Maestro Multi-Estrategia) ---
+# Cada ativo pode ter parametros proprios do russian_bb. Se o ativo nao estiver
+# aqui, usa os valores globais acima (RUSSIAN_BB_MIN_WIDTH/RSI_*).
+# EURUSD: otimizado por grid + walk-forward COM filtro SMA200 (50k candles M5,
+# spread 9 ticks, 12/2025-08/2026). Treino PF 1.28 / teste PF 1.85 (nao overfit),
+# 60 ops PF 1.42 +$15.33 intacto. Combos 9.x PERDEM no EURUSD (PF 0.45).
+# ATENCAO: russian_bb no EURUSD so opera com saldo >= ~$60 (SL = meia banda
+# ~$0.59 = 3.6% do saldo a $16.47 -> Risk Shield rejeita tudo abaixo disso).
+RUSSIAN_BB_PARAMS = {
+    "HK50":  {"min_width": 40.0,   "rsi_oversold": 30.0, "rsi_overbought": 70.0},
+    "HKG50": {"min_width": 40.0,   "rsi_oversold": 30.0, "rsi_overbought": 70.0},
+    "EURUSD": {"min_width": 0.0008, "rsi_oversold": 35.0, "rsi_overbought": 75.0},
+}
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {
