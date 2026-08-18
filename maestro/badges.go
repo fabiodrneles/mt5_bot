@@ -25,6 +25,13 @@ func statusBadge(stateText string) StatusBadge {
 	case strings.Contains(upper, "IN_POSITION"),
 		strings.Contains(upper, "PAPER_TRADE"):
 		return StatusBadge{Label: "POS", Color: ColorGreen}
+	case strings.Contains(upper, "LOCK"),
+		strings.Contains(upper, "BLOQUEADO"):
+		return StatusBadge{Label: "LOCK", Color: ColorDim}
+	case strings.Contains(upper, "REJEITADO"),
+		strings.Contains(upper, "FECHADO"),
+		strings.Contains(upper, "MAX LOSS"):
+		return StatusBadge{Label: "WAIT", Color: ColorAmber}
 	case strings.Contains(upper, "ERRO"),
 		strings.Contains(upper, "ERROR"):
 		return StatusBadge{Label: "ERRO", Color: ColorRed}

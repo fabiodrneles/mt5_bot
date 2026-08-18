@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.5.3] - 2026-08-18
+- **Transparencia Maestro:** Adicionado suporte visual (`[LOCK]`, `[WAIT]`) para bloqueio por margem de seguranca (Garage Lock) e Horario Fechado diretamente na TUI Go.
+- **Crypto-free Engine:** Removidas configuracoes e calculos legados do BCHUSD/BTCUSD/ETHUSD para focar capital e limites exclusivamente no HK50/Indices/Forex apos teste quantitativo de convexidade.
+
 ## [2.5.2] - 2026-08-18
 ### Adicionado
 - **Trava de Garagem (Garage Lock):** O bot agora impede a execucao de ativos pesados caso o saldo seja inferior a margem de seguranca (`MIN_BALANCE_REQUIREMENTS` em `config.py`), protegendo contra Margin Call precoce.

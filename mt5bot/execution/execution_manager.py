@@ -148,8 +148,8 @@ def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
         return f"🟡 PENDING ({side})"
     else:
         # Nao temos nada, buscar novos setups
-        _scan_and_execute(symbol, df, timeframe_name=timeframe_name)
-        return "🔵 SCANNING"
+        scan_state = _scan_and_execute(symbol, df, timeframe_name=timeframe_name)
+        return scan_state if scan_state else "🔵 SCANNING"
 
 
 def _manage_study_cycle(symbol, df, timeframe_name):
@@ -450,7 +450,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     import os
     if os.path.exists(".no_new_trades"):
         logging.info(f"[{symbol}] Scan abortado. Lock .no_new_trades detectado (aguardando shutdown).")
-        return
+        return "🔴 BLOQUEADO"
 
     # State global (simples) para lembrar o último candle que reportamos para não flodar o console
     if not hasattr(_scan_and_execute, "last_logged_candle"):
@@ -468,7 +468,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
         if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
             logging.info(f"[{symbol}] Aguardando: {rejection_reason}")
             _scan_and_execute.last_logged_candle[symbol] = current_candle_time
-        return
+        return None
 
     # 2. Motor de decisao (spec 5.5): gate RRR + scoring multicriterio.
     #    Ordena por score decrescente; executa apenas o primeiro candidato.
@@ -494,7 +494,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
                 logging.info(f"[{symbol}] Setups detectados, mas todos vetados pelo scoring/RRR.")
                 _scan_and_execute.last_logged_candle[symbol] = current_candle_time
-            return
+            return None
     best_setup = ranked_setups[0]
     side = best_setup["action"].upper()
     setup_name = best_setup["setup"]
@@ -509,9 +509,9 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             f"lucrativa do ativo ({session_info['start_time']} a "
             f"{session_info['end_time']} BRT). Sinais fora dela historicamente "
             f"reduzem/destroem o lucro. Sugestao: desligue o bot e religue "
-            f"dentro da janela lucrativa para o ativo render melhor."
+            f"lucrativa para o ativo render melhor."
         )
-        return
+        return "⏳ HORÁRIO FECHADO"
 
     # 2.5 Daily Max Loss Shield: bloqueia novas entradas se a perda diaria exceder o limite.
     try:
@@ -519,7 +519,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
         daily_pnl = tracker.get_daily_pnl()
         if daily_pnl is not None and daily_pnl <= -limits["max_daily_loss_currency"]:
             logging.warning(f"[{symbol}] Daily Max Loss Shield ativo (perda diaria {daily_pnl:.2f} <= -{limits['max_daily_loss_currency']:.2f}). Sem novas ordens.")
-            return
+            return "🔴 MAX LOSS DIÁRIO"
     except Exception as e:
         logging.warning(f"[{symbol}] Falha ao avaliar Daily Max Loss Shield: {e}")
 
@@ -533,7 +533,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
                 logging.info(f"[{symbol}] Setup {setup_name} de {side} rejeitado (filtro RVOL: volume abaixo do limiar).")
                 _scan_and_execute.last_logged_candle[symbol] = current_candle_time
-            return
+            return None
 
         
     # 3. Calcular Tamanho da Posicao
@@ -549,7 +549,10 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Spread Trap", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
         elif "Risco do Stop Loss" in reason:
             tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Max Risk Exceeded", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
-        return
+        
+        if "GARAGE LOCK" in reason:
+            return "🔒 GARAGE LOCK"
+        return "🟡 SINAL REJEITADO"
         
     # 4. Enviar Ordem
     logging.info(f"[{symbol}] Sinal de {side} detectado (Setup {setup_name}). Enviando Ordem STOP.")
@@ -573,3 +576,5 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
         )
     else:
         logging.error(f"[{symbol}] Falha ao colocar ordem. Erro: {result.retcode if result else 'N/A'}")
+        return "🔴 ERRO DE ORDEM"
+    return "🟢 EM POSIÇÃO"
