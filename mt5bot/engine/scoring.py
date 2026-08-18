@@ -67,6 +67,9 @@ def calcular_score(dados_sinal: dict, contexto: dict) -> float:
     if dados_sinal.get("setup") == "russian_bb":
         return 100.0  # Prioridade máxima, ignora filtros macro de tendência
 
+    elif dados_sinal.get("setup") == "judas":
+        return 90.0  # Setup probabilistico de horario tem maxima prioridade
+
     if rrr < getattr(config, "MIN_RISK_REWARD", 1.0):
         return 0.0  # trava de corte: nao paga o risco minimo
 

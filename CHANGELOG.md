@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.6.0] - 2026-08-18
+- **Novo Setup Probabilístico (Judas Swing):** Introduzido o setup `judas`, um algorítmo que atira contra o mercado (fading the open) em aberturas-chave baseadas em microestrutura (04:15 BRT Londres e 11:15 BRT NY Reversal). Totalmente vetorizado no `strategy.py`.
+- **Proteção do Capital (Garage Lock):** O bloqueio de margem para habilitar o motor do EURUSD subiu de $60 para $100 após exaustiva simulação de Monte Carlo para absorção de drawdowns estatísticos. O motor já está preparado aguardando esse marco patrimonial.
+
 ## [2.5.5] - 2026-08-18
 - **Nível 0 de Avaliação:** A verificação de Garage Lock (Margem Mínima) e de Horário Operacional agora são "Bloqueios Nível 0". Ocorrem antes de qualquer varredura técnica, garantindo que o Maestro exiba instantaneamente os bloqueios sem precisar de um evento de setup técnico para disparar a tela.
 

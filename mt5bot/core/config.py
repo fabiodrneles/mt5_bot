@@ -100,10 +100,10 @@ ASSET_SETUPS = {
     "HK50": ["russian_bb"],
     "HKG50": ["russian_bb"],
     # EURUSD: setups 9.x PERDEM (PF 0.45, backtest 12/2025-08/2026). russian_bb
-    # e lucrativo mas so opera com saldo >= ~$60 (SL meia banda > shield 1.5%
-    # abaixo disso). Config pronto; manter EURUSD desligado/nao monitorado
-    # enquanto o saldo for menor que ~$60.
-    "EURUSD": ["russian_bb"],
+    # e lucrativo mas so opera com saldo >= ~$60. Como temos pouco saldo, vamos
+    # ligar o 'judas' (Setup probabilistico de horario). O motor ja o mantem na garagem
+    # esperando a margem chegar a $100 por seguranca.
+    "EURUSD": ["judas"],
     # Motor Otimizado JP225: Ponto Contínuo (PC) na Sessão Asiática
     "JP225": ["PC"],
     "JPN225": ["PC"],
@@ -121,8 +121,14 @@ ASSET_MIN_LOTS = {
 MIN_BALANCE_REQUIREMENTS = {
     "JP225": 300.00,
     "JPN225": 300.00,
-    "EURUSD": 60.00,
+    "EURUSD": 100.00,
 }
+
+# --- Setup Judas (Fading the Open) — EURUSD ---
+JUDAS_TARGET_TIMES = ["04:15", "11:15"] # Horarios dos fechamentos dos candles a serem operados
+JUDAS_SL_POINTS = 150.0  # SL (15 pips para absorver spread)
+JUDAS_TP_POINTS = 300.0  # TP (30 pips)
+POINT_OVERRIDE = 0.00001 # Point padrao do EURUSD
 
 # --- Setup Russo (BB + RSI Mean Reversion) — HK50 ---
 # Parametros validados por otimizacao convexa (60k candles M5, spread 4.5,

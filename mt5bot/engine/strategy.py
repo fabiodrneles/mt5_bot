@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import datetime
+import pytz
 from mt5bot.core import config
 from mt5bot.engine.indicators import swing_levels, fib_extension_targets
 
@@ -200,6 +202,44 @@ class StrategyScorer:
                         "target": c_last['bollinger_lower']
                     })
                     
+        # ----------------------------------------------------
+        # SETUP JUDAS (Fading the Open - Probabilístico)
+        # ----------------------------------------------------
+        if _enabled("judas") and 'time' in c_last:
+            # Pega o horario do candle que acabou de fechar no MT5
+            try:
+                t_last = pd.to_datetime(c_last['time'], unit='s')
+            except:
+                t_last = c_last['time']
+            
+            target_times = getattr(config, 'JUDAS_TARGET_TIMES', ["04:15", "11:15"])
+            sl_pts = getattr(config, 'JUDAS_SL_POINTS', 100.0)
+            tp_pts = getattr(config, 'JUDAS_TP_POINTS', 200.0)
+            point = getattr(config, 'POINT_OVERRIDE', 0.00001) 
+            
+            if hasattr(t_last, 'strftime'):
+                current_hm = t_last.strftime("%H:%M")
+                
+                if current_hm in target_times:
+                    body = c_last['close'] - c_last['open']
+                    if abs(body) >= 2 * point: # ignorar dojis
+                        if body > 0: # Alta -> Vender
+                            setups_found.append({
+                                "setup": "judas", "action": "sell",
+                                "trigger_price": c_last['close'], 
+                                "stop_loss": c_last['close'] + (sl_pts * point),
+                                "target": c_last['close'] - (tp_pts * point),
+                                "score": 200 # Prioridade absoluta
+                            })
+                        else: # Baixa -> Comprar
+                            setups_found.append({
+                                "setup": "judas", "action": "buy",
+                                "trigger_price": c_last['close'],
+                                "stop_loss": c_last['close'] - (sl_pts * point),
+                                "target": c_last['close'] + (tp_pts * point),
+                                "score": 200
+                            })
+                            
         # ----------------------------------------------------
         # PONTO CONTÍNUO (PC)
         # ----------------------------------------------------
