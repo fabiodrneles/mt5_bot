@@ -8,14 +8,14 @@ Este documento arquiva as frentes de pesquisa quantitativa para otimizar a perfo
 **O Problema:** O setup Russo (HK50) possui alta margem de segurança e sobrevivência comprovada (sobreviveu 2 anos com saldo de $16 sem quebrar), porém o lucro nominal é baixo porque a estratégia fecha a operação precocemente (ao tocar a média central), desperdiçando o movimento de reversão se ele se transformar numa nova tendência forte.
 **A Solução:** Testar a adição de um **Trailing Stop Inteligente (Baseado em ATR)** ou gatilho de **Breakeven**. 
 **Objetivo:** Transformar os lucros de centavos em lucros de dólares capturando as "caudas gordas" (fat tails) do mercado. Se o trade andar a favor, o robô tranca o capital no 0 a 0 e arrasta o stop junto com o preço.
-**Status:** 🟡 Na Fila de Pesquisa (Recomendado como próximo passo)
+**Status:** ✅ **CONCLUÍDO (v2.7.0)** - Implementado modo `"atr"`. WinRate saltou de 37% para 46% e o pior trade caiu de -$6.41 para -$3.23 no HK50.
 
 ## 2. Pesquisa Geográfica: O "Turno da Madrugada" (Expansão Lateral)
 **O Problema:** Com margem pequena, o robô só liga o motor das 22:15 às 01:00 (HK50), deixando o capital ocioso por 21 horas no dia.
 **A Solução:** Usar otimização convexa e backtests em Python para caçar distorções probabilísticas de *Mean Reversion* (Reversão à Média) em pares exóticos e de baixo custo durante a madrugada europeia (01:00 às 05:00 BRT).
 **Ativos Alvo:** AUDCAD, AUDNZD, EURAUD (horários mortos sem grandes injeções de volume institucional, onde algoritmos laterais costumam reinar).
 **Objetivo:** Adicionar um segundo motor seguro ao robô, complementando o horário do HK50 sem expor a conta ao risco direcional das aberturas agressivas.
-**Status:** ⚪ Ideia Mapeada
+**Status:** ❌ **REJEITADO POR INVIABILIDADE MATEMÁTICA** - Teste laboratorial massivo (>100k velas M15) comprovou que mesmo otimizando para Reversão à Média com Bandas de Bollinger e IFR, o WinRate trava em ~43%. Como reversões exigem risco/retorno de 1:1, a estatística condena a conta a um sangramento contínuo. Mercado asiático muito errático e com "Fakeouts" letais.
 
 ## 3. Inovação Elite: Machine Learning Nível 1
 **O Problema:** Setup Russo no HK50 M5 acerta ~40% das vezes de forma mecânica. Muitas entradas são feitas durante falsos sinais de exaustão, resultando em estopadas que poderiam ser evitadas se o contexto fosse melhor analisado.
