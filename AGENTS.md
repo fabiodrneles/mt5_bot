@@ -122,14 +122,24 @@ SCANNING ──→ SIGNAL_READY ──→ IN_POSITION ──→ WATCHING_92
 
 ---
 
-## 5. COMANDOS
+## 5. COMANDOS E FERRAMENTAS PARA IA (Token-Savers)
+
+Para **economizar tokens** e não sobrecarregar seu limite de contexto lendo arquivos JSON ou `.log` gigantescos, **use EXCLUSIVAMENTE os comandos do `bot.bat`** (na raiz do projeto) para investigar o estado do robô. 
+**NUNCA** leia arquivos de log completos ou `mt5bot_state.json` inteiros.
 
 ```powershell
-python main.py                 # Rodar o bot
-python -m pytest -q            # Testes (25+)
-python tools\backtest.py --months 12                # Simulador retroativo financeiro (Backtest)
-python memoria\scripts\query_memory.py "pergunta"   # Consultar memória RAG
-python memoria\scripts\build_memory.py              # Reindexar memória
+bot.bat diagnose    # Traz erros das ultimas 24h e conexao MT5 (use em vez de ler bot.log)
+bot.bat hardware    # Mostra CPU/RAM (MUITO IMPORTANTE: A maquina tem apenas 4GB RAM)
+bot.bat market      # Mostra spreads, margins e precos do mercado atual
+bot.bat config      # Mostra o Risco % e Setups ligados (use em vez de ler config.py)
+bot.bat positions   # Mostra ordens abertas e fantasmas (use em vez de ler JSONs)
+bot.bat performance # Mostra Lucro Liquido e WinRate (PnL da semana)
+bot.bat tail        # Imprime cirurgicamente as ultimas 15 linhas do bot.log
+bot.bat panic       # FECHA TODAS AS ORDENS IMEDIATAMENTE NO MT5 EM CASO DE BUG
+bot.bat ask "X"     # Consulta a memoria RAG (em vez de digitar o caminho completo)
+bot.bat backtest HK50 1 # Roda o simulador financeiro 
+bot.bat test        # Roda o pytest
+python main.py      # Rodar o bot
 ```
 
 ---
