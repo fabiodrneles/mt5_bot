@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.7.1] - 2026-08-18
+- **Fix (Maestro UI):** Corrigido o painel do Maestro escrito em Go que exibia um texto chumbado visual "LOTE 0.10" para o HK50. O display agora respeita a configuração base (0.01) de contas pequenas.
+- **Limpeza de Código (Linting):** Limpeza de dependências no `go.mod`, refatoração de Clean Code no `main.go` e atualização do padrão de licença no `pyproject.toml`.
+
 ## [2.7.0] - 2026-08-18
 - **Trailing Stop Otimizado via ATR:** Adicionado o modo matemático `"atr"` ao `trailing.py`. O bot agora espreme tendências alongando a saída (Trailing de 1.5x ATR). Simulações Quant de 2 anos no HK50 (M5) provam um salto de WinRate (37% -> 46%), Drawdown reduzido à metade, e Lucro Líquido 138% maior.
 - O Maestro passa a utilizar este novo modo dinâmico por padrão.

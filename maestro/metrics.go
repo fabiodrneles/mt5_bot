@@ -112,11 +112,9 @@ func workerSummary(w *PythonWorker, mode string) Summary {
 }
 
 // assetMinLot espelha config.ASSET_MIN_LOTS para exibição do lote por ativo:
-// HK50/HKG50 operam com 0.10; os demais com 0.01.
+// HK50 agora retorna 0.01 porque o Python risk_calculator é quem gerencia lotes maiores.
 func assetMinLot(symbol string) float64 {
 	switch symbol {
-	case "HK50", "HKG50":
-		return 0.10
 	default:
 		return 0.01
 	}

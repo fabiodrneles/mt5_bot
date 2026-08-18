@@ -78,8 +78,8 @@ func TestRenderWorkerLinePrejuizoVermelho(t *testing.T) {
 	if !strings.Contains(line, refRed) {
 		t.Fatalf("PnL negativo deveria usar ColorRed: %q", line)
 	}
-	if !strings.Contains(stripAnsi(line), "LOTE 0.10") {
-		t.Fatalf("HK50 deveria exibir LOTE 0.10: %q", stripAnsi(line))
+	if !strings.Contains(stripAnsi(line), "LOTE 0.01") {
+		t.Fatalf("HK50 deveria exibir LOTE 0.01: %q", stripAnsi(line))
 	}
 }
 

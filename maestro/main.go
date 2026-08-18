@@ -180,9 +180,7 @@ func renderWorkerLine(w *PythonWorker, s Summary, width int) string {
 		Foreground(pnlColor).
 		Bold(true).
 		Render(pnlPlain)
-	if strings.Contains(plain, pnlPlain) {
-		plain = strings.Replace(plain, pnlPlain, styledPnl, 1)
-	}
+	plain = strings.Replace(plain, pnlPlain, styledPnl, 1)
 	return plain
 }
 
