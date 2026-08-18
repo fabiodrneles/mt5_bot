@@ -58,6 +58,27 @@
 
 ## Instalação e execução
 
+### 🚀 Execução e Ferramentas (Canivete Suíço)
+
+O projeto possui um orquestrador central na raiz (`bot.bat`) que salva tempo e tokens, servindo de atalho para todas as operações do robô. 
+Basta abrir o terminal e digitar os comandos abaixo:
+
+```powershell
+bot.bat diagnose    # Traz erros das ultimas 24h e conexao MT5 (Health Check)
+bot.bat hardware    # Mostra CPU/RAM disponível
+bot.bat market      # Mostra spreads, margins e precos do mercado atual
+bot.bat config      # Mostra o Risco % e Setups ligados
+bot.bat positions   # Mostra ordens abertas reais e fantasmas
+bot.bat performance # Mostra Lucro Liquido e WinRate (PnL da semana)
+bot.bat tail        # Imprime cirurgicamente as ultimas 15 linhas do bot.log
+bot.bat panic       # FECHA TODAS AS ORDENS IMEDIATAMENTE NO MT5 EM CASO DE BUG
+bot.bat ask "X"     # Consulta a memoria RAG (ex: bot.bat ask "setup 9.4")
+bot.bat train       # Treina a IA (XGBoost) com os dados mais recentes
+bot.bat backtest    # Roda o simulador financeiro 
+bot.bat test        # Roda os testes unitários da arquitetura
+python main.py      # Inicia o robô no modo de operação
+```
+
 ```bash
 git clone https://github.com/fabiodrneles/mt5_bot.git
 cd mt5_bot
