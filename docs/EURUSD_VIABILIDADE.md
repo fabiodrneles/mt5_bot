@@ -118,9 +118,35 @@ Com $16.47 o shield rejeita tudo do EURUSD — comportamento correto e desejado.
 
 ---
 
-## 7. Lembrete do que está pronto e protegido
+## 7. JANELA LUCRATIVA do EURUSD (implementado) + Monte Carlo a $60
 
-- **HK50:** v2.4.1 na main (commit `2734282`), 142 testes, validado walk-forward (PF 2.27), protegido (lote 1%, shield, daily max loss, breakeven, saída parcial, janela 22:15–01:00 BRT)
-- **EURUSD:** config pronta (russian_bb 0.0008/35/75 por ativo) mas **engavetada** — o shield global impede operação com $16.47
+**Horário (BRT):** análise dos 94 trades gerados com o motor real (lote dinâmico,
+spread 9 ticks, a $60) mostrou que a **sessão Londres 03:00–09:00 BRT concentra
+30 ops e +$13.00** de +$7.75 total. Sinais fora dela **destroem o lucro**
+(especialmente o fechamento 21:00–23:59 BRT: −$3.75). Implementado em
+`SYMBOL_TRADING_HOURS["EURUSD"]` = `03:00–09:00` com `force_close` 09:30, e o
+motor agora avisa claramente quando o setup é ignorado por estar fora da janela
+lucrativa (sugere desligar o bot e religar dentro da janela).
+
+**Monte Carlo (50k trajetórias, trades fiéis, a $60, HK50 + EURUSD):**
+
+| Cenário | % positivo no ano | Mediana | p10 / p90 | Chance de zerar |
+|---|---|---|---|---|
+| HK50 + EURUSD | **75.2%** | $66.75 | $54 / $80 | **0.00%** |
+
+- Números **conservadores**: a simulação usa TP=banda oposta, sem breakeven/
+  saída parcial/ATR dinâmico (o motor real é melhor — HK50 valida PF 2.27).
+- **A conta nunca zera**: shield 1.5%/op + daily max loss 2% + janela lucrativa.
+- Pior cenário realista: andar de lado ou ~−$6 no ano (p10), não queimar a conta.
+- Observação de rigor: o `tools/backtest.py` oficial está **desatualizado**
+  (width≥50) e não reproduz o PF 2.27 (usa TP/SL simples, sem motor completo);
+  os números fiéis acima vêm de simulação própria com `order_calc_profit`.
+
+---
+
+## 8. Lembrete do que está pronto e protegido
+
+- **HK50:** v2.4.1 na main (commit `2734282`), 143 testes, validado walk-forward (PF 2.27), protegido (lote 1%, shield, daily max loss, breakeven, saída parcial, janela 22:15–01:00 BRT)
+- **EURUSD:** config pronta (russian_bb 0.0008/35/75 por ativo) + **janela lucrativa 03:00–09:00 BRT implementada** mas **engavetada** — o shield global impede operação com $16.47
 - **Maestro:** compilado e em dia
-- **Saldo $16.47:** HK50 é o único ativo operável agora
+- **Saldo $16.47:** HK50 é o único ativo operável agora; a $60 o EURUSD entra (75% de chance de fechar o ano positivo junto com o HK50)

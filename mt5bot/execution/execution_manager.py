@@ -504,7 +504,13 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     # 2. Filtrar horario operacional (Risk Calculator)
     session_info = risk_calculator.get_trading_session_info(symbol=symbol)
     if not session_info["is_open"]:
-        logging.info(f"[{symbol}] Setup {setup_name} de {side} ignorado (Fora de horario).")
+        logging.warning(
+            f"[{symbol}] Setup {setup_name} de {side} ignorado: FORA da janela "
+            f"lucrativa do ativo ({session_info['start_time']} a "
+            f"{session_info['end_time']} BRT). Sinais fora dela historicamente "
+            f"reduzem/destroem o lucro. Sugestao: desligue o bot e religue "
+            f"dentro da janela lucrativa para o ativo render melhor."
+        )
         return
 
     # 2.5 Daily Max Loss Shield: bloqueia novas entradas se a perda diaria exceder o limite.

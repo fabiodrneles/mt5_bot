@@ -90,6 +90,17 @@ def test_is_within_trading_hours_hk50_and_symbol_specific(monkeypatch):
     assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="11:30") is True
     assert risk_calculator.is_within_trading_hours(symbol="WING24", current_time_str="20:00") is False
 
+def test_is_within_trading_hours_eurusd_profitable_window(monkeypatch):
+    """Valida a janela LUCRATIVA do EURUSD (russian_bb): 03:00-09:00 BRT.
+    Fora dela o setup e ignorado e o usuario recebe o aviso (validado por
+    grid/walk-forward: sinais fora dessa janela destroem o lucro)."""
+    monkeypatch.undo()
+    assert risk_calculator.is_within_trading_hours(symbol="EURUSD", current_time_str="04:00") is True
+    assert risk_calculator.is_within_trading_hours(symbol="EURUSD", current_time_str="08:59") is True
+    assert risk_calculator.is_within_trading_hours(symbol="EURUSD", current_time_str="10:00") is False
+    assert risk_calculator.is_within_trading_hours(symbol="EURUSD", current_time_str="22:00") is False
+    assert risk_calculator.is_within_trading_hours(symbol="EURUSD", current_time_str="02:59") is False
+
 
 def test_open_market_suggestions_and_margin(monkeypatch):
     """Testa a identificacao de todos os ativos fechados e geracao de sugestoes com calculo de margem."""

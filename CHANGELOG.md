@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.5.1] - 2026-08-17
+### Adicionado
+- **Janela lucrativa do EURUSD (03:00–09:00 BRT):** análise dos 94 trades gerados com o motor real (lote dinâmico, spread 9 ticks, saldo $60) mostrou que a sessão Londres concentra 30 ops e +$13.00 de +$7.75 total — sinais fora dela **destroem o lucro** (fechamento 21:00–23:59 BRT: −$3.75). `SYMBOL_TRADING_HOURS["EURUSD"]` agora é `03:00–09:00` com `force_close` 09:30.
+- **Aviso dinâmico de horário no motor:** quando um setup é ignorado por estar fora da janela operacional, o bot agora loga **WARNING** com a janela lucrativa do ativo e sugere desligar/religar dentro dela (`execution_manager._scan_and_execute`).
+- **Teste da janela lucrativa EURUSD** (`test_is_within_trading_hours_eurusd_profitable_window`).
+### Analisado (documentado em `docs/EURUSD_VIABILIDADE.md`)
+- **Monte Carlo a $60 (50k trajetórias, trades fiéis HK50+EURUSD):** 75.2% de chance de fechar o ano positivo, mediana $66.75 (p10 $54 / p90 $80), **0% de chance de zerar a conta**. Números conservadores (sem breakeven/saída parcial — o motor real é melhor, HK50 PF 2.27).
+- **Rigor:** `tools/backtest.py` oficial está desatualizado (width≥50, TP/SL simples) e não reproduz o PF 2.27 do changelog — os números fiéis vêm de simulação própria com `order_calc_profit`.
+
 ## [2.5.0] - 2026-08-17
 ### Adicionado
 - **Override por ativo dos parâmetros do Setup Russo (`RUSSIAN_BB_PARAMS`):** cada ativo pode ter `min_width`/`rsi_oversold`/`rsi_overbought` próprios, com fallback para os globais. HK50/HKG50 mantêm 40/30/70; **EURUSD** recebe `0.0008/35/75`.

@@ -242,7 +242,12 @@ SYMBOL_TRADING_HOURS = {
     "UK100": {"start": "04:00", "end": "17:00", "force_close": "17:30"},
 
     # Forex Principal e Cruzados (Londres e Nova York)
-    "EURUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
+    # EURUSD (russian_bb): JANELA LUCRATIVA validada em 94 trades (M5,
+    # spread 9t, lote dinamico). Sessao Londres 03:00-09:00 BRT concentra
+    # 30 ops e +$13.00 de +$7.75 total — sinais fora dela DESTROEM o lucro
+    # (especialmente fechamento 21:00-23:59 BRT, -$3.75). Fora dessa janela
+    # o bot ignora o setup e avisa o usuario.
+    "EURUSD":{"start": "03:00", "end": "09:00", "force_close": "09:30"},
     "GBPUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "USDJPY":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "AUDUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
