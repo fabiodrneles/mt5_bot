@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "dataset_live_experience_*.csv"
-      - "data/dataset_massive.csv"
+      - "data/dataset_massive*.csv"
       - "tools/train_xgboost.py"
   workflow_dispatch:
 

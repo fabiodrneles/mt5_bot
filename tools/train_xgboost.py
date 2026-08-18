@@ -19,6 +19,8 @@ def train_for_dataset(csv_path):
     symbol = "UNKNOWN"
     if filename.startswith("dataset_live_experience_") and filename.endswith(".csv"):
         symbol = filename.replace("dataset_live_experience_", "").replace(".csv", "")
+    elif filename.startswith("dataset_massive_") and filename.endswith(".csv"):
+        symbol = filename.replace("dataset_massive_", "").replace(".csv", "")
     elif filename == "dataset_massive.csv":
         symbol = "MASSIVE"
         
@@ -74,7 +76,7 @@ def main():
     # Procura por todos os arquivos de dataset na raiz do projeto
     search_patterns = [
         os.path.join(ROOT_DIR, "dataset_live_experience_*.csv"),
-        os.path.join(ROOT_DIR, "data", "dataset_massive.csv")
+        os.path.join(ROOT_DIR, "data", "dataset_massive*.csv")
     ]
     
     csv_files = []

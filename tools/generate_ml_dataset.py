@@ -182,7 +182,7 @@ def main():
         out_dir = Path("data")
         out_dir.mkdir(exist_ok=True)
         
-        out_file = out_dir / "dataset_massive.csv"
+        out_file = out_dir / f"dataset_massive_{args.symbol}.csv"
         out_df.to_csv(out_file, index=False)
         print(f"\nSucesso! Foram geradas {len(dataset)} operações (features e labels).")
         print(f"Salvo em: {out_file}")
