@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.5.2] - 2026-08-18
+### Adicionado
+- **Trava de Garagem (Garage Lock):** O bot agora impede a execucao de ativos pesados caso o saldo seja inferior a margem de seguranca (`MIN_BALANCE_REQUIREMENTS` em `config.py`), protegendo contra Margin Call precoce.
+- **Escadinha de Capital (Roadmap):** BCHUSD adicionado como ativo padrao para contas de ~$10.00. Margem requerida e de apenas $0.10. Documentacao do plano oficial gerada em `memoria/wiki/roadmap_escadinha.md`.
+- **Motor JP225 Otimizado:** Ativo configurado com Setup Ponto Continuo (PC), janela da Sessao Asiatica (21:00 as 06:00 BRT) e travado para saldos menores que $300.00.
 ## [2.5.1] - 2026-08-17
 ### Adicionado
 - **Janela lucrativa do EURUSD (03:00–09:00 BRT):** análise dos 94 trades gerados com o motor real (lote dinâmico, spread 9 ticks, saldo $60) mostrou que a sessão Londres concentra 30 ops e +$13.00 de +$7.75 total — sinais fora dela **destroem o lucro** (fechamento 21:00–23:59 BRT: −$3.75). `SYMBOL_TRADING_HOURS["EURUSD"]` agora é `03:00–09:00` com `force_close` 09:30.

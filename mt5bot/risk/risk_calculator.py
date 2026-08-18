@@ -60,6 +60,15 @@ def calculate_position_size(
     if balance is None:
         balance = get_account_balance()
     
+    # --- Bloqueio de Garagem (Capital Mínimo) ---
+    min_balance_reqs = getattr(config, 'MIN_BALANCE_REQUIREMENTS', {})
+    if symbol in min_balance_reqs:
+        required_balance = min_balance_reqs[symbol]
+        if balance < required_balance:
+            reason = f"[GARAGE LOCK] {symbol} bloqueado na garagem. Saldo atual (${balance:.2f}) e menor que a margem de seguranca exigida (${required_balance:.2f})."
+            logger.info(reason)
+            return 0.0, 0.0, False, reason
+
     if risk_percent is None:
         risk_percent = config.MAX_RISK_PER_TRADE_PERCENT
         

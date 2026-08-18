@@ -19,7 +19,7 @@ AVAILABLE_SYMBOLS = [
     # Commodities & Metais
     "XAUUSD", "XAGUSD", "WTI", "USOIL",
     # Criptomoedas
-    "BTCUSD", "ETHUSD"
+    "BTCUSD", "ETHUSD", "BCHUSD"
 ]
 
 SYMBOLS = []  # Preenchido pela TUI no startup
@@ -106,11 +106,30 @@ ASSET_SETUPS = {
     # abaixo disso). Config pronto; manter EURUSD desligado/nao monitorado
     # enquanto o saldo for menor que ~$60.
     "EURUSD": ["russian_bb"],
+    # Motor Otimizado JP225: Ponto Contínuo (PC) na Sessão Asiática
+    "JP225": ["PC"],
+    "JPN225": ["PC"],
+    # Degrau 1: Sobrevivencia para saldo de $10
+    "BCHUSD": ["9.1", "PC"],
 }
 
 ASSET_MIN_LOTS = {
     "HK50": 0.01,
-    "HKG50": 0.01
+    "HKG50": 0.01,
+    "JP225": 0.01,
+    "JPN225": 0.01,
+    "BCHUSD": 0.10,
+}
+
+# --- Bloqueio de Garagem (Capital Mínimo) ---
+# Impede o bot de ligar motores pesados em contas pequenas.
+MIN_BALANCE_REQUIREMENTS = {
+    "JP225": 300.00,
+    "JPN225": 300.00,
+    "HK50": 150.00,
+    "HKG50": 150.00,
+    "EURUSD": 60.00,
+    "BCHUSD": 10.00,
 }
 
 # --- Setup Russo (BB + RSI Mean Reversion) — HK50 ---
@@ -225,8 +244,9 @@ SYMBOL_TRADING_HOURS = {
     "HK50":  {"start": "22:15", "end": "01:00", "force_close": "01:30"},
     "HKG50": {"start": "22:15", "end": "01:00", "force_close": "01:30"},
 
-    # Japao Nikkei 225
-    "JPN225":{"start": "21:00", "end": "15:00", "force_close": "15:30"},
+    # Japao Nikkei 225 (Janela Asiática Otimizada - Setup PC)
+    "JP225": {"start": "21:00", "end": "06:00", "force_close": "06:30"},
+    "JPN225":{"start": "21:00", "end": "06:00", "force_close": "06:30"},
 
     # Indices Americanos (S&P500, Nasdaq, Dow Jones)
     "US500": {"start": "10:30", "end": "17:00", "force_close": "17:30"},
@@ -269,6 +289,7 @@ SYMBOL_TRADING_HOURS = {
     # Criptomoedas (24/7)
     "BTCUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
     "ETHUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
+    "BCHUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
 }
 
 # --- Filtro Multi-Timeframe (MTF) ---
