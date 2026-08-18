@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.5.5] - 2026-08-18
+- **Nível 0 de Avaliação:** A verificação de Garage Lock (Margem Mínima) e de Horário Operacional agora são "Bloqueios Nível 0". Ocorrem antes de qualquer varredura técnica, garantindo que o Maestro exiba instantaneamente os bloqueios sem precisar de um evento de setup técnico para disparar a tela.
+
 ## [2.5.4] - 2026-08-18
 - **Limpeza do Código e Syntax Fix:** Correção de um `IndentationError` introduzido na limpeza das criptomoedas. Adicionalmente, removidos os parâmetros legados do ativo `WIN` (Mini Índice da B3) do motor, adequando-o para corretoras internacionais como a Hantec.
 

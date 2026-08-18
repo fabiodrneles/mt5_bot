@@ -456,7 +456,46 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     if not hasattr(_scan_and_execute, "last_logged_candle"):
         _scan_and_execute.last_logged_candle = {}
 
-    # 1. Obter o melhor setup e o motivo de rejeição (se houver)
+    # 0. Bloqueio de Garagem (Capital Mínimo)
+    # Protege contra operacoes fora da margem antes mesmo de escanear o mercado
+    min_balance_reqs = getattr(config, 'MIN_BALANCE_REQUIREMENTS', {})
+    if symbol in min_balance_reqs:
+        from mt5bot.risk.risk_calculator import get_account_balance
+        balance = get_account_balance()
+        required_balance = min_balance_reqs[symbol]
+        if balance < required_balance:
+            if not hasattr(_scan_and_execute, "last_logged_garage_warn"):
+                _scan_and_execute.last_logged_garage_warn = {}
+                
+            import time
+            current_time = time.time()
+            last_warn = _scan_and_execute.last_logged_garage_warn.get(symbol, 0)
+            
+            # Loga no maximo a cada 5 minutos
+            if current_time - last_warn > 300:
+                logging.info(f"[{symbol}] GARAGE LOCK ativo. Saldo atual (${balance:.2f}) e menor que a margem exigida (${required_balance:.2f}).")
+                _scan_and_execute.last_logged_garage_warn[symbol] = current_time
+                
+            return "🔒 GARAGE LOCK"
+
+    # 1. Filtrar horario operacional (Risk Calculator)
+    session_info = risk_calculator.get_trading_session_info(symbol=symbol)
+    if not session_info["is_open"]:
+        if not hasattr(_scan_and_execute, "last_logged_time_warn"):
+            _scan_and_execute.last_logged_time_warn = {}
+            
+        import time
+        current_time = time.time()
+        last_warn = _scan_and_execute.last_logged_time_warn.get(symbol, 0)
+        
+        # Loga no maximo a cada 5 minutos
+        if current_time - last_warn > 300:
+            logging.info(f"[{symbol}] Aguardando: FORA da janela lucrativa ({session_info['start_time']} a {session_info['end_time']} BRT).")
+            _scan_and_execute.last_logged_time_warn[symbol] = current_time
+            
+        return "⏳ HORÁRIO FECHADO"
+
+    # 2. Obter o melhor setup e o motivo de rejeição (se houver)
     info = mt5.symbol_info(symbol)
     tick_size = info.trade_tick_size if info else 0.01
     tick_offset = getattr(config, 'TICK_OFFSET', 1)
@@ -501,17 +540,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     entry_price = best_setup["trigger_price"]
     sl_price = best_setup["stop_loss"]
 
-    # 2. Filtrar horario operacional (Risk Calculator)
-    session_info = risk_calculator.get_trading_session_info(symbol=symbol)
-    if not session_info["is_open"]:
-        logging.warning(
-            f"[{symbol}] Setup {setup_name} de {side} ignorado: FORA da janela "
-            f"lucrativa do ativo ({session_info['start_time']} a "
-            f"{session_info['end_time']} BRT). Sinais fora dela historicamente "
-            f"reduzem/destroem o lucro. Sugestao: desligue o bot e religue "
-            f"lucrativa para o ativo render melhor."
-        )
-        return "⏳ HORÁRIO FECHADO"
+    # Horario operacional ja foi verificado no topo
 
     # 2.5 Daily Max Loss Shield: bloqueia novas entradas se a perda diaria exceder o limite.
     try:
