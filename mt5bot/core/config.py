@@ -17,9 +17,7 @@ AVAILABLE_SYMBOLS = [
     # Indices Globais
     "HK50", "HKG50", "US500", "SP500", "NAS100", "USTEC", "US30", "DJ30", "GER40", "DAX40", "UK100", "JPN225",
     # Commodities & Metais
-    "XAUUSD", "XAGUSD", "WTI", "USOIL",
-    # Criptomoedas
-    "BTCUSD", "ETHUSD", "BCHUSD"
+    "XAUUSD", "XAGUSD", "WTI", "USOIL"
 ]
 
 SYMBOLS = []  # Preenchido pela TUI no startup
@@ -279,12 +277,10 @@ SYMBOL_TRADING_HOURS = {
     "XAGUSD":{"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "WTI":   {"start": "03:00", "end": "18:00", "force_close": "18:30"},
     "USOIL": {"start": "03:00", "end": "18:00", "force_close": "18:30"},
-
-    # Criptomoedas (24/7)
-    "BTCUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
-    "ETHUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
-    "BCHUSD":{"start": "00:00", "end": "23:59", "force_close": "23:59"},
 }
+
+    # B3 Sessoes Expandidas (Indice e Dolar com pre-leilao)
+    "WIN": {"start": "09:15", "end": "17:15", "force_close": "17:30"},
 
 # --- Filtro Multi-Timeframe (MTF) ---
 MTF_FILTER_ENABLED = True
