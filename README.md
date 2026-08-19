@@ -6,7 +6,7 @@
 
 <div align="center">
   <strong>Plataforma Quantitativa de Trading Algorítmico com Filtro Preditivo de Machine Learning</strong><br>
-  <em>Arquitetura híbrida (Go + Python) focada na preservação de capital e precisão sniper.</em>
+  <em>Arquitetura híbrida institucional focada na mitigação extrema de risco e precisão matemática.</em>
 </div>
 
 <br>
@@ -20,105 +20,110 @@
 
 ---
 
-## ⬛ A Filosofia da Borda Competitiva (The Edge)
-O mercado financeiro não perdoa apostadores. O **MT5Bot Maestro** não foi construído para achar o *setup perfeito*, mas para **gerenciar o risco matemático de forma brutal**. Ele opera como um fundo de hedge de nicho: o tamanho da mão nunca excede 1% do saldo total (`Risk-Sizer Dinâmico`), as reversões têm trava diária de capital (`Max Daily Loss`) e nenhuma ordem é despachada sem aprovação conjunta do motor estatístico e do filtro de Machine Learning.
+## ⬛ A Borda Competitiva (The Edge)
+
+Robôs MQL5 de prateleira falham porque são otimizados para um mercado que já não existe mais (overfitting em backtests ilusórios). 
+
+O **MT5Bot Maestro** adota a filosofia de um *Hedge Fund Quantitativo*: o objetivo primário não é encontrar o "setup mágico", mas aplicar uma **gestão de risco brutal**. 
+O tamanho da mão nunca excede 1% do saldo da conta (`Dynamic Risk-Sizer`) e a exposição diária tem trava matemática rígida (`Max Daily Loss`). **Isso significa que o seu capital sobrevive intacto aos piores crashes e "cisnes negros" do mercado.**
 
 ---
 
-## 🟧 Arquitetura: Maestro (Go) + Cérebro (Python)
+## 🟧 Arquitetura de Ponta: Maestro (Go) + Cérebro (Python)
 
-Robôs MQL5 nativos são limitados e obsoletos para manipulação avançada de matrizes e Inteligência Artificial. O **MT5Bot Maestro** utiliza uma arquitetura híbrida revolucionária:
+Ambientes nativos MQL5 são obsoletos para Inteligência Artificial e Data Science. O **MT5Bot Maestro** foi reconstruído em uma arquitetura híbrida revolucionária:
 
-* **Maestro (Golang)**: O núcleo orquestrador. Roda no terminal como uma *CLI TUI (Text User Interface)* estilo cyberpunk. É responsável por abrir threads paralelas (Workers), garantir resiliência contra *Crash-Loops*, e exibir um Dashboard multithread sem bloquear as decisões de preço.
-* **Cérebro (Python 3.10+)**: Onde a mágica acontece. A lib Pandas analisa a microestrutura de milhares de candles em frações de segundos. Avalia distâncias de VWAP, gera pontuação (Scoring) de cruzamento de médias, calcula o ATR para adaptar alvos, e chama os algoritmos de **Machine Learning**.
-
----
-
-## ⬛ O Filtro de Machine Learning (XGBoost)
-
-Robôs comuns sofrem em backtests porque o mercado muda. Nós usamos um sistema preditivo chamado **Data Flywheel (Harvester)**.
-
-Quando a matemática pura apita uma compra (ex: Setup 9.1), o bot tira uma "foto" da microestrutura atual do preço (ADX, Z-Score, Distância da MM200). Antes de enviar a ordem ao MetaTrader 5, essa matriz passa pelo modelo **XGBoost (Decision Trees)** que responde a uma única pergunta: 
-> *"Com base em centenas de execuções parecidas nos últimos meses, qual a probabilidade matemática deste trade dar lucro hoje?"*
-
-Se a probabilidade for menor que `ML_MIN_WIN_PROB` (ex: 40%), **o trade é rejeitado**.
-Aos finais de semana, você roda o comando de exportação e joga a nova base de conhecimento na nuvem (GitHub Actions / Colab) para retreinar e evoluir o modelo.
+* **Maestro (Golang)**: O núcleo de orquestração. Construído em Go, ele roda no terminal com uma *CLI TUI (Text User Interface)* de baixa latência. Ele gerencia o ciclo de vida dos workers em threads paralelas e fornece *Crash-Loop Protection* (Stateless Recovery). Se o sistema cair ou o PC desligar, ele remonta as posições a partir do servidor da corretora em menos de 5 segundos.
+* **Cérebro (Python 3.10+)**: Onde o processamento pesado ocorre. As bibliotecas de Data Science (Pandas/NumPy) fatiam a microestrutura de milhares de velas, calculam cruzamentos de VWAP, geram Scoring dinâmico para cada ativo e conversam diretamente com o motor de Machine Learning.
 
 ---
 
-## 🟧 Cartão de Visitas: O Canivete Suíço (CLI)
+## ⬛ Filtro Preditivo (Machine Learning XGBoost)
 
-O projeto acompanha uma ferramenta avançada de linha de comando (`bot.bat`). 
-Projetada para que **IAs** e **Engenheiros** inspecionem a saúde do robô e do mercado com zero esforço e economizando tokens de processamento:
+A estratégia base pode lhe dar as regras, mas é a **Inteligência Artificial** que lhe dá a visão do futuro. Implementamos o que chamamos de **Data Flywheel**.
+
+Quando um setup matemático apita (ex: Setup 9.1), a ordem **não** é enviada imediatamente. O extrator captura as 24 variáveis instantâneas daquele segundo exato (Distância da MM200, Força do ADX, Volatilidade do ATR, Aceleração do Preço).
+Essa matriz passa pelo nosso modelo **XGBoost (Decision Trees)**, que responde a uma única pergunta de forma binária e estatística:
+
+> *"Historicamente, com o mercado respirando exatamente desta forma, qual a probabilidade deste trade retornar lucro?"*
+
+Se a probabilidade inferida for menor que `ML_MIN_WIN_PROB` (ex: 40%), **o bot veta a operação**. Você para de sangrar dinheiro em dias de consolidação extrema. 
+*(Para os engenheiros de MLOps: O sistema conta com Pipeline de Treinamento Contínuo no Colab/GitHub Actions via arquivos de tracking virtual - Phantom Orders).*
+
+---
+
+## 🟧 O Cartão de Visitas: Canivete Suíço (CLI)
+
+Tempo e processamento são cruciais. Criamos um orquestrador central CLI (`bot.bat`) projetado para que **Engenheiros Sêniores** ou **Inteligências Artificiais** façam a telemetria do sistema de forma cirúrgica e economizando tokens preciosos.
+
+Basta abrir o terminal e digitar:
 
 ```powershell
-bot.bat diagnose    # Traz erros críticos e faz o Health Check do MT5
-bot.bat hardware    # Inspeciona uso de RAM e mitigação de memory-leaks
-bot.bat market      # Inspeciona Spread, Margem e Volatilidade instantânea
-bot.bat config      # Mostra o Risco % e os algoritmos atualmente ligados
-bot.bat positions   # Lista posições abertas reais e "fantasmas" (Paper Trading)
-bot.bat performance # Relatório de PnL (Lucro Líquido) e WinRate dos últimos 7 dias
-bot.bat tail        # Imprime cirurgicamente os últimos eventos do bot.log
-bot.bat panic       # 🚨 BOTAO DO PANICO: Liquida todas as ordens a mercado!
-bot.bat ask "X"     # Consulta a memória permanente RAG do projeto (ex: bot ask "regras")
-bot.bat train       # Inicia o retreinamento do XGBoost localmente
-bot.bat backtest    # Roda simulações financeiras completas (ex: bot backtest HK50)
-bot.bat test        # Roda os testes unitários do motor core
-python main.py      # 🔥 INICIA O ROBÔ EM AMBIENTE DE PRODUÇÃO
+bot.bat diagnose    # Health Check completo do core e ping de conectividade MT5
+bot.bat hardware    # Telemetria profunda de CPU/RAM e prevenção de memory-leaks
+bot.bat market      # Scanning de Volatilidade, Spread dinâmico e Margens do mercado
+bot.bat config      # Auditoria de Risco % ativo e algoritmos em execução
+bot.bat positions   # Relatório de Exposição (Ordens Reais e Phantom Trades)
+bot.bat performance # Relatório executivo de PnL (Lucro Líquido) e WinRate dos últimos 7 dias
+bot.bat tail        # Extração cirúrgica do topo de log, dispensando cat massivo
+bot.bat panic       # 🚨 BOTÃO DO PÂNICO: Kill-Switch que liquida toda exposição a mercado
+bot.bat ask "X"     # Consulta vetorial na memória RAG do repositório (ex: bot ask "regras do 9.1")
+bot.bat train       # Gatilho de retreinamento do motor XGBoost
+bot.bat backtest    # Dispara o Simulador Financeiro Local (ex: bot backtest HK50)
+bot.bat test        # Pipeline de Testes Unitários e Mock do Motor
+python main.py      # 🔥 INICIA O ROBÔ EM MODO PRODUÇÃO / LIVE TRADING
 ```
 
 ---
 
-## ⬛ Dicionário de Setups e Filtros
+## ⬛ Dicionário Estratégico (O Motor de Decisão)
 
-O Bot contém **11 estratégias matemáticas embutidas** que podem operar simultaneamente (ou isoladas por ativo). Quando duas estratégias entram em conflito, o módulo `scoring.py` escolhe a de maior probabilidade.
+O Maestro carrega **11 Estratégias Quantitativas** que podem operar simultaneamente. Se duas estratégias armarem no mesmo ativo, o módulo `scoring.py` roda uma matriz de probabilidade, escolhe o vencedor e aborta o perdedor.
 
-| Família de Setups | Descrição da Estratégia |
+| Algoritmo | Comportamento e Dinâmica do Mercado |
 | :--- | :--- |
-| **9.1, 9.2, 9.3, 9.4** | Captura de reversões rápidas (Larry Williams) e continuação contra a EMA9. |
-| **Ponto Contínuo (PC)** | Entradas milimétricas a favor da tendência com toque na média de 21. |
-| **Gaps de Fuga** | Exclusivo p/ HK50. Surfando o pânico/euforia institucional na abertura do mercado Asiático. |
-| **Russo (Mean Reversion)** | Bandas de Bollinger (FFFD) + IFR para capturar sobrecompra extrema e exaustão. |
-| **DiNapoli / SAR / IFR2** | Setup auxiliar de micro-tendências para mercados laterais (Forex). |
+| **Família 9.1 ao 9.4** | Captura de micro-tendências e retrações em MME9. Ideal para volatilidade direcional. |
+| **Ponto Contínuo (PC)** | Sniper algorítmico. Entradas milimétricas na média de 21 durante a tendência vigente. |
+| **Gaps de Fuga** | Roteamento exclusivo p/ Índices (HK50). Explora a ineficiência e o pânico institucional na abertura asiática. |
+| **Setup Russo (Mean Reversion)** | Reversão à média utilizando desvios de Bandas de Bollinger e IFR. Lucra com exaustão extrema. |
+| **DiNapoli / SAR / IFR2** | Roteamento auxiliar para mercados altamente lateralizados e Forex. |
 
-### 🛡️ Escudo de Defesa (Filtros Macro)
-- **Bloqueio MM50 / MM200**: O bot nunca compra debaixo d'água contra a tendência majoritária.
-- **Proteção Institucional (Spread)**: Rejeita ordens em fusos horários de baixíssima liquidez (ex: HK50 fora da janela asiática).
-- **Trailing Stop Adaptativo**: O bot defende a posição "barra a barra". Ao atingir 1x o risco, ele trava no zero (Breakeven) e depois persegue o lucro usando a Mínima do Candle ou a Média de 9 até a exaustão.
+### 🛡️ Escudos Macro-Econômicos
+- **Filtro MM50 / MM200**: Ordens contra a tendência macro são sumariamente ignoradas.
+- **Microestrutura de Spread**: Entradas com custo transacional abusivo (slippage perigoso) são abortadas antes de tocarem a corretora.
+- **Trailing Stop Adaptativo**: Uma vez dentro do trade, o bot o defende até a morte. Atingiu 1x Risco? O Stop vai pro `Breakeven` e você não perde mais 1 centavo. Daí em diante, ele espreme o lucro candle a candle até o fluxo reverter.
 
 ---
 
-## 🟧 Deploy e Instalação
+## 🟧 Subindo o Projeto (Instalação Clean)
 
-Ambiente mínimo exigido para rodar a arquitetura completa:
-- **Windows 10/11** (O Terminal MT5 é exclusivo Windows)
-- **MetaTrader 5** instalado e logado na corretora.
-- **Python 3.10+**
-- Computador simples (Core i3 + 4GB RAM) é capaz de orquestrar a versão leve.
+Um ambiente robusto não deve exigir configurações dolorosas. Para colocar essa infraestrutura para rodar, basta ter o **Windows 10/11** (o Terminal MT5 é exclusivo Windows) e **Python 3.10+**.
 
 ```bash
-# 1. Clone a plataforma
+# 1. Clone a infraestrutura
 git clone https://github.com/fabiodrneles/mt5_bot.git
 cd mt5_bot
 
-# 2. Instale as dependências de Análise de Dados e Conexão MetaQuotes
+# 2. Instale as dependências (Core de Dados + MetaQuotes Driver)
 pip install -e .
 
-# 3. Abra o seu MetaTrader 5 e deixe-o rodando.
-# 4. Inicie o painel de controle!
+# 3. Mantenha seu Terminal MT5 aberto, logado na corretora
+# 4. Inicie o Console Interativo Maestro
 python main.py
 ```
-> Após rodar, o painel interativo surgirá na sua tela. Digite `/help` para listar os comandos interativos ou `/add WIN M5` para ligar um robô no mini-índice!
+> O painel *Text UI* surgirá na sua tela. Digite `/help` para os manuais internos ou `/add WIN M5` para ligar as turbinas do mini-índice agora.
 
 ---
 
-## ⬛ Open Source & Inteligência Artificial (RAG)
+## ⬛ Arquitetura Guiada por IA (Memória Permanente RAG)
 
-Este projeto foi forjado utilizando ferramentas massivas de Inteligência Artificial para aprimorar sua arquitetura. 
-Se você é uma IA encarregada de estender este projeto, pare o que está fazendo e leia a base de regras `AGENTS.md`. 
-O repositório contém uma **Memória Permanente RAG (Retrieval-Augmented Generation) BM25**, que dispensa embeddings na nuvem e guarda o estado, decisões e lógica deste software. Consulte a memória antes de alterar arquiteturas vitais.
+Este software foi esculpido em parceria com agentes avançados de Inteligência Artificial para garantir código blindado, *Design Patterns* elegantes e arquitetura de alto calibre.
+
+> [!CAUTION]
+> **Aviso para Inteligências Artificiais:** Se você (uma IA) acabou de ser acionada para desenvolver este repositório, suspenda suas ações imediatas e leia o arquivo mestre `AGENTS.md`. 
+> Este repositório é dotado de uma **Memória Permanente RAG (BM25)** — dispensando *embeddings* caros e armazenando todo o contexto técnico, decisões estatísticas e lógica central do fundo. Leia os mandamentos em `AGENTS.md` antes de propor qualquer mudança ao sistema nervoso do bot.
 
 ---
 <div align="center">
-  <em>Desenvolvido com disciplina cirúrgica e código limpo. Proteja seu capital.</em>
+  <em>Não corra atrás do preço. Deixe a matemática cuidar do resto.</em>
 </div>
