@@ -571,6 +571,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     setup_name = best_setup["setup"]
     entry_price = best_setup["trigger_price"]
     sl_price = best_setup["stop_loss"]
+    tp_price = best_setup.get("target")
 
     # Horario operacional ja foi verificado no topo
 
@@ -599,6 +600,8 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     # 2.9 Filtro de Machine Learning (XGBoost Supervisor)
     from mt5bot.mentorship.ml_xgboost import MLSupervisor
     ml_context = best_setup.get('ml_context', {})
+    
+    prob_win = None
     if ml_context:
         is_approved, prob_win, ml_reason = MLSupervisor.predict_trade(symbol, setup_name, ml_context)
         if not is_approved:
@@ -617,6 +620,8 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
         symbol=symbol,
         entry_price=entry_price,
         sl_price=sl_price,
+        prob_win=prob_win,
+        tp_price=tp_price
     )
     
     if not is_safe:

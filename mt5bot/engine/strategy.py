@@ -428,6 +428,12 @@ class StrategyScorer:
                     "swing_high": _safe_float(swing_h),
                     "swing_low": _safe_float(swing_l)
                 },
+                "hilpisch": {
+                    "dir_lag1": _safe_float(c_last.get('dir_lag1')),
+                    "dir_lag2": _safe_float(c_last.get('dir_lag2')),
+                    "dir_lag3": _safe_float(c_last.get('dir_lag3')),
+                    "rolling_vol_10": _safe_float(c_last.get('rolling_vol_10'))
+                },
                 "time": {}
             }
             

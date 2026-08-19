@@ -32,7 +32,7 @@ def train_for_dataset(csv_path):
         return
         
     # Colunas que sabemos que não são numéricas ou não devem ser usadas no treino
-    cols_to_drop = ['time', 'side', 'setup', 'pnl_pips', 'is_vetoed', 'veto_reason']
+    cols_to_drop = ['time', 'side', 'setup', 'pnl_pips', 'is_vetoed', 'veto_reason', 'symbol']
     
     # Nem todos os CSVs podem ter todas as colunas, então tentamos remover com cuidado
     drop_list = [c for c in cols_to_drop if c in df.columns]
@@ -68,7 +68,7 @@ def train_for_dataset(csv_path):
     print(classification_report(y_test, y_pred, zero_division=0))
     
     # Salvar o Modelo
-    out_json = os.path.join(ROOT_DIR, f"mt5bot_xgboost_{symbol}_v1.json")
+    out_json = os.path.join(ROOT_DIR, f"mt5bot_xgboost_{symbol}_v2.json")
     model.save_model(out_json)
     print(f"[SUCCESS] Modelo atualizado: {os.path.basename(out_json)}")
 

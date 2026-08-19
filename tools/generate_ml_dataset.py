@@ -134,7 +134,11 @@ def generate_dataset(df, symbol):
             'dist_sma200': row['dist_sma200'],
             'dist_vwap': row['dist_vwap'],
             'hour': row['time'].hour,
-            'day_of_week': row['time'].dayofweek
+            'day_of_week': row['time'].dayofweek,
+            'dir_lag1': row.get('dir_lag1', 0.0),
+            'dir_lag2': row.get('dir_lag2', 0.0),
+            'dir_lag3': row.get('dir_lag3', 0.0),
+            'rolling_vol_10': row.get('rolling_vol_10', 0.0)
         }
         
         is_clean = True

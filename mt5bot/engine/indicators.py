@@ -199,6 +199,13 @@ def add_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
     df['adx'] = calculate_adx(df, period=14)
     df['z_score'] = calculate_zscore(df['close'], period=21)
     
+    # Machine Learning V2 - Yves Hilpisch Advanced Features
+    df['returns'] = np.log(df['close'] / df['close'].shift(1))
+    df['dir_lag1'] = np.sign(df['returns'].shift(1))
+    df['dir_lag2'] = np.sign(df['returns'].shift(2))
+    df['dir_lag3'] = np.sign(df['returns'].shift(3))
+    df['rolling_vol_10'] = df['returns'].rolling(10).std()
+    
     return df
 
 def calculate_bollinger_bands(series: pd.Series, period: int = 20, std_dev: float = 2.0):

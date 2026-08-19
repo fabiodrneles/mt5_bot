@@ -44,6 +44,22 @@ def calculate_risk_limits(balance: Optional[float] = None) -> Dict[str, float]:
         "max_daily_loss_currency": max_daily_loss_curr,
     }
 
+def calculate_dynamic_kelly_risk(prob_win: float, rrr: float) -> float:
+    """
+    Calcula a fracao Half-Kelly otimizada e aplica limites de seguranca (Clamping).
+    Retorna o percentual do saldo a ser arriscado (ex: 1.5).
+    """
+    if prob_win <= 0 or prob_win >= 1.0 or rrr <= 0:
+        return config.MAX_RISK_PER_TRADE_PERCENT  # Fallback
+        
+    kelly_fraction = prob_win - ((1.0 - prob_win) / rrr)
+    half_kelly = kelly_fraction / 2.0
+    
+    # Clamping de seguranca (0.5% a 2.0%)
+    safe_risk = max(0.005, min(0.02, half_kelly))
+    return safe_risk * 100.0  # Retorna em percentual (ex: 1.5%)
+
+
 
 def calculate_position_size(
     symbol: str,
@@ -51,6 +67,8 @@ def calculate_position_size(
     sl_price: float,
     balance: Optional[float] = None,
     risk_percent: Optional[float] = None,
+    prob_win: Optional[float] = None,
+    tp_price: Optional[float] = None,
 ) -> Tuple[float, float, bool, str]:
     """Calcula o volume (lote) ideal para a operacao respeitar o risco percentual do saldo.
 
@@ -68,6 +86,17 @@ def calculate_position_size(
             reason = f"[GARAGE LOCK] {symbol} bloqueado na garagem. Saldo atual (${balance:.2f}) e menor que a margem de seguranca exigida (${required_balance:.2f})."
             logger.info(reason)
             return 0.0, 0.0, False, reason
+
+    # --- Phase 3: Dynamic Half-Kelly Override ---
+    if prob_win is not None and tp_price is not None:
+        sl_distance = abs(entry_price - sl_price)
+        tp_distance = abs(entry_price - tp_price)
+        if sl_distance > 0:
+            rrr = tp_distance / sl_distance
+            dynamic_risk = calculate_dynamic_kelly_risk(prob_win, rrr)
+            if risk_percent is None or dynamic_risk != config.MAX_RISK_PER_TRADE_PERCENT:
+                logger.info(f"[{symbol}] Kelly Criterion ATIVADO. Win Prob: {prob_win:.2f}, RRR: {rrr:.2f} -> Risco Alocado: {dynamic_risk:.2f}%")
+                risk_percent = dynamic_risk
 
     if risk_percent is None:
         risk_percent = config.MAX_RISK_PER_TRADE_PERCENT

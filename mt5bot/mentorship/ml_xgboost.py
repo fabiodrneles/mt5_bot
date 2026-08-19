@@ -30,7 +30,7 @@ class MLSupervisor:
             logger.error("[ML Supervisor] Biblioteca xgboost nao encontrada. Execute: pip install xgboost")
             return
 
-        model_filename = f"mt5bot_xgboost_{symbol}_v1.json"
+        model_filename = f"mt5bot_xgboost_{symbol}_v2.json"
         model_path = os.path.join(cls._base_dir, model_filename)
 
         if not os.path.exists(model_path):
@@ -103,13 +103,17 @@ class MLSupervisor:
                 _safe_float(ml_context.get('relative_distances', {}).get('dist_vwap')),
                 _safe_float(ml_context.get('time', {}).get('hour')),
                 _safe_float(ml_context.get('time', {}).get('day_of_week')),
+                _safe_float(ml_context.get('hilpisch', {}).get('dir_lag1')),
+                _safe_float(ml_context.get('hilpisch', {}).get('dir_lag2')),
+                _safe_float(ml_context.get('hilpisch', {}).get('dir_lag3')),
+                _safe_float(ml_context.get('hilpisch', {}).get('rolling_vol_10')),
             ]
 
             # O modelo espera uma matriz bidimensional (1 amostra, N features)
             dmatrix = xgb.DMatrix(np.array([features]), feature_names=[
                 'body_size', 'upper_wick', 'lower_wick', 'adx', 'z_score', 'atr', 'rsi14', 
                 'bollinger_bandwidth', 'dist_ema9', 'dist_sma21', 'dist_sma200', 'dist_vwap', 
-                'hour', 'day_of_week'
+                'hour', 'day_of_week', 'dir_lag1', 'dir_lag2', 'dir_lag3', 'rolling_vol_10'
             ])
             
             # Predict retorna array de previsoes, pegamos a primeira
