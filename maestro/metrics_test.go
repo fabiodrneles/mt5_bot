@@ -122,8 +122,8 @@ func TestSummarizeTradesSessaoAtual(t *testing.T) {
 
 func TestAssetMinLot(t *testing.T) {
 	cases := []struct{ symbol string; want float64 }{
-		{"HK50", 0.10},
-		{"HKG50", 0.10},
+		{"HK50", 0.01},
+		{"HKG50", 0.01},
 		{"EURUSD", 0.01},
 		{"USDJPY", 0.01},
 		{"", 0.01},
