@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.9.0] - 2026-08-18
+- **Motor Vetorizado (Hilpisch):** Implementação de backtesting ultra-rápido baseado em matrizes vetoriais NumPy/Pandas.
+- **Gestão de Risco Dinâmica (Half-Kelly):** O robô agora ajusta o tamanho do lote operação por operação com base na probabilidade de acerto (Win Rate) emitida pelo modelo XGBoost e no Risco/Retorno (RRR) do alvo, maximizando juros compostos com proteção de capital.
+
 ## [2.8.0] - 2026-08-18
 - **Continuous Machine Learning (MLOps):** O robô agora possui integração direta com o GitHub Actions! Quando o repositório recebe um commit contendo a sigla "ML", a nuvem cria um servidor, instala o `xgboost` e o `scikit-learn`, consome os arquivos `.csv` (como `dataset_live_experience_HK50.csv`), treina a Inteligência Artificial, e faz o upload automático dos arquivos `.json` atualizados para o projeto.
 - **Roteamento Dinâmico de Modelos no MLOps:** O script da nuvem detecta automaticamente o nome do ativo no CSV e gera/atualiza arquivos dedicados, como `mt5bot_xgboost_EURUSD_v1.json` ou `mt5bot_xgboost_JP225_v1.json`, suportando treinamento em lote.

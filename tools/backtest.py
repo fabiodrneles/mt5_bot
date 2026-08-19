@@ -43,7 +43,7 @@ def calc_indicators(df):
     df['rsi'] = df.get('rsi14', 0.0)
     return df
 
-def run_simulation(df, initial_balance, pip_value, lot, symbol):
+def run_simulation(df, initial_balance, symbol):
     balance = initial_balance
     wins = 0
     losses = 0
@@ -85,15 +85,18 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
             
             if is_win or is_loss:
                 # Tenta pegar valor exato via MT5
-                profit = mt5.order_calc_profit(side, symbol, lot, entry_price, exit_price)
+                profit_points = exit_price - entry_price if side == mt5.ORDER_TYPE_BUY else entry_price - exit_price
+                profit = mt5.order_calc_profit(side, symbol, current_trade_lot, entry_price, exit_price)
                 if profit is None:
                     # Fallback matematico generico se broker offline
                     info = mt5.symbol_info(symbol)
                     tick_size = info.trade_tick_size if info else 0.01
                     tick_value = info.trade_tick_value if info else 1.0
                     points = abs(exit_price - entry_price)
-                    profit = (points / tick_size) * tick_value * (lot / info.volume_step if info else lot)
+                    profit = (points / tick_size) * tick_value * current_trade_lot
                     if is_loss: profit = -profit
+                
+                # Profit is already calculated accurately by MT5 or fallback
                 
                 # Custo real do spread no MT5 (Spread atual do broker)
                 spread_cost = None
@@ -105,7 +108,7 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                         spread_points = 4.5 if "HK50" in symbol else 0.00015
                         
                     spread_cost = mt5.order_calc_profit(
-                        mt5.ORDER_TYPE_BUY, symbol, lot,
+                        mt5.ORDER_TYPE_BUY, symbol, current_trade_lot,
                         entry_price, entry_price + spread_points
                     )
                 except Exception:
@@ -116,7 +119,8 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                     tick_size = info.trade_tick_size if info else 0.01
                     tick_value = info.trade_tick_value if info else 1.0
                     spread_points = 4.5 if "HK50" in symbol else 0.00015
-                    spread_cost = (spread_points / tick_size) * tick_value * (lot / info.volume_step if info else lot)
+                    # Correct fallback spread cost calculation without volume_step division
+                    spread_cost = (spread_points / tick_size) * tick_value * current_trade_lot
                 profit -= spread_cost
                 
                 balance += profit
@@ -192,6 +196,35 @@ def run_simulation(df, initial_balance, pip_value, lot, symbol):
                 if tp is None:
                     # Se, mesmo após aplicar scoring, não tiver alvo (algo muito raro), não opera
                     in_trade = False
+                else:
+                    # --- Kelly Dynamic Sizing ---
+                    risco_pts = abs(entry_price - sl)
+                    alvo_pts = abs(entry_price - tp)
+                    rrr = alvo_pts / risco_pts if risco_pts > 0 else 0
+                    
+                    from mt5bot.risk.risk_calculator import calculate_dynamic_kelly_risk
+                    risk_percent = calculate_dynamic_kelly_risk(prob, rrr)
+                    risk_money = balance * (risk_percent / 100.0)
+                    
+                    info = mt5.symbol_info(symbol)
+                    tick_size = info.trade_tick_size if info and info.trade_tick_size > 0 else (info.point if info else 0.01)
+                    tick_value = info.trade_tick_value if info else 1.0
+                    volume_step = info.volume_step if info else 0.01
+                    
+                    tick_cost = tick_value / tick_size
+                    ticks_to_sl = risco_pts / tick_size
+                    money_lost_per_lot = ticks_to_sl * tick_value
+                    
+                    if money_lost_per_lot > 0:
+                        raw_lot = risk_money / money_lost_per_lot
+                        # Simulate the broker limitation logic: if lot < minimum, use minimum and check if risk > max allowed.
+                        # For simulation purposes, we will strictly enforce the volume step
+                        lot = max(volume_step, round(raw_lot / volume_step) * volume_step)
+                    else:
+                        lot = volume_step
+                    
+                    # Store the dynamic lot in the state so when trade closes, it uses the dynamic lot
+                    current_trade_lot = lot
             else:
                 ml_rejections += 1
                 
@@ -266,7 +299,7 @@ def main():
     
     print(f"Executando simulacao de {start_date} ate {end_date}...")
     final_balance, wins, losses, total_profit, ml_rejections = run_simulation(
-        df, args.balance, pip_value, args.lot, args.symbol
+        df, args.balance, args.symbol
     )
     
     total_trades = wins + losses
@@ -278,7 +311,7 @@ def main():
     print(f"Periodo:         {start_date.date()} a {end_date.date()}")
     print(f"Estrategia:      Setup Russo Original (BB + RSI + EMAs Anti-Trend) + IA (XGBoost)")
     print(f"Ativo:           {args.symbol}")
-    print(f"Lote Fixo:       {args.lot}")
+    print(f"Lote:            Dinamico (Half-Kelly)")
     print(f"Operacoes:       {total_trades}")
     print(f"Vitorias:        {wins} ({win_rate:.1f}%)")
     print(f"Derrotas:        {losses} ({100 - win_rate:.1f}%)")

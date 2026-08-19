@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt5bot"
-version = "2.7.1"
+version = "2.9.0"
 description = "Bot de trading automatizado para MetaTrader 5 — Enriquecimento de ML Tracking + ML V2 (Elite Quant)"
 readme = "README.md"
 requires-python = ">=3.10"
