@@ -5,6 +5,12 @@
 <br>
 
 <div align="center">
+  <strong>🌍 Read in:</strong> <strong>Português</strong> | <a href="README.en.md">English</a>
+</div>
+
+<br>
+
+<div align="center">
   <strong>Plataforma Quantitativa de Trading Algorítmico com Filtro Preditivo de Machine Learning</strong><br>
   <em>Arquitetura híbrida institucional focada na mitigação extrema de risco e precisão matemática.</em>
 </div>
