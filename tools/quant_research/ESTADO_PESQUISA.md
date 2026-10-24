@@ -88,6 +88,11 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - A) k-NN "assinatura": cada sinal comparado aos sinais anteriores **já terminados** (12 indicadores + ER10/ER20/CHOP); entra se a fração de vizinhos vencedores ≥ 35–50%. B) pausa depois de 2/3/4 stops seguidos até o preço sair da região (±0,5 ATR). C) regime: Kaufman ER ≥ 0,3–0,6 ou Choppiness ≤ 38,2–50.
 - US500/HK50/JP225 M15 e US500 H1 (23 variações cada): **0 variações lucram no IS e no OOS em nenhum dos 4.** Escolhidas no IS, no OOS: A de −$10,67 a +$7,08 (JP225, t 1,63, IS negativo); B sempre negativa (t −2,9 a −5,8, só reduz o número de trades); C de −$3,83 a −$1,41.
 
+### Exemplos do dono (16/10 e 19/10, US500) e saídas "basta algum lucro" (`check_exits.py`)
+- Os 3 sinais citados ganharam, inclusive o "ruim" (19/10 09h00 M15, venda: +$0,14). Tendência anterior medida: o "ruim" teve a **maior** (+5,3/+15,2 ATR em 20/40 candles, ADX 39; H1 +3,9 ATR); o "bom" de 16/10 16h30 quase nenhuma (ADX 13). Só a compra de 19/10 01h00 (−5,9 ATR, ADX 44) bate com "reversão após queda forte".
+- Saídas testadas (mesmo sinal, stop na máxima/mínima): alvo 0,25×–1,5×; 1º fechamento no lucro; tempo de 1/2/4/8 candles. **Todas negativas no IS e no OOS**, em US500/HK50/JP225 M15 e US500 H1. Ex.: US500 M15, 1º fechamento no lucro: acerto 54%, ganho médio $0,042 × perda média $0,077 → −$37,98 no OOS.
+- 55–65% dos sinais **chegam a ficar ≥ 1 centavo no lucro** antes do stop (é o que o gráfico mostra), mas nenhuma regra de saída fixada antes consegue embolsar isso de forma que pague as perdas. Alvos muito pequenos (0,25×) nem cobrem spread + comissão.
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
