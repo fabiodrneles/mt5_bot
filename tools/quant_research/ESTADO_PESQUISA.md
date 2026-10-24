@@ -49,22 +49,16 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados e 
 
 Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
 
-## Resultados parciais
+## Resultados parciais (após as 4 correções de custo/dados; ~107 ativos baixados)
 
-### Grade de 28 famílias (93 ativos já baixados, 27.148 configurações)
-- **Aprovadas nos 7 critérios: 0.** Passaram 1–3: 13; todas caíram no DSR (filtro de sorte) e/ou na viabilidade com $16. Detalhe em `RESULTADOS2.md`.
-- Mais perto de passar: **LKQCorp D1, comprar na sexta-feira** (t 3,9; 5/5 dobras do walk-forward positivas; risco $0,33; DSR 0,865 < 0,95). Comissão de ações estimada.
-- O "efeito segunda-feira" do AUDJPY/AUDCAD **era artefato** do spread de reabertura (62 pts × 3 normais) e sumiu com o custo real.
+### Grade de 28 famílias (31.709 configurações)
+- **Aprovadas nos 7 critérios: 0.** Promissoras (1–3 ok, caíram em 4–7): 17. Todas falham no DSR, e quase todas as de forex/cripto também na viabilidade com $16 (risco de $2–7 por trade, ruína 10–32%).
+- Mais perto: **LKQCorp D1, comprar na sexta**: DSR 0,919 (N = configurações) / ~0,99 (N = células); walk-forward 5/5 positivo; risco $0,33; ruína 0%. Contra: generaliza só em 20/55 ações; comissão estimada; sem explicação econômica. **Caso de fronteira.**
+- Pendente: decisão do dono sobre a faixa "experimental" (DSR 0,80–0,95 → só `/study` até repetir em trades novos).
 
-### Pares (arbitragem estatística, 15 pares D1)
-- **Todos perdem depois dos custos** (ex.: USOIL/UKOIL −$44 OOS; FR40/EU50 −$33). Família descartada.
+### Pares (15 pares D1): todos perdem depois dos custos.
+### Lead-lag (46 ativos, 12.420 cruzamentos): 0 no FDR.
+### Sazonalidade (68.134 células hora × dia × ativo e dia do mês): 40 no FDR do IS, **0 aprovadas**. Os 64 → 3 → 0 "padrões" das varreduras anteriores eram artefatos (correções 3 e 4).
 
-### Sazonalidade (48.804 células hora × dia × ativo e dia do mês)
-- 254 passaram o FDR no IS; 64 também no OOS, estabilidade e custo 1,5×.
-- **Quase todos estão na abertura de uma sessão** (hora 16 do servidor = abertura de Nova York nas ações; hora 0 de segunda nos pares AUD). Suspeita forte de artefato do *bid* deprimido por spread largo na abertura, o mesmo já visto no rollover. **Em verificação com ticks reais (bid/ask) antes de qualquer conclusão.**
-
-### Lead-lag entre ativos (46 ativos, 12.420 cruzamentos A → B)
-- **Nenhum passou no FDR.** Só 164 cruzamentos têm movimento médio maior que o spread, e nenhum é estatisticamente distinguível do acaso. O movimento de um par na última hora **não** antecipa outro par a ponto de pagar o custo.
-
-### Sazonalidade
-- 1ª varredura: 64 "padrões". Com a correção 3 (abertura irreal): 3. Os 3 eram o rollover (correção 4). Recalculando com a regra da hora 0.
+### Falta
+- Terminar o download (forex de NZD em diante, cripto e índices restantes) e rodar de novo `research2.py run 3`, `analyze2.py`, `seasonal2.py`, `leadlag2.py` e `report2.py` (todos pulam o que já fizeram, exceto analyze/seasonal/leadlag/report, que são rápidos).
