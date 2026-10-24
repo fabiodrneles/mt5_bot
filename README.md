@@ -539,7 +539,7 @@ bot.bat test                       # ou: python -m pytest -q
 - Os testes usam um **MT5 simulado** (`tests/conftest.py`) e não precisam do terminal aberto.
 - Toda mudança de lógica precisa de teste (`tests/test_*.py`).
 - Logue com `logging`, nunca com `print()` no caminho de produção.
-- Histórico de versões: [`CHANGELOG.md`](CHANGELOG.md) · Arquitetura detalhada: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Como contribuir: [`CONTRIBUTING.md`](CONTRIBUTING.md) · Histórico de versões: [`CHANGELOG.md`](CHANGELOG.md) · Arquitetura detalhada: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 > [!NOTE]
 > **Desenvolvendo com IA?** Leia primeiro o [`AGENTS.md`](AGENTS.md). O projeto tem uma **memória permanente RAG** (`memoria/`) com os livros-fonte das estratégias e todas as decisões de arquitetura. Consulte com `bot.bat ask "sua pergunta"`.

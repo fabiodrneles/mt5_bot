@@ -539,7 +539,7 @@ mt5_bot/
 - Tests use a **simulated MT5** (`tests/conftest.py`) and do not need the terminal open.
 - Every logic change needs a test (`tests/test_*.py`).
 - Log with `logging`, never `print()`, in the production path.
-- Version history: [`CHANGELOG.md`](CHANGELOG.md) · Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- How to contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Portuguese) · Version history: [`CHANGELOG.md`](CHANGELOG.md) · Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 > [!NOTE]
 > **Developing with AI?** Read [`AGENTS.md`](AGENTS.md) first. The project has a **permanent RAG memory** (`memoria/`) with the strategies' source books and every architecture decision. Query it with `.\bot.bat ask "your question"`.
