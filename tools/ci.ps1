@@ -22,7 +22,8 @@ function Step([string]$name, [scriptblock]$cmd) {
 }
 
 Step "Lint (ruff)" { python -m ruff check . }
-Step "Testes Python (pytest)" { python -m pytest -q }
+Step "Testes Python (pytest + cobertura)" { python -m coverage run -m pytest -q }
+Step "Cobertura (piso no pyproject)" { python -m coverage report --format=total }
 Step "Pacote (wheel + import)" { python tools/check_wheel.py }
 
 Push-Location (Join-Path $root "maestro")

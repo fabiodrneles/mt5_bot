@@ -50,3 +50,12 @@ extend-exclude = ["build", "dist"]
 [tool.ruff.lint]
 # Erros reais: nomes indefinidos, imports quebrados, codigo morto, sintaxe (spec 001 FR-4).
 select = ["E9", "F"]
+
+[tool.coverage.run]
+source = ["mt5bot", "interfaces"]
+
+[tool.coverage.report]
+# Piso da cobertura (spec 001 FR-7): medida em 61% em 2026-10-24. So sobe.
+fail_under = 60
+show_missing = false
+skip_empty = true
