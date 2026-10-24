@@ -4,6 +4,10 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+### Adicionado
+- **Teste justo do 9.x** (`tools/quant_research/check_9x_fiel.py`, `docs/validacao-9x-fiel.md`): regras do livro no diário, ordem stop, saída conduzida pela MME9, filtros semanal/SMA200 e custos com e sem swap. Ações e índices americanos empatam antes do financiamento; o swap do CFD transforma o empate em prejuízo; forex perde.
+- `docs/publicacao/METAS-E-IDEIAS.md`: metas de curto, médio e longo prazo e as observações da pesquisa.
+
 ## [3.2.0] - 2026-10-24
 
 Pesquisa ampla de padrões (128 mil configurações, seis artefatos de dados da corretora), diário de sinais, rotas quant em modo estudo (US100 D1 e USDJPY H1), setups clássicos conferidos com o livro e guia técnico com o cap. 14.
