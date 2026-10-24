@@ -28,6 +28,7 @@ Strict risk management, out-of-sample validated strategies, and respect for your
 ## 📑 Contents
 
 1. [What it is](#-what-it-is)
+1. [Academic purpose](#-academic-purpose)
 2. [Requirements](#-requirements)
 3. [Installation](#-installation)
 4. [Getting started: pick a mode](#-getting-started-pick-a-mode)
@@ -58,6 +59,40 @@ The project has two operating modes:
 |---|---|---|
 | **Quant** (`bot.bat quant`) | Small accounts that want **only what has been validated** | 2 strategies tested with real costs and out of sample |
 | **Maestro** (`mt5bot.bat`) | Users who want to explore the 9.x family, Ponto Contínuo, the Russian Setup and others | Interactive panel with several bots in parallel |
+
+---
+
+## 🎓 Academic purpose
+
+MT5Bot is a **study and portfolio project**, not a commercial product. It is a complete software engineering case study in a domain where mistakes cost real money: a bot that trades real funds at a broker. That forces practice of what usually stays theoretical: verifiable requirements, testing, safety, observability and process.
+
+### What is studied here
+
+| Software engineering area | How it shows up in the project | Where to look |
+|---|---|---|
+| **Requirements engineering (SDD)** | Specs with functional and non-functional requirements (FR/NFR) and Given/When/Then acceptance criteria; a constitution with verifiable principles; recorded decisions (ADR style) | [`specs/`](specs/) |
+| **Software architecture** | Polyglot system: a **Go** orchestrator supervising **Python** workers over JSON on stdin/stdout; stateless design that rebuilds state from the broker | `maestro/`, `interfaces/brain_worker.py` |
+| **Reliability and fault tolerance** | Heartbeat watchdog, crash-loop protection, stateless recovery, stop loss stored on the broker's server | `maestro/worker.go`, `mt5bot/execution/` |
+| **Safety engineering** | Capital invariants (only touches what carries the bot's MAGIC), defense in depth (risk limit, margin reserve, daily lock), panic button, safe defaults | `mt5bot/execution/quant_manager.py`, `tools/panic.py`, [constitution](specs/constitution.md) |
+| **Software testing** | 220+ automated tests with *test doubles* (simulated MT5), TUI layout tests, a test importing every module and **mutation checks** on new tests | `tests/`, `maestro/*_test.go` |
+| **Continuous integration and delivery** | GitHub Actions matrix Windows/Ubuntu × Python 3.10/3.13, lint as a gate, installed-package verification and an equivalent local CI | `.github/workflows/`, `tools/ci.ps1`, `tools/check_wheel.py` |
+| **Configuration management** | One PR per ticket, Conventional Commits, epics with sub-issues, Keep a Changelog, SemVer, user configuration kept out of code (`config.toml`) | [PRs](https://github.com/fabiodrneles/mt5_bot/pulls?q=is%3Apr), [`CHANGELOG.md`](CHANGELOG.md) |
+| **Maintenance and evolution** | Root cause analysis (CI red for 2 months, a panic button that closed nothing, a broken package), legacy refactoring, technical debt reduction | [`specs/ANALYSIS.md`](specs/ANALYSIS.md), PRs #9–#16 |
+| **Observability** | One telemetry source feeding three interfaces, logs in the user data dir, diagnostics by command | `mt5bot/core/telemetry.py`, `bot.bat diagnose` |
+| **Human-computer interaction** | Bubble Tea TUI, colored console panel, responsive web dashboard, empty states that teach the next step, i18n (pt/en/es) | `maestro/ui.go`, `tools/quant_runner.py`, `interfaces/dashboard.py` |
+| **Performance under constraints** | Designed for a 4 GB RAM i3: candle and file caches, standard library instead of heavy frameworks, lexical RAG (BM25) instead of embeddings | `tools/quant_runner.py`, `memoria/` |
+| **Applied scientific method (quantitative finance)** | Backtests with real costs, in-sample × out-of-sample split, significance testing (t-statistic), comparison against 300 random portfolios, honest records of when a strategy does **not** generalize | `tools/quant_research/`, [research wiki](memoria/wiki/arquitetura/pesquisa-estrategias-lucrativas.md) |
+| **AI-assisted engineering** | Development with AI backed by a queryable permanent memory (RAG) and a project map for agents, with adversarial verification of AI output | `memoria/`, [`AGENTS.md`](AGENTS.md) |
+
+### Why it matters
+
+- **Theory with real consequences.** A missing test or a weak gate here turns into lost money, which makes it concrete why requirements, tests and CI exist.
+- **Mistakes are documented, not hidden.** The analysis records the defects found, with evidence (CI red since August, commands calling missing files), and shows how each was fixed at the root cause. Following that trail teaches more than reading "perfect" code.
+- **Quantitative honesty.** The project shows the full path from a market hypothesis to a tradable strategy, negative results included: the defense against overfitting, the most common mistake in quantitative finance.
+- **Reproducible process.** Anyone can follow the specs, epics and PRs to see why each decision was made, which makes it material for Software Engineering, Distributed Systems and Computational Finance courses.
+- **Verifiable portfolio.** The README's claims are checked by CI and tests, not just described.
+
+> This project is for educational purposes. Nothing here is investment advice.
 
 ---
 
