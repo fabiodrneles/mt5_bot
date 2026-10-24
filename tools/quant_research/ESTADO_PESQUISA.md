@@ -93,6 +93,11 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Saídas testadas (mesmo sinal, stop na máxima/mínima): alvo 0,25×–1,5×; 1º fechamento no lucro; tempo de 1/2/4/8 candles. **Todas negativas no IS e no OOS**, em US500/HK50/JP225 M15 e US500 H1. Ex.: US500 M15, 1º fechamento no lucro: acerto 54%, ganho médio $0,042 × perda média $0,077 → −$37,98 no OOS.
 - 55–65% dos sinais **chegam a ficar ≥ 1 centavo no lucro** antes do stop (é o que o gráfico mostra), mas nenhuma regra de saída fixada antes consegue embolsar isso de forma que pague as perdas. Alvos muito pequenos (0,25×) nem cobrem spread + comissão.
 
+### Método do relógio (inclinação da tendência, `check_clock.py`)
+- Dono: tendência forte = inclinação entre 12h e 2h (ou 4h–6h na queda); perto das 3h = fraca. Medida independente do zoom: s = variação da MME9/MME21 em N candles ÷ (N × ATR), lida no relógio com 1 ATR/candle = 45°. Cortes por quantil (50/30/20/10% mais inclinadas), calibrados no IS.
+- Exemplos do dono: 16/10 16h30 ("bom") estava **deitado** (3,0h no M15 e no M30) e ganhou; 19/10 09h00 ("ruim"), 2,7h; 19/10 01h00 compra, 3,8h (queda inclinada).
+- 24 definições × alvos 2× e 1×, em US500 M15/M30/H1, HK50 M15/H1, JP225 M15, GBPUSD H1: **0 definições lucram no IS e no OOS** (1 de 24 no GBPUSD H1 com alvo 2×, compatível com acaso). Com alvo 1×, as 10% mais inclinadas acertam 45–49% (empate ≈ 50% + custo).
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
