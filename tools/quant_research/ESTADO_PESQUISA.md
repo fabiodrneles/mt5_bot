@@ -70,5 +70,12 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - 135 combinações (volume 0–3×, médias, SMA200, ADX/DMI, multi-tempo M30/H1/H4 só com candles fechados, lados): 10 de 130 lucram no IS e no OOS. O filtro escolhido no IS (vol ≥ 3 + SMA200, compra) fez +$4,49 no IS e −$0,05 no OOS.
 - Multi-tempo M30+H1+H4 alinhado: acerto sobe de ~31,5% para ~32,5% (empate = 33,3%). US500 −$14,33, HK50 −$13,78, JP225 −$19,89 (M15, ~1,7 anos). Perde menos só porque opera menos.
 
+### Mineração de filtros para a MME9 (`signal_mining.py`, pedido do dono: "um robô que enxergue o que eu vejo")
+- Volume real: **zero** em todos os candles (CFD); só existe volume de ticks. VWAP de sessão calculado com ele.
+- Cada sinal avaliado sozinho (stop na máxima/mínima, alvo 2×): 7.678 sinais no US500 M15, acerto 31,0%, −$98,09.
+- Parte A: entre 19.286 regras (1–2 condições sobre 12 indicadores: volume, VWAP, ADX, DI, IFR, candle, corpo, distância da MME9, tempos maiores, hora, minutos desde a abertura dos EUA e da Europa), **4 selecionam exatamente os 2 vencedores de 23/10. Nos outros dias, as 4 perdem** (de −$3,50 a −$37,50).
+- Parte B (robô): regra escolhida nos 60% iniciais [corpo/candle ≥ 0,83 E hora ≥ 21]: IS +$8,44 (acerto 47%) → OOS −$3,68 (acerto 28%).
+- Venda das 19h45 (candle de 7636,70): entra 20h00 a 7638, stop 7652, alvo 7610. Até o fechamento de sexta não bateu nem stop nem alvo (melhor momento: 18,25 pts a favor = 1,3×); flutuante +$0,02.
+
 ### Em andamento
 - `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.
