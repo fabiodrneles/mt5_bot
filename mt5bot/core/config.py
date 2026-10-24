@@ -185,6 +185,13 @@ QUANT_ROUTES = {
     "US100": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
                                                               "long_only": False, "max_bars": 15},
               "max_risk_pct": 12.0, "mode": "study"},
+    # Em ESTUDO (cap. 14 §14.6): unico sobrevivente da varredura de calendario (136.864 celulas): comprar
+    # USDJPY na segunda as 01h do servidor e sair 1 hora depois (t OOS 2,19; spread normal nos ticks).
+    # Com FDR de 5%, uma descoberta falsa desse tamanho e esperada: so vira rota com >= 30 segundas novas
+    # e t >= 2 no estudo (faixa experimental do PROTOCOLO2).
+    "USDJPY": {"timeframe": "H1", "setup": "HOUR",
+               "params": {"weekday": 0, "hour": 1, "side": "buy", "sl_atr": 3.0, "max_bars": 1},
+               "max_risk_pct": 12.0, "mode": "study"},
 }
 # Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
 # ignorado para preservar margem para as proximas tentativas. Com $16 o US500

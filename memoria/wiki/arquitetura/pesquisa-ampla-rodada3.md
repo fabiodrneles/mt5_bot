@@ -34,3 +34,6 @@ Mesma regra do US500, sem reotimizar: US500 t 2,48; US100 t 2,10 (+$51 em 10 ano
 
 ## Diário de sinais (guia cap. 9 §9.7)
 `bot.bat anotar ATIVO TF compra|venda bom|ruim "motivo" [--alvo R]` grava hora e preço na hora (recusa mercado fechado); `bot.bat diario` mede com M1 e spread e calcula a cauda binomial contra o empate 1/(1+R). Conclusão só com ≥ 30 sinais "bom" encerrados. Arquivo: `%APPDATA%\mt5bot\diario_sinais.csv`.
+
+## Rota USDJPY H1 em estudo (v3.2.0)
+`config.QUANT_ROUTES["USDJPY"]`: setup `HOUR` (`quant_setups.signal_hour_of_week`), compra na segunda às 01h do servidor, sai após 1 candle, SL 3 ATR, `mode = "study"`. Promoção só com ≥ 30 segundas novas e t ≥ 2 (faixa experimental).
