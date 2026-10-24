@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.10.0] - 2026-10-23
+- **Feature (rotas quant):** novo caminho de execucao para setups validados fora da amostra (`config.QUANT_ROUTES`):
+  **HK50 H4 PULLB** (pullback na EMA20, SL 1 ATR / TP 2 ATR — 277 trades, PF 1.24) e **US500 D1 RSI2MR** (IFR2 Connors, saida na SMA5 — 54 trades, PF 2.40).
+  Pesquisa de 3.150 configs com spread real, comissao e swap (`tools/quant_research/`, wiki `pesquisa-estrategias-lucrativas.md`).
+- **Protecao de margem:** entrada so se a perda no SL (lote minimo) for <= 2% do saldo e sobrar margem livre >= 3x a da posicao.
+- **Isolamento:** rotas quant so mexem em posicoes com MAGIC + comentario `Q`; posicao manual (conta hedging) fica intacta e o caminho antigo nao gerencia posicoes quant.
+- **Novo:** `bot.bat quant` / `tools/quant_runner.py` (executor headless); brain_worker passa a puxar 400 velas.
+- **Fix:** modo real quebrava (AttributeError) ao rejeitar sinal por risco/spread/IA: `tracker.record_rejection` nao existia; rejeicoes agora vao para `paper_tracker.record_rejection` (dataset do Otimizador).
+
+## [2.9.1] - 2026-10-24
+- **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).
+- **Fix (russian_bb/judas):** entrada a mercado com SL+TP; antes a STOP no preco atual era recusada pelo MT5 e esses setups nunca abriam.
+- **Fix (saida):** setups de alvo proprio (russian_bb, judas, GAP) saem so por TP/SL, igual ao backtest; a EMA9/trailing nao corta mais a reversao.
+- **Fix (breakeven):** SL protegido em entrada + spread + 1 tick (o "empate" agora fica no verde).
+- **Fix (historico):** ordens pendentes nao viram mais trades falsos; resultado usa lucro real do MT5 (com comissao/swap).
+- **Fix:** 1 entrada por candle; import do AdaptiveSupervisor; chave `setup`; TP preservado ao mover SL; saida a mercado quando o SL da EMA9 ja ficou para tras.
+
 ## [2.9.0] - 2026-08-18
 - **Motor Vetorizado (Hilpisch):** Implementação de backtesting ultra-rápido baseado em matrizes vetoriais NumPy/Pandas.
 - **Gestão de Risco Dinâmica (Half-Kelly):** O robô agora ajusta o tamanho do lote operação por operação com base na probabilidade de acerto (Win Rate) emitida pelo modelo XGBoost e no Risco/Retorno (RRR) do alvo, maximizando juros compostos com proteção de capital.
