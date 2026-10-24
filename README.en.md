@@ -66,6 +66,8 @@ The project has two operating modes:
 
 MT5Bot is a **study and portfolio project**, not a commercial product. It is a complete software engineering case study in a domain where mistakes cost real money: a bot that trades real funds at a broker. That forces practice of what usually stays theoretical: verifiable requirements, testing, safety, observability and process.
 
+> 📘 **Full technical manual (Portuguese):** [`docs/manual/`](docs/manual/README.md). It has 11 chapters with formulas, design rationale, critical analysis of limitations and a theoretical framework (50+ references).
+
 ### What is studied here
 
 | Software engineering area | How it shows up in the project | Where to look |
@@ -554,7 +556,7 @@ mt5_bot/
 - Tests use a **simulated MT5** (`tests/conftest.py`) and do not need the terminal open.
 - Every logic change needs a test (`tests/test_*.py`).
 - Log with `logging`, never `print()`, in the production path.
-- How to contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Portuguese) · Version history: [`CHANGELOG.md`](CHANGELOG.md) · Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Technical manual: [`docs/manual/`](docs/manual/README.md) (Portuguese) · How to contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Portuguese) · Version history: [`CHANGELOG.md`](CHANGELOG.md) · Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 > [!NOTE]
 > **Developing with AI?** Read [`AGENTS.md`](AGENTS.md) first. The project has a **permanent RAG memory** (`memoria/`) with the strategies' source books and every architecture decision. Query it with `.\bot.bat ask "your question"`.
