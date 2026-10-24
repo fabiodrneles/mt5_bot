@@ -6,8 +6,10 @@ pacote, o MT5Bot roda inteiro dentro de um prefixo Wine, junto com o
 terminal MetaTrader 5. A plataforma principal continua sendo o Windows.
 
 Requisitos
-- Wine instalado:
-    Ubuntu/Debian: sudo apt install wine64   (ou: sudo apt install wine)
+- Wine 10 ou mais novo (o Wine 9 do Ubuntu 24.04 NAO serve: falta uma
+  funcao do ucrtbase que o numpy usa; o install.sh confere a versao):
+    Ubuntu/Debian: winehq-stable, do repositorio do WineHQ
+                   (https://gitlab.winehq.org/wine/wine/-/wikis/Download)
     Fedora:        sudo dnf install wine
     macOS:         brew install --cask wine-stable
 
@@ -24,9 +26,9 @@ Uso
     mt5bot diagnose    diagnostico
 
 O que foi verificado
-- Linux (Ubuntu, Wine): o CI instala este pacote e cria o comando mt5bot,
-  mas a execucao do Python dentro do Wine AINDA NAO foi verificada (o teste
-  estoura o tempo; investigacao na issue #47).
+- Linux (Ubuntu, winehq-stable): o CI instala este pacote e roda dentro do
+  Wine o Python embutido (importa todos os modulos), o Modo Quant, o comando
+  mt5bot e o Maestro. O terminal MT5 em si nao e testado no CI.
 - macOS: NAO verificado automaticamente. Deve funcionar com Wine, mas teste
   em conta DEMO antes de qualquer conta real.
 

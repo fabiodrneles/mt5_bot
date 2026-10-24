@@ -26,8 +26,17 @@ say() { printf '\033[38;5;208m==>\033[0m %s\n' "$*"; }
 
 if ! command -v wine >/dev/null 2>&1; then
     echo "Wine nao encontrado."
-    echo "  Ubuntu/Debian: sudo apt install wine64   (ou: sudo apt install wine)"
+    echo "  Ubuntu/Debian: instale o winehq-stable (https://gitlab.winehq.org/wine/wine/-/wikis/Download)"
     echo "  Fedora:        sudo dnf install wine"
+    echo "  macOS:         brew install --cask wine-stable"
+    exit 1
+fi
+# O numpy do Python embutido usa funcoes do ucrtbase (ex.: crealf) que so
+# existem a partir do Wine 10 (issue #47).
+wine_major="$(wine --version 2>/dev/null | sed -E 's/^wine-([0-9]+).*/\1/')"
+if [ -n "$wine_major" ] && [ "$wine_major" -lt 10 ] 2>/dev/null; then
+    echo "Wine $(wine --version) e antigo demais: o MT5Bot precisa do Wine 10 ou mais novo."
+    echo "  Ubuntu/Debian: instale o winehq-stable (https://gitlab.winehq.org/wine/wine/-/wikis/Download)"
     echo "  macOS:         brew install --cask wine-stable"
     exit 1
 fi

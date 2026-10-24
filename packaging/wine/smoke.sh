@@ -16,6 +16,10 @@ bash "$WORK/install.sh" --no-mt5 > "$WORK/install.log" 2>&1 || { cat "$WORK/inst
 ok "install.sh --no-mt5"
 
 export WINEPREFIX="$WORK/prefix" WINEDEBUG=-all
+# Sem depurador automatico: um crash no Wine deve falhar na hora, e nao deixar o
+# winedbg parado ate o timeout (foi assim que a issue #47 se escondeu).
+wine reg delete 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\AeDebug' /v Debugger /f >/dev/null 2>&1 || true
+ok "$(wine --version)"
 APP="$WORK/prefix/drive_c/MT5Bot"
 [ -f "$APP/python/python.exe" ] && [ -f "$APP/maestro/maestro.exe" ] && [ -x "$WORK/bin/mt5bot" ] || fail "arquivos instalados"
 ok "MT5Bot copiado para o prefixo e comando mt5bot criado"
