@@ -11,11 +11,11 @@
 **Algorithmic trading bot for MetaTrader 5 in Python and Go, built for small accounts.**
 Strict risk management, out-of-sample validated strategies, and respect for your margin.
 
-![Version](https://img.shields.io/badge/version-2.13.0-FF7300?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.14.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-228%20passing-2EA043?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-236%20passing-2EA043?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)
 
 </div>

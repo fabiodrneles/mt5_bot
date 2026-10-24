@@ -26,3 +26,14 @@ O projeto segue **Spec Driven Development** desde 2026-10-24. A fonte da verdade
 
 ## Fase 1 (v2.13.0)
 Entregue com os PRs #9 a #16. A lista completa está no `CHANGELOG.md`. As próximas fases (instalador, release e segurança operacional) estão em `specs/ROADMAP.md`.
+
+## Fase 2 (v2.14.0)
+Entregue com os PRs #29 a #34:
+- instalador Windows (Inno Setup, Python embutido, `xgboost-cpu`), com cerca de 48 MB;
+- smoke test do instalado no CI;
+- release automática por tag, com `SHA256SUMS`;
+- setups não validados fora do modo ao vivo por padrão;
+- treino de ML só sob demanda;
+- guia de contribuição.
+
+Para publicar uma versão, o dono cria a tag `vX.Y.Z` igual à versão do `pyproject.toml`; o workflow `Release` faz o resto.

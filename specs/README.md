@@ -32,9 +32,9 @@ Convenções: MUST/SHOULD/MAY (RFC 2119). Prioridades: **P0** (bloqueia uso real
 | 002 | [Instaladores e empacotamento](002-instaladores-empacotamento/spec.md) | P0 | In Progress |
 | 003 | [Dados e configuração do usuário](003-dados-config-usuario/spec.md) | P0 | In Progress |
 | 004 | [Higiene do repositório](004-higiene-repositorio/spec.md) | P0 | Done |
-| 005 | [Segurança operacional](005-seguranca-operacional/spec.md) | P1 | Approved |
+| 005 | [Segurança operacional](005-seguranca-operacional/spec.md) | P1 | Done |
 | 006 | [Primeiro uso](006-primeiro-uso/spec.md) | P2 | Approved |
 
-Estado atual (2026-10-24): Fase 1 concluída (v2.13.0). 001/002/003 seguem na Fase 2/3 (FR-7/FR-8 da 001, instaladores da 002, `config --edit` da 003).
+Estado atual (2026-10-24): Fases 1 e 2 concluídas (v2.13.0, v2.14.0). Seguem na Fase 3: cobertura (001 FR-7), pacotes macOS/Linux (002 FR-6), `config --edit` (003 FR-5) e primeiro uso (006).
 
 Status possíveis: `Draft` → `Approved` → `In Progress` → `Done`.
