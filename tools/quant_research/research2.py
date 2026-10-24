@@ -233,6 +233,8 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     comm = m["comm_rt"] * cost
     swap3 = (int(m.get("swap3", 3)) + 6) % 7
     last_of_day = np.r_[day[1:] != day[:-1], True]
+    bar = np.median(np.diff(t)) if n > 1 else 0
+    pause = np.r_[False, np.diff(t) > bar * 1.5] if d.get("tf") != "D1" else np.zeros(n, bool)
     trades = []
     sig_idx = np.flatnonzero(sig)
     k = 0
@@ -250,6 +252,10 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
             k += 1
             continue
         entry = o[e]
+        if pause[e]:
+            # 1o candle depois de pausa: a abertura do historico e um print irreal (ex.: acoes na
+            # abertura de NY com abertura ~1 abaixo do fechamento anterior). Entra pelo pior preco.
+            entry = max(o[e], c[e - 1]) if dr > 0 else min(o[e], c[e - 1])
         sl = entry - dr * sd
         tp = entry + dr * tgt[i] if np.isfinite(tgt[i]) else np.nan
         exit_p = None

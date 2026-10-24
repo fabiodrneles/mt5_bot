@@ -85,3 +85,13 @@ def test_entry_pays_rollover_spread_of_previous_candle():
     sig = np.array([1, 0, 0])
     tr = R.simulate("X", d, sig, np.full(3, 50.0), np.full(3, np.nan), None, None, 1, False)
     assert tr[0, 2] == pytest.approx(-5.0)
+
+
+def test_first_candle_after_pause_enters_at_worse_of_open_and_previous_close():
+    """Abertura de pregao irreal (90 contra fechamento anterior 100): a compra entra a 100."""
+    d = frame([100, 100, 90, 100], [100, 100, 100, 100], [100, 100, 90, 100], [100, 100, 100, 100], day0=8)
+    d["t"] = np.array([0, 3600, 3 * 86400, 3 * 86400 + 3600])
+    d["tf"] = "H1"
+    sig = np.array([0, 1, 0, 0])
+    tr = R.simulate("X", d, sig, np.full(4, 50.0), np.full(4, np.nan), None, None, 1, False)
+    assert tr[0, 2] == pytest.approx(0.0)

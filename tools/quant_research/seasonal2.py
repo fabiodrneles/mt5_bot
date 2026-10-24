@@ -68,9 +68,16 @@ def intraday_cells(sym):
         same_day = day[x] == day[e]
         contiguous = (t[x] - t[e]) == (k - 1) * 3600
         ok = same_day & contiguous
-        move = c[x] - o[e]
+        # 1o candle depois de pausa: abertura irreal no historico -> entra pelo pior entre abertura e
+        # fechamento anterior (mesma regra do research2.simulate).
+        pause = np.r_[False, np.diff(t) > 5400]
+        prev_c = np.r_[c[:1], c[:-1]]
+        o_long = np.where(pause[e], np.maximum(o[e], prev_c[e]), o[e])
+        o_short = np.where(pause[e], np.minimum(o[e], prev_c[e]), o[e])
+        move = c[x] - o_long
+        move_s = c[x] - o_short
         long_usd = (move - spr_in[e]) * upu - comm
-        short_usd = (-move - spr_out[x]) * upu - comm
+        short_usd = (-move_s - spr_out[x]) * upu - comm
         for wd in (-1, 0, 1, 2, 3, 4):
             sel_wd = ok & ((dow[e] == wd) if wd >= 0 else True)
             for h in range(24):
@@ -81,7 +88,7 @@ def intraday_cells(sym):
                     p = pnl[sel]
                     te = t[e][sel]
                     out.append(summarize(sym, "hour", wd, h, k, side, p, te, year[e][sel], cut,
-                                         side * move[sel] * upu,
+                                         (move[sel] if side > 0 else -move_s[sel]) * upu,
                                          (spr_in[e][sel] if side > 0 else spr_out[x][sel]) * upu + comm))
     return out
 

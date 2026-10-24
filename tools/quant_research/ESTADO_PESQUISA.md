@@ -43,6 +43,8 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados e 
 1. **Comissão de CFDs de ações.** O lote mínimo é 0,1–1 ação, então $1/lote seria irreal. Passou a ser estimada em 0,1% do valor por lado (a API não informa e a conta não tem trade de ações). Rota em ações exige confirmar a comissão real antes de ir ao vivo.
 2. **Spread do rollover.** Os candles são *bid* e o campo spread subestima o pico da virada do dia (AUDCAD: 3 pts normalmente, 19 na hora 0, 6 na hora 1). Isso criava falsos lucros em "comprar na hora 1" e "gap fade" no forex H1. Agora a entrada paga o maior spread entre o candle anterior e o de entrada, a recompra de venda paga o spread do fechamento, e o D1 paga o spread típico da hora de abertura do dia. Teste: `test_entry_pays_rollover_spread_of_previous_candle`.
 
+3. **Abertura irreal do pregão (artefato de dados).** No H1 das ações, a cotação de abertura do 1º candle do pregão (hora 16 do servidor) vem ~$1 abaixo do fechamento anterior e o candle "sobe" o mesmo valor (LKQCorp 2023: +1,053 no candle × −1,096 na abertura). Ninguém compra nesse preço. Confirmado com M1 recente: na 1ª hora real o bid sobe em média só $0,018. Correção: o 1º candle depois de qualquer pausa entra pelo pior entre a abertura e o fechamento anterior (`research2.simulate` e `seasonal2`). Teste: `test_first_candle_after_pause_enters_at_worse_of_open_and_previous_close`.
+
 Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
 
 ## Resultados parciais
@@ -59,5 +61,8 @@ Os resultados da primeira passada, anteriores às correções, ficaram em `data/
 - 254 passaram o FDR no IS; 64 também no OOS, estabilidade e custo 1,5×.
 - **Quase todos estão na abertura de uma sessão** (hora 16 do servidor = abertura de Nova York nas ações; hora 0 de segunda nos pares AUD). Suspeita forte de artefato do *bid* deprimido por spread largo na abertura, o mesmo já visto no rollover. **Em verificação com ticks reais (bid/ask) antes de qualquer conclusão.**
 
-### Lead-lag entre ativos
-- Em execução.
+### Lead-lag entre ativos (46 ativos, 12.420 cruzamentos A → B)
+- **Nenhum passou no FDR.** Só 164 cruzamentos têm movimento médio maior que o spread, e nenhum é estatisticamente distinguível do acaso. O movimento de um par na última hora **não** antecipa outro par a ponto de pagar o custo.
+
+### Sazonalidade (refazendo com a correção 3)
+- Os 64 "padrões de horário" da primeira varredura eram, na maioria, o artefato da abertura irreal (correção 3). Recalculando.
