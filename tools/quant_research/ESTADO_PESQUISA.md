@@ -10,6 +10,7 @@ Com o MT5 aberto e logado, nesta pasta: **`python pipeline2.py`**. Ele roda toda
 ```
 python universe.py 16 25        # 1. universo (só se data/universe.json não existir)
 python fetch2.py                # 2. baixa H1/D1; pula os arquivos que já existem
+# se o download pausar por falta de disco: feche o MT5, rode  python clean_mt5_cache.py  e reabra o MT5
 python fetch2.py --m15          # 2a. baixa M15 (forex/índices/commodities/cripto); M30 é reamostrado
 python fetch2.py --meta-only    # 2b. regrava custos em data/meta2.json (OBRIGATÓRIO depois de 2/2a)
 python research2.py run 3       # 3. grade (D1, H4, H1, M30, M15); pula ativos já gravados
@@ -76,6 +77,9 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Parte A: entre 19.286 regras (1–2 condições sobre 12 indicadores: volume, VWAP, ADX, DI, IFR, candle, corpo, distância da MME9, tempos maiores, hora, minutos desde a abertura dos EUA e da Europa), **4 selecionam exatamente os 2 vencedores de 23/10. Nos outros dias, as 4 perdem** (de −$3,50 a −$37,50).
 - Parte B (robô): regra escolhida nos 60% iniciais [corpo/candle ≥ 0,83 E hora ≥ 21]: IS +$8,44 (acerto 47%) → OOS −$3,68 (acerto 28%).
 - Venda das 19h45 (candle de 7636,70): entra 20h00 a 7638, stop 7652, alvo 7610. Até o fechamento de sexta não bateu nem stop nem alvo (melhor momento: 18,25 pts a favor = 1,3×); flutuante +$0,02.
+
+### Incidente: disco cheio (2026-10-24 18h12)
+O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>ases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
 ### Em andamento
 - `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.
