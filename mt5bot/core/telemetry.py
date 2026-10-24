@@ -93,6 +93,8 @@ def symbol_telemetry(symbol, timeframe, df):
     from mt5bot.execution import quant_manager
     data = {"account": account_snapshot(), "positions": bot_positions(symbol)}
     route = quant_manager.get_route(symbol, timeframe)
+    data["validated"] = route is not None
+    data["live_allowed"] = route is not None or bool(getattr(config, "ALLOW_UNVALIDATED_LIVE", False))
     tf_secs = TF_SECONDS.get(str(timeframe).upper())
     if tf_secs:
         forming = mt5.copy_rates_from_pos(symbol, quant_manager.TF_CONST[tf_secs], 0, 1)

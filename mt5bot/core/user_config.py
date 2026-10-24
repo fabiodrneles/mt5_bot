@@ -29,6 +29,7 @@ GLOBAL_KEYS = {
     "max_daily_loss_percent": ("MAX_DAILY_LOSS_PERCENT", float, 0.1, 50.0),
     "max_risk_per_trade_percent": ("MAX_RISK_PER_TRADE_PERCENT", float, 0.1, 10.0),
     "ml_filter_enabled": ("ML_FILTER_ENABLED", bool, None, None),
+    "allow_unvalidated_live": ("ALLOW_UNVALIDATED_LIVE", bool, None, None),
 }
 ROUTE_KEYS = {
     "max_risk_pct": (float, 0.1, 50.0),

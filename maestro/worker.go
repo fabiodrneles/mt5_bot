@@ -19,6 +19,10 @@ type Telemetry struct {
 	Positions []Position `json:"positions"`
 	NextClose string     `json:"next_close"`
 	Quant     *QuantInfo `json:"quant"`
+	// Validated: o ativo/timeframe tem rota quant validada fora da amostra.
+	// LiveAllowed: pode abrir posicao ao vivo (validada ou opcao explicita).
+	Validated   bool `json:"validated"`
+	LiveAllowed bool `json:"live_allowed"`
 }
 
 type Account struct {

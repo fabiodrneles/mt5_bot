@@ -182,11 +182,16 @@ func workerCard(w *PythonWorker, width int) []string {
 	lines := []string{head + strings.Repeat(" ", gap) + right}
 	lines = append(lines, "  "+lipgloss.NewStyle().Foreground(badge.Color).Render(truncate(stateLabel(status), width-2)))
 
-	kind := dimStyle.Render("setups clássicos")
-	if w.IsStudyMode {
-		kind = lipgloss.NewStyle().Foreground(ColorAmber).Render("simulação") + dimStyle.Render(" · sem ordens")
-	} else if tel.Quant != nil {
+	amber := lipgloss.NewStyle().Foreground(ColorAmber)
+	kind := amber.Render("experimental")
+	switch {
+	case w.IsStudyMode:
+		kind = amber.Render("simulação") + dimStyle.Render(" · sem ordens")
+	case tel.Quant != nil:
 		kind = lipgloss.NewStyle().Foreground(ColorPurple).Bold(true).Render("★ QUANT " + tel.Quant.Setup)
+	case !tel.LiveAllowed:
+		// D5: setups classicos so simulam ao vivo, salvo opcao explicita.
+		kind = amber.Render("experimental") + dimStyle.Render(" · só simulação (/study)")
 	}
 	switch {
 	case strings.Contains(tel.NextClose, "fechado"):
