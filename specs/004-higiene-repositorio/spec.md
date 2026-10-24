@@ -1,7 +1,7 @@
 # 004 — Higiene do repositório
 
 - **Prioridade:** P0
-- **Status:** Draft
+- **Status:** Approved
 - **Código afetado:** raiz do repositório, `maestro/`, `run.bat`, `.gitignore`
 - **Resolve:** A1, A2, M2, M3
 
@@ -35,4 +35,4 @@
 
 ## Decisões
 
-- (aguardando D8)
+- D8 — Binários saem do git e são publicados só nas Releases (quem clona compila com `go build`).

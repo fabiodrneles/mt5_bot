@@ -1,7 +1,7 @@
 # 002 — Instaladores e empacotamento
 
 - **Prioridade:** P0 (Windows) / P2 (macOS, Linux)
-- **Status:** Draft
+- **Status:** Approved
 - **Código afetado:** `pyproject.toml`, novo `packaging/` (Inno Setup, scripts Wine), `.github/workflows/release.yml`, `maestro/worker.go`, `mt5bot/core/launcher.py`
 - **Resolve:** C2, C3, C4, M6
 
@@ -44,4 +44,6 @@ Para ser um produto, o MT5Bot precisa instalar com dois cliques, sem git, Python
 
 ## Decisões
 
-- (aguardando D1, D2, D3)
+- D1 — macOS/Linux via pacote que roda tudo dentro do Wine, rotulado experimental; Windows é a plataforma principal.
+- D2 — Instalador Windows em Inno Setup com Python embutido.
+- D3 — Sem assinatura de código por enquanto; o aviso do SmartScreen fica documentado.

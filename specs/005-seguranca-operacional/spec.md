@@ -1,7 +1,7 @@
 # 005 — Segurança operacional
 
 - **Prioridade:** P1
-- **Status:** Draft
+- **Status:** Approved
 - **Código afetado:** `.github/workflows/ml_training.yml`, `mt5bot/core/config.py`, `mt5bot/execution/execution_manager.py`, `maestro/`
 - **Resolve:** A3, A4
 
@@ -24,4 +24,4 @@
 
 ## Decisões
 
-- (aguardando D5)
+- D5 — Setups clássicos só em `/study` por padrão; ao vivo apenas com opção explícita.

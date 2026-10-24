@@ -109,9 +109,11 @@ A base é boa. A recomendação é **corrigir, consolidar e empacotar**, não re
 2. Assistente de primeiro uso: escolher demo/real, testar a conexão, explicar o risco (M5).
 3. Guia de contribuição, templates e `CODEOWNERS` (M4).
 
-## 7. Decisões em aberto
+## 7. Decisões
 
-| # | Pergunta | Opções | Recomendação |
+> Aprovadas pelo dono em 2026-10-24: todas as recomendações aceitas. O projeto **não será vendido**; o objetivo é portfólio de engenharia.
+
+| # | Pergunta | Opções | Decisão |
 |---|---|---|---|
 | D1 | Como atender macOS e Linux, se a lib `MetaTrader5` só existe para Windows? | a) só Windows; b) pacote Mac/Linux que roda o bot inteiro dentro do **Wine** (MT5 + Python para Windows no mesmo prefixo), marcado como *experimental*; c) Mac/Linux só com o dashboard e a pesquisa, sem operar | **b**: é o único caminho que opera de verdade; o próprio MT5 já roda assim nesses sistemas. Fica rotulado como experimental, com o Windows como plataforma principal |
 | D2 | Formato do instalador Windows | a) Inno Setup (`Setup.exe`) com Python embutido; b) PyInstaller em executável único; c) MSIX | **a**: atalhos, desinstalador, Python embutido sem conflito com o do usuário, e build gratuito no GitHub Actions |

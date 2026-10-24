@@ -4,7 +4,7 @@ Cada tarefa referencia a spec e os critérios de aceite que ela fecha. Ordem sug
 
 ## Fase 0 — Decisões (antes de codar)
 
-- [ ] Responder D1–D8 em [ANALYSIS.md §7](ANALYSIS.md#7-decisões-em-aberto) e mover as specs para `Approved`.
+- [x] Responder D1–D8 em [ANALYSIS.md §7](ANALYSIS.md#7-decisões-em-aberto) e mover as specs para `Approved`.
 
 ## Fase 1 — Funcionar de verdade (P0) → `v2.13.0`
 

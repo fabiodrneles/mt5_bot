@@ -1,7 +1,7 @@
 # 001 — CI e qualidade
 
 - **Prioridade:** P0
-- **Status:** Draft
+- **Status:** Approved
 - **Código afetado:** `.github/workflows/ci.yml`, `pyproject.toml`, `test_rvol_wins.py`, `testes/`, novo `tools/ci.ps1`
 - **Resolve:** C1, A7, M1, M4
 
@@ -44,4 +44,4 @@ O CI é a única garantia de que uma mudança não quebrou o robô que opera din
 
 ## Decisões
 
-- (aguardando D4)
+- D4 — Merges delegados ao agente em rodadas, sempre com CI verde e na ordem do épico (2026-10-24).

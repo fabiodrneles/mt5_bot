@@ -1,7 +1,7 @@
 # 003 — Dados e configuração do usuário
 
 - **Prioridade:** P0
-- **Status:** Draft
+- **Status:** Approved
 - **Código afetado:** `mt5bot/core/config.py`, `mt5bot/core/logger.py`, `tools/quant_runner.py`, `mt5bot/data/*`, novo `mt5bot/core/paths.py`
 - **Resolve:** A5, A6
 

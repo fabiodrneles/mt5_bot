@@ -28,11 +28,11 @@ Convenções: MUST/SHOULD/MAY (RFC 2119). Prioridades: **P0** (bloqueia uso real
 
 | ID | Spec | Prioridade | Status |
 |---|---|---|---|
-| 001 | [CI e qualidade](001-ci-qualidade/spec.md) | P0 | Draft |
-| 002 | [Instaladores e empacotamento](002-instaladores-empacotamento/spec.md) | P0 | Draft |
-| 003 | [Dados e configuração do usuário](003-dados-config-usuario/spec.md) | P0 | Draft |
-| 004 | [Higiene do repositório](004-higiene-repositorio/spec.md) | P0 | Draft |
-| 005 | [Segurança operacional](005-seguranca-operacional/spec.md) | P1 | Draft |
-| 006 | [Primeiro uso](006-primeiro-uso/spec.md) | P2 | Draft |
+| 001 | [CI e qualidade](001-ci-qualidade/spec.md) | P0 | Approved |
+| 002 | [Instaladores e empacotamento](002-instaladores-empacotamento/spec.md) | P0 | Approved |
+| 003 | [Dados e configuração do usuário](003-dados-config-usuario/spec.md) | P0 | Approved |
+| 004 | [Higiene do repositório](004-higiene-repositorio/spec.md) | P0 | Approved |
+| 005 | [Segurança operacional](005-seguranca-operacional/spec.md) | P1 | Approved |
+| 006 | [Primeiro uso](006-primeiro-uso/spec.md) | P2 | Approved |
 
 Status possíveis: `Draft` → `Approved` → `In Progress` → `Done`.
