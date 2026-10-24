@@ -1,7 +1,7 @@
 # 006 — Primeiro uso
 
 - **Prioridade:** P2
-- **Status:** Approved
+- **Status:** Done
 - **Código afetado:** novo `tools/setup_wizard.py`, instalador, README
 - **Resolve:** M5
 

@@ -28,13 +28,13 @@ Convenções: MUST/SHOULD/MAY (RFC 2119). Prioridades: **P0** (bloqueia uso real
 
 | ID | Spec | Prioridade | Status |
 |---|---|---|---|
-| 001 | [CI e qualidade](001-ci-qualidade/spec.md) | P0 | In Progress |
+| 001 | [CI e qualidade](001-ci-qualidade/spec.md) | P0 | Done |
 | 002 | [Instaladores e empacotamento](002-instaladores-empacotamento/spec.md) | P0 | In Progress |
-| 003 | [Dados e configuração do usuário](003-dados-config-usuario/spec.md) | P0 | In Progress |
+| 003 | [Dados e configuração do usuário](003-dados-config-usuario/spec.md) | P0 | Done |
 | 004 | [Higiene do repositório](004-higiene-repositorio/spec.md) | P0 | Done |
 | 005 | [Segurança operacional](005-seguranca-operacional/spec.md) | P1 | Done |
-| 006 | [Primeiro uso](006-primeiro-uso/spec.md) | P2 | Approved |
+| 006 | [Primeiro uso](006-primeiro-uso/spec.md) | P2 | Done |
 
-Estado atual (2026-10-24): Fases 1 e 2 concluídas (v2.13.0, v2.14.0). Seguem na Fase 3: cobertura (001 FR-7), pacotes macOS/Linux (002 FR-6), `config --edit` (003 FR-5) e primeiro uso (006).
+Estado atual (2026-10-24): Fases 1, 2 e 3 concluídas (v2.13.0, v2.14.0, v3.0.0). Pendente: verificação do pacote Wine (002 FR-6, issue #47).
 
 Status possíveis: `Draft` → `Approved` → `In Progress` → `Done`.

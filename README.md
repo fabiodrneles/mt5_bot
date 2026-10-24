@@ -11,11 +11,11 @@
 **Robô de trading algorítmico para MetaTrader 5, em Python e Go, feito para contas pequenas.**
 Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respeita a sua margem.
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.14.0-FF7300?style=flat-square)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-3.0.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Testes](https://img.shields.io/badge/testes-236%20passando-2EA043?style=flat-square)
+![Testes](https://img.shields.io/badge/testes-251%20passando-2EA043?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-555?style=flat-square)
 
 </div>
