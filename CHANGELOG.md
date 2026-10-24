@@ -10,9 +10,11 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 - **Diário de sinais** (`bot.bat anotar` / `bot.bat diario`): o operador anota um sinal antes do resultado (hora e preço gravados automaticamente, recusa com o mercado fechado), o robô mede com candles M1 e o spread e compara "bom" × "ruim" contra o empate com teste binomial. Guia no README e no cap. 9 §9.7.
 - **Modo estudo das rotas quant** (`mode = "study"`): mesmo sinal, mesma janela de entrada e mesma saída da rota ao vivo, com ordens virtuais (`quant_study.json`). Nova rota **US100 D1 RSI2MR em estudo** (a regra do US500, sem reotimizar, lucrou no US100 em 10 anos: 55 trades, t 2,10). Ativação real com `[routes.US100] mode = "live"`.
 - Ferramentas de teste da regra da MME9 e variações do dono (`check_ema9*.py`, `signal_mining.py`, `check_reversal.py`, `check_signature.py`, `check_exits.py`, `check_clock.py`, `check_horner.py`) e famílias 29–31 na grade.
+- Roteiro de publicação e construção de autoridade (`docs/publicacao/ROTEIRO.md`).
 - Specs 007–018 e análise de lacunas (`specs/ANALYSIS-v3.1.md`) para as Fases 4–7.
 
 ### Corrigido
+- **Setups clássicos conferidos com o livro** (`docs/validacao-setups.md`): o 9.2 passa a exigir o **fechamento** abaixo da mínima anterior (antes bastava a mínima); o 9.3 segue a regra do candle de referência (maior fechamento da perna + 2 fechamentos abaixo), que antes estava invertida; o Ponto Contínuo aceita o toque na MM21 e ganha a venda. 9.1, 9.4 e FFFD conferem. Pendências registradas para IFR2, SAR, DiNapoli e Rompimento Falso.
 - Simulador de pesquisa: swap com rolagem tripla, spread de rollover e de reabertura, entrada no 1º candle depois de pausa pelo pior preço e nenhuma entrada na hora do rollover (`tests/test_research2.py`).
 
 ## [3.1.0] - 2026-10-24

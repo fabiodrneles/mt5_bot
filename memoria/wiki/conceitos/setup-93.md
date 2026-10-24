@@ -4,9 +4,9 @@ Fonte: `raw/estrategias-operacionais.txt` · Status: já implementado (`check_se
 
 ## Regras (COMPRA)
 1. **Contexto**: MME9 apontando para cima.
-2. **Correção**: **pelo menos 2 candles consecutivos** de recuo, mantendo a MME9 apontando para cima (o preço recua mas a média não vira).
+2. **Correção**: o candle de **referência** é o **maior fechamento da perna de alta**; depois dele, **pelo menos 2 fechamentos abaixo do fechamento da referência** (o 2º pode fechar acima do 1º), com a MME9 sem virar (livro, p. 14). Corrigido no código em 2026-10-24 (`_ref_93` em `strategy.py`); a versão anterior exigia o oposto. Ver `docs/validacao-setups.md`.
 3. **Entrada**: rompimento da **máxima do candle de recuo** (o último candle da correção).
-4. **Stop**: mínima do candle de recuo.
+4. **Stop**: mínima do último candle (o da máxima marcada).
 
 ## Regras (VENDA) — simétrico
 - MME9 apontando para baixo; ≥2 candles de recuperação mantendo a média para baixo.

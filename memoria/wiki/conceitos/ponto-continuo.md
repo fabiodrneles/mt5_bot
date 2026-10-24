@@ -1,6 +1,6 @@
 # Ponto Contínuo (MM21 como âncora)
 
-Fonte: `raw/estrategias-operacionais.txt` · Status: planejado para Fase 2
+Fonte: `raw/estrategias-operacionais.txt` (p. 27) · Status: implementado (compra e venda) em `strategy.py`; toque ou aproximação até 0,3 ATR da MM21 e fechamento do lado da tendência (corrigido em 2026-10-24, ver `docs/validacao-setups.md`)
 
 ## Regras (COMPRA)
 1. **Contexto**: MM21 (média móvel simples de 21) **ascendente**.

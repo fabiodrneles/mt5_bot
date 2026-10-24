@@ -9,8 +9,8 @@ Pergunta do dono: existe algum padrão (horário, data, indicador, volume, rela�
 - Faixa experimental (decisão do dono): DSR entre 0,80 e 0,95 → só `/study` até repetir em ≥ 30 trades novos.
 
 ## Resultado
-- Grade: 41.213 configurações → **0 aprovadas**. Todas as 32 famílias têm t mediano OOS negativo.
-- Calendário: 75.886 células → 0. *Lead-lag*: 12.420 cruzamentos → 0. Pares: todos perdem.
+- Grade final (D1/H4/H1 em ~335 ativos; M30/M15 em 88): 128.076 configurações → **0 aprovadas**, 27 promissoras (todas DSR < 0,05). As 35 famílias têm t mediano OOS negativo.
+- Calendário: 136.864 células → 1 (USDJPY, compra na segunda às 01h por 1h; spread real normal nos ticks; candidato à faixa experimental). *Lead-lag*: 45.918 → 0. Pares: todos perdem.
 - Na simulação, 1.413 configurações levaram US$ 16 a mais de US$ 50 no OOS, mas com risco de US$ 14–38 por trade e quedas de US$ 48–119: inviáveis com US$ 16.
 - Rotas atuais revistas: **US500 D1 RSI2 sobrevive** (OOS +9,73, t 3,2). **HK50 H4 PULLB encolhe** (OOS +2,93, t ≈ 0,7).
 

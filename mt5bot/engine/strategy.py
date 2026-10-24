@@ -4,6 +4,27 @@ from mt5bot.core import config
 from mt5bot.engine.indicators import swing_levels, fib_extension_targets
 
 
+def _ref_93(df: pd.DataFrame, rising: bool, max_back: int = 12):
+    """Candle de referencia do setup 9.3, ou None.
+
+    Compra (rising=True): o candle r e o maior fechamento da perna (fecha acima do anterior) e TODOS os
+    fechamentos depois dele, ate o ultimo candle, ficam abaixo do fechamento de r (no minimo 2), com a MME9
+    subindo em todos esses candles. Venda: o espelho (menor fechamento, MME9 descendo).
+    """
+    closes = df['close'].to_numpy()
+    trend = df['ema9_up' if rising else 'ema9_down'].to_numpy()
+    last = len(df) - 1
+    for r in range(last - 2, max(last - max_back, 0), -1):
+        if not trend[r:last + 1].all():
+            return None
+        after = closes[r + 1:last + 1]
+        is_extreme = closes[r] > closes[r - 1] if rising else closes[r] < closes[r - 1]
+        beyond = (after < closes[r]) if rising else (after > closes[r])
+        if is_extreme and beyond.all():
+            return r
+    return None
+
+
 class StrategyScorer:
     """
     Cérebro Matemático: Analisa o DataFrame de preços (com os indicadores já preenchidos)
@@ -95,51 +116,51 @@ class StrategyScorer:
 
         # ----------------------------------------------------
         # SETUP 9.2 (Correção Leve contra a EMA9)
+        # Livro (Palex, Estrategias Operacionais, p. 11): com a MME9 subindo, um candle FECHA abaixo da
+        # minima do anterior; compra 1 tick acima da maxima dele; stop na minima. Venda espelhada.
         # ----------------------------------------------------
         if _enabled("9.2"):
             if df['ema9_up'].iloc[-1] and df['ema9_up'].iloc[-2]:
-                if c_last['low'] < c_prev['low']:
+                if c_last['close'] < c_prev['low']:
                     setups_found.append({
                         "setup": "9.2", "action": "buy",
                         "trigger_price": c_last['high'] + offset,
                         "stop_loss": c_last['low'], "score": 15
                     })
                 else:
-                    reasons.append("9.2 Compra Falhou: EMA9 aponta para cima, mas a minima nao perdeu a minima anterior.")
+                    reasons.append("9.2 Compra Falhou: EMA9 aponta para cima, mas o candle nao fechou abaixo da minima anterior.")
             elif df['ema9_down'].iloc[-1] and df['ema9_down'].iloc[-2]:
-                if c_last['high'] > c_prev['high']:
+                if c_last['close'] > c_prev['high']:
                     setups_found.append({
                         "setup": "9.2", "action": "sell",
                         "trigger_price": c_last['low'] - offset,
                         "stop_loss": c_last['high'], "score": 15
                     })
                 else:
-                    reasons.append("9.2 Venda Falhou: EMA9 aponta para baixo, mas a maxima nao superou a maxima anterior.")
+                    reasons.append("9.2 Venda Falhou: EMA9 aponta para baixo, mas o candle nao fechou acima da maxima anterior.")
 
         # ----------------------------------------------------
         # SETUP 9.3 (Correção Profunda com 2 fechamentos)
+        # Livro (p. 14): com a MME9 subindo, o candle de REFERENCIA e o maior fechamento da perna de alta;
+        # depois dele, pelo menos 2 fechamentos abaixo do fechamento da referencia (o 2o pode fechar acima
+        # do 1o), sem a MME9 virar. Compra 1 tick acima da maxima do ultimo candle; stop na minima dele.
+        # Se nao romper e continuar fechando abaixo da referencia, a entrada desce para a nova maxima
+        # (aqui isso acontece sozinho: cada candle fechado reavalia o setup). Venda espelhada.
         # ----------------------------------------------------
-        if len(df) >= 4 and _enabled("9.3"):
-            if df['ema9_up'].iloc[-1]:
-                ref_candle = df.iloc[-3]
-                c1 = df.iloc[-2]
-                c2 = df.iloc[-1]
-                if ref_candle['close'] < df['low'].iloc[-4] and c1['close'] < ref_candle['close'] and c2['close'] < ref_candle['close']:
-                    setups_found.append({
-                        "setup": "9.3", "action": "buy",
-                        "trigger_price": c2['high'] + offset,
-                        "stop_loss": min(c1['low'], c2['low']), "score": 20
-                    })
-            elif df['ema9_down'].iloc[-1]:
-                ref_candle = df.iloc[-3]
-                c1 = df.iloc[-2]
-                c2 = df.iloc[-1]
-                if ref_candle['close'] > df['high'].iloc[-4] and c1['close'] > ref_candle['close'] and c2['close'] > ref_candle['close']:
-                    setups_found.append({
-                        "setup": "9.3", "action": "sell",
-                        "trigger_price": c2['low'] - offset,
-                        "stop_loss": max(c1['high'], c2['high']), "score": 20
-                    })
+        if len(df) >= 5 and _enabled("9.3"):
+            ref = _ref_93(df, rising=True)
+            if ref is not None:
+                setups_found.append({
+                    "setup": "9.3", "action": "buy",
+                    "trigger_price": c_last['high'] + offset,
+                    "stop_loss": c_last['low'], "score": 20
+                })
+            elif _ref_93(df, rising=False) is not None:
+                setups_found.append({
+                    "setup": "9.3", "action": "sell",
+                    "trigger_price": c_last['low'] - offset,
+                    "stop_loss": c_last['high'], "score": 20
+                })
 
         # ----------------------------------------------------
         # SETUP 9.4 (Falsa Reversão da EMA9)
@@ -240,15 +261,26 @@ class StrategyScorer:
                             
         # ----------------------------------------------------
         # PONTO CONTÍNUO (PC)
+        # Livro (p. 27): MM21 ascendente; o candle TOCA ou se aproxima bem da MM21 (repique a media);
+        # marca a maxima; compra 1 tick acima; stop na minima. Fechar abaixo da MM21 desconfigura.
+        # Venda espelhada com a MM21 descendente. "Se aproxima" = ate 0,3 ATR da media.
         # ----------------------------------------------------
-        if _enabled("PC") and df.get('sma21_up') is not None and df['sma21_up'].iloc[-1] and df['sma21_up'].iloc[-2]:
-            dist_to_sma = c_last['low'] - df['sma21'].iloc[-1]
+        if _enabled("PC") and df.get('sma21') is not None and len(df) >= 3:
+            sma21 = df['sma21']
             atr = df['atr'].iloc[-1]
-            if 0 <= dist_to_sma <= (atr * 0.3):
+            rising = sma21.iloc[-1] > sma21.iloc[-2] > sma21.iloc[-3]
+            falling = sma21.iloc[-1] < sma21.iloc[-2] < sma21.iloc[-3]
+            if rising and c_last['low'] - sma21.iloc[-1] <= atr * 0.3 and c_last['close'] >= sma21.iloc[-1]:
                 setups_found.append({
                     "setup": "PC", "action": "buy",
                     "trigger_price": c_last['high'] + offset,
                     "stop_loss": c_last['low'], "score": 30
+                })
+            elif falling and sma21.iloc[-1] - c_last['high'] <= atr * 0.3 and c_last['close'] <= sma21.iloc[-1]:
+                setups_found.append({
+                    "setup": "PC", "action": "sell",
+                    "trigger_price": c_last['low'] - offset,
+                    "stop_loss": c_last['high'], "score": 30
                 })
 
         # ----------------------------------------------------

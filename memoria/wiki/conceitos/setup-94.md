@@ -1,6 +1,6 @@
 # Setup 9.4 — Falso recuo (1 candle contra)
 
-Fonte: `raw/estrategias-operacionais.txt` · Status: planejado para Fase 2 (não implementado ainda)
+Fonte: `raw/estrategias-operacionais.txt` (p. 18) · Status: implementado e conforme o livro (validado em 2026-10-24, `docs/validacao-setups.md`). Stop na mínima do candle que virou a MME9 para baixo.
 
 ## Regras (COMPRA)
 1. **Contexto**: tendência de alta estabelecida (MME9 para cima).

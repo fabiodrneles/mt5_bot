@@ -167,18 +167,20 @@ Os sobreviventes do FDR no IS ainda precisam de t ≥ 2 e lucro no OOS, lucro em
 
 ## 14.6 Resultados
 
-> Números da execução de 2026-10-24 com 133–136 ativos em D1/H4/H1, depois das seis correções da seção 14.4. O relatório completo e atualizável é `tools/quant_research/RESULTADOS2.md` (gerado por `report2.py`). A extensão para M15 e M30 está em execução e, quando terminar, atualiza esse relatório.
+> Execução completa de 2026-10-24: 331–337 ativos em D1, H4 e H1 e 88 ativos (forex, índices, commodities e cripto) em M30 e M15, com as 31 famílias e depois das seis correções da seção 14.4. O relatório completo e atualizável é `tools/quant_research/RESULTADOS2.md` (gerado por `report2.py`).
 
-### Funil da grade (28 famílias da biblioteca; as 3 do dono entram na rodada com M15/M30)
+### Funil da grade
 
 | TF | Ativos | Configurações | Células (ativo × família) | 1: OOS forte | 1+2: IS também | 1–3: família robusta | 1–7 |
 |---|---|---|---|---|---|---|---|
-| D1 | 133 | 10.590 | 2.520 | 4 | 1 | 1 | 0 |
-| H4 | 134 | 9.181 | 2.795 | 14 | 9 | 7 | 0 |
-| H1 | 136 | 21.442 | 3.970 | 22 | 16 | 7 | 0 |
-| **Total** | | **41.213** | **9.285** | **40** | **26** | **15** | **0** |
+| D1 | 331 | 30.098 | 6.756 | 5 | 1 | 1 | 0 |
+| H4 | 331 | 26.706 | 7.806 | 20 | 10 | 8 | 0 |
+| H1 | 337 | 52.721 | 10.832 | 26 | 18 | 8 | 0 |
+| M30 | 88 | 9.254 | 2.685 | 8 | 7 | 5 | 0 |
+| M15 | 88 | 9.297 | 2.723 | 7 | 5 | 5 | 0 |
+| **Total** | | **128.076** | **30.802** | **66** | **41** | **27** | **0** |
 
-As 15 que chegaram aos testes 4–7 caíram todas no DSR, e 10 delas também na viabilidade: as mais lucrativas no OOS (AUDJPY D1 Pinbar +US$ 128, ETHCHF H4 Pinbar +US$ 157, AUDUSD H1 Bollinger intradiária +US$ 51) arriscam US$ 2–7 por trade, com probabilidade de ruína de 10–32% em dois anos com US$ 16.
+As 27 células que chegaram aos testes 4–7 caíram **todas** no DSR (o maior foi 0,049). A maioria também caiu na viabilidade: as mais lucrativas no OOS (ETHCHF H4 Pinbar +US$ 157, AUDJPY D1 Pinbar +US$ 128, USDHUF H4 RSI3 +US$ 118) arriscam de US$ 5 a US$ 12 por trade, com ruína de 25–54% em dois anos com US$ 16. A melhor em estatística t (USDCAD M15 Double-7, t 3,59, risco US$ 1,10) tem DSR ≈ 0 diante das 9.297 configurações testadas no M15.
 
 ### Placar por família
 
@@ -186,45 +188,47 @@ Para cada célula, o parâmetro é escolhido no IS e medido no OOS. Sem vantagem
 
 | Família | Células | OOS > 0 | t mediano OOS | Família | Células | OOS > 0 | t mediano OOS |
 |---|---|---|---|---|---|---|---|
-| ADXPB | 60 | 45% | −0,10 | PINBAR | 385 | 20% | −1,21 |
-| BBMR | 403 | 32% | −0,57 | ENGULF | 216 | 19% | −1,27 |
-| RSIn | 388 | 29% | −0,61 | MACD | 371 | 16% | −1,36 |
-| OBVRSI | 276 | 33% | −0,71 | PULLB | 400 | 10% | −1,46 |
-| RSI2 | 394 | 24% | −0,77 | IBS | 403 | 13% | −1,54 |
-| ZSCORE | 403 | 25% | −0,89 | DONCH | 388 | 12% | −1,54 |
-| CONSEC | 396 | 24% | −0,92 | TSMOM | 401 | 15% | −1,61 |
-| MACROSS | 304 | 20% | −1,07 | INSIDE | 395 | 8% | −1,65 |
-| TOM | 132 | 8% | −1,08 | KELTNER | 389 | 12% | −1,75 |
-| DOUBLE7 | 402 | 19% | −1,08 | NR7 | 401 | 10% | −1,88 |
-| VOLBRK | 349 | 18% | −1,08 | VWAP | 136 | 5% | −2,29 |
-| SUPERT | 377 | 17% | −1,17 | DOW | 133 | 14% | −2,91 |
-| GAPFADE | 378 | 24% | −1,20 | HOD | 136 | 22% | −3,05 |
-| VOLCAP | 189 | 23% | −1,22 | ORB | 136 | 15% | −4,97 |
+| ADXPB | 303 | 39% | −0,48 | BBMR_I | 513 | 13% | −1,51 |
+| BBMR | 1.173 | 25% | −0,79 | PINBAR | 1.128 | 14% | −1,52 |
+| RSIn | 1.148 | 24% | −0,83 | MACD | 1.116 | 13% | −1,53 |
+| EMA9REV | 930 | 26% | −0,84 | PULLB | 1.163 | 10% | −1,55 |
+| OBVRSI | 822 | 25% | −0,90 | KELTNER | 1.154 | 10% | −1,59 |
+| HORNER | 820 | 18% | −1,02 | TSMOM | 1.167 | 14% | −1,63 |
+| VOLBRK | 1.000 | 20% | −1,03 | GAPFADE | 1.060 | 14% | −1,74 |
+| TOM | 327 | 11% | −1,06 | INSIDE | 1.157 | 7% | −2,04 |
+| MACROSS | 912 | 21% | −1,08 | RSI2_I | 513 | 8% | −2,10 |
+| RSI2 | 1.157 | 20% | −1,10 | IBS | 1.175 | 8% | −2,12 |
+| ZSCORE | 1.175 | 19% | −1,13 | NR7 | 1.170 | 7% | −2,20 |
+| SUPERT | 1.121 | 18% | −1,17 | VWAP | 512 | 7% | −2,59 |
+| CONSEC | 1.158 | 16% | −1,23 | ZSCORE_I | 513 | 7% | −2,92 |
+| VOLCAP | 545 | 20% | −1,29 | DOW | 331 | 7% | −3,48 |
+| EMA9X | 1.171 | 16% | −1,31 | HOD | 337 | 10% | −5,16 |
+| DOUBLE7 | 1.170 | 14% | −1,34 | ORB | 513 | 7% | −5,52 |
+| ENGULF | 683 | 15% | −1,37 | IBS_I | 513 | 4% | −5,86 |
+| DONCH | 1.152 | 14% | −1,45 |  | | |  |
 
-**Nenhuma família tem t mediano positivo.** As de reversão à média (Bollinger, RSI, z-score, OBV + IFR2) ficam no topo, o que concorda com a literatura sobre reversão de curto prazo em índices [Connors & Alvarez 2009], mas nem elas superam o custo de forma típica. As intradiárias de horário (HOD, ORB, VWAP) ficam no fundo: o movimento por trade é pequeno e o spread é o mesmo.
+**Nenhuma das 35 famílias (31 regras mais 4 variantes intradiárias `_I`) tem t mediano positivo.** As de reversão à média (ADX com recuo, Bollinger, RSI) e as do dono (EMA9REV, HORNER) ficam no terço superior, mas nem elas superam o custo de forma típica. As intradiárias de horário (HOD, ORB, VWAP) e as variantes que fecham no fim do dia ficam no fundo: o movimento por trade é pequeno e o spread é o mesmo.
 
 ### Calendário, *lead-lag* e pares
 
 | Varredura | Testado | Passaram o FDR no IS | Aprovados (OOS, estabilidade, custo 1,5×) |
 |---|---|---|---|
-| Hora × dia da semana × ativo, e dia útil do mês | 75.886 células | 2 | **0** |
-| *Lead-lag* A → B (46 ativos, sinal e choques de 1 e 2 desvios) | 12.420 cruzamentos | 0 | **0** |
+| Hora × dia da semana × ativo, e dia útil do mês | 136.864 células | 20 | **1**: USDJPY, comprar na segunda às 01h do servidor por 1 hora (t OOS 2,19; positivo em todos os anos) |
+| *Lead-lag* A → B (sinal e choques de 1 e 2 desvios) | 45.918 cruzamentos | 0 | **0** |
 | Pares cointegrados (15 pares, D1) | 60 configurações | — | **0** (todos perdem no OOS) |
 
-A sequência das varreduras de calendário é, por si só, um resultado metodológico: **64 → 3 → 0 → 0** "padrões" depois de cada correção de artefato (A4, A5, A6). Nenhum padrão sobreviveu à primeira cotação executável.
-
-No *lead-lag*, só 164 de 12.420 cruzamentos (1,3%) têm movimento bruto médio maior que o custo médio, e nenhum é distinguível do acaso. Numa hora, a informação de um par já está nos outros, ou o resíduo é menor que o spread, o que é coerente com mercados de câmbio muito líquidos.
+A sequência das varreduras de calendário é, por si só, um resultado metodológico: **64 → 3 → 0** "padrões" depois de cada correção de artefato (A4, A5, A6), e **1** na rodada final com o universo inteiro. Esse sobrevivente foi auditado com ticks reais, como os anteriores. Às 01h de segunda o spread do USDJPY já está normal (1 ponto), então ele **não** é um artefato de custo. Nas quatro segundas mais recentes, o resultado executável foi de +306, −90, −13 e −83 pontos. Sendo 1 sobrevivente entre 136.864 testes, com FDR de 5% e 20 rejeições no IS, uma descoberta falsa é o esperado. Ele é candidato à **faixa experimental** (seção 14.7): estudo ao vivo sem dinheiro, não rota.
 
 ### As rotas atuais, revistas com o simulador corrigido
 
 | Rota | Pesquisa anterior (IS / OOS) | Com as correções (IS / OOS) | Leitura |
 |---|---|---|---|
-| US500 D1 RSI2 | +3,26 / +9,93 | +2,87 / **+9,73** | Sobrevive; t OOS 3,2; efeito documentado, que na rodada 2 lucrou em 6 de 8 índices (cap. 8) |
+| US500 D1 RSI2 | +3,26 / +9,93 | +2,87 / **+9,73** | Sobrevive; t OOS 3,2; generaliza para os índices americanos (seção 14.9) |
 | HK50 H4 PULLB | +5,72 / +4,21 | +3,31 / +2,93 | Encolhe ~40%; parte do lucro antigo vinha da abertura de sessão; t OOS ≈ 0,7 |
 
 ### Lucro na simulação × lucro possível
 
-Na grade, **1.413 configurações** levaram US$ 16 a mais de US$ 50 no OOS, e 522 delas também lucraram no IS. As maiores (ETHJPY D1 Donchian +US$ 366, GBPUSD D1 MACD +US$ 298) têm risco de US$ 14–38 por trade e quedas de US$ 48–119 no caminho: o primeiro stop zera a conta real. O simulador "chega" ao lucro porque não quebra. É exatamente o que o critério 7 mede.
+Na grade completa, **2.000 configurações** levaram US$ 16 a mais de US$ 50 no OOS, e 733 delas também lucraram no IS. As maiores têm risco de US$ 5–38 por trade e quedas de dezenas de dólares no caminho: o primeiro stop zera a conta real. O simulador "chega" ao lucro porque não quebra. É exatamente o que o critério 7 mede.
 
 ## 14.7 Faixa experimental e decisão sobre o LKQCorp
 
@@ -280,9 +284,9 @@ O plano de crescimento resultante é escalonado: US500 agora; US100 com ≈ US$ 
 
 **Por que nada sobreviveu?** Três forças se somam:
 
-1. **Custo relativo.** Em 75.886 células de calendário, 92% têm movimento bruto médio menor que o custo médio. O spread é fixo por trade e o movimento útil encolhe com o horizonte, o que pune os timeframes curtos e as regras de horário.
+1. **Custo relativo.** Na varredura de calendário, cerca de 90% das células têm movimento bruto médio menor que o custo médio. O spread é fixo por trade e o movimento útil encolhe com o horizonte, o que pune os timeframes curtos e as regras de horário.
 2. **Eficiência no nível do varejo.** Regras públicas e simples (as 28 famílias são todas de livros e artigos) foram exploradas por décadas. Pela hipótese adaptativa [Lo 2004], o que sobra tende a ser menor que o custo de quem opera um lote de varejo.
-3. **Múltiplos testes.** Com 41.213 configurações, "vencedoras" aparecem por acaso aos milhares. Os filtros da seção 14.5 existem para isso, e fizeram o trabalho esperado: eliminaram as candidatas sem eliminar o RSI2 do US500, que tem fundamento independente.
+3. **Múltiplos testes.** Com 128.076 configurações, "vencedoras" aparecem por acaso aos milhares. Os filtros da seção 14.5 existem para isso, e fizeram o trabalho esperado: eliminaram as candidatas sem eliminar o RSI2 do US500, que tem fundamento independente.
 
 **O argumento da proporção (US$ 16 → US$ 10 mil).** Uma vantagem real por contrato escala com o número de contratos enquanto houver liquidez. A recíproca é a parte importante: o que não tem vantagem com US$ 16 também não tem com US$ 10 mil. O capital maior muda outra coisa, o **risco de ruína**. Com US$ 16, um stop do RSI2 no US500 custa 10% da conta; com US$ 1.600, 0,1%. A mesma vantagem, com muito menos chance de quebrar antes de se manifestar.
 
