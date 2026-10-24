@@ -6,6 +6,7 @@ saida pela regra do setup. So enxerga posicoes com o MAGIC do bot, entao uma
 posicao manual do usuario no mesmo ativo (conta hedging) nunca e tocada.
 """
 import logging
+import os
 
 import MetaTrader5 as mt5
 
@@ -98,6 +99,10 @@ def _manage_quant_position(symbol, position, df, setup, params, tf_secs):
 def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
     if df is None or len(df) < 200:
         return "🔴 WAIT_DATA"
+
+    # /quit wait-flat (shutdown_manager) cria esta trava: nada de novas entradas.
+    if os.path.exists(".no_new_trades"):
+        return "🔴 BLOQUEADO"
 
     last_time = df["time"].iloc[-1]
     if _last_signal_candle.get(symbol) == last_time:

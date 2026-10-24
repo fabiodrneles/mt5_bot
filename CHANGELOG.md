@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.12.0] - 2026-10-24
+- **Maestro (TUI) redesenhado:** cabecalho com selos (LIVE/SIMULADOR, MT5, conta REAL/DEMO) e faixa da conta (saldo, patrimonio, margem, flutuante do robo); cartao por robo com estado colorido, rota quant, proximo candle, risco x limite e posicao com P/L; autocompletar de comandos (Tab), Esc limpa a linha (antes fechava o Maestro), ajuda formatada; layout se adapta a terminais estreitos.
+- **Telemetria compartilhada** (`mt5bot/core/telemetry.py`): o brain_worker envia conta/posicoes/rota quant ao Maestro; Modo Quant e dashboard usam a mesma fonte.
+- **Dashboard web reescrito** (`bot.bat dashboard` / `/dashboard`): painel ao vivo (5 s) com indicadores, rotas quant, posicoes, curva de patrimonio, desempenho por estrategia e historico em US$, configuracao somente leitura; pt/en/es; so biblioteca padrao. A pagina antiga editava so a memoria do proprio processo (sem efeito nos robos) e media lucro em pips.
+- **Modo Quant colorido:** barra de titulo, selo REAL/DEMO, estados e lados (▲ BUY / ▼ SELL) com cores, atalhos destacados.
+- **Fix (critico):** `/quit close-all|wait-flat|cancel-open` chamava `../brain/shutdown_manager.py` (inexistente) e nao fazia nada; agora roda `mt5bot.core.shutdown_manager` e mexe **so no que e do robo** (antes fecharia tambem as posicoes/ordens manuais, e o wait-flat nunca terminaria com uma posicao manual aberta).
+- **Fix:** `/report` e `/dashboard` chamavam arquivos inexistentes; `/report` agora mostra o resultado em US$ por estrategia.
+- **Fix:** a rota quant respeita a trava `.no_new_trades` do `/quit wait-flat`.
+- **Eficiencia:** o Maestro so rele o trades.json quando o arquivo muda (antes: a cada segundo por robo).
+
 ## [2.11.0] - 2026-10-23
 - **Painel ao vivo no Modo Quant** (`bot.bat quant`): conta (REAL/DEMO), saldo, patrimonio, margem, P/L do dia, placar das rotas, estado de cada rota, contagem ate o proximo candle (relogio do servidor; detecta mercado fechado), risco por trade x limite com cadeado quando travado, posicoes do robo com P/L e ultimos eventos. `--plain` mantem o modo so-log.
 - **Eficiencia:** o runner so baixa as 400 velas quando fecha um candle (antes: a cada 5 s).

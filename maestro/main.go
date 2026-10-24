@@ -94,36 +94,6 @@ func parseProjectVersion(content string) string {
 	return ""
 }
 
-// topBar monta a linha superior: título à esquerda, badges à direita.
-func (m model) topBar() string {
-	title := " " + titleStyle.Render("MAESTRO v"+botVersion())
-
-	modeColor := ColorBlue
-	if m.mode == "SIMULATOR" {
-		modeColor = ColorAmber
-	}
-	modeBadge := lipgloss.NewStyle().
-		Foreground(modeColor).
-		Bold(true).
-		Render("[ MODE: " + m.mode + " ]")
-
-	mt5Color := ColorGreen
-	if m.mt5Status == "OFF" {
-		mt5Color = ColorRed
-	}
-	mt5Badge := lipgloss.NewStyle().
-		Foreground(mt5Color).
-		Bold(true).
-		Render("[ MT5: " + m.mt5Status + " ]")
-
-	badges := "  " + modeBadge + "  " + mt5Badge + " "
-	fill := m.width - lipgloss.Width(title) - lipgloss.Width(badges)
-	if fill < 2 {
-		fill = 2
-	}
-	return title + lipgloss.NewStyle().Foreground(ColorBorder).Render(strings.Repeat("─", fill)) + badges
-}
-
 // perfPanelContent gera as linhas do painel de performance, uma por worker
 // ativo. Em SIMULATOR cada linha reflete a sessão atual (entry_time >=
 // StartTime do worker); em LIVE reflete todo o histórico real do ativo.
@@ -255,13 +225,16 @@ type model struct {
 
 func initialModel() model {
 	ti := textinput.New()
-	ti.Placeholder = "Digite /help para listar comandos..."
+	ti.Placeholder = "digite / para ver comandos · Tab completa · /help"
 	ti.Prompt = " mt5bot ❯ "
 	ti.PromptStyle = titleStyle
 	ti.TextStyle = inputStyle
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 100
+	ti.ShowSuggestions = true
+	ti.SetSuggestions(commandSuggestions)
+	ti.CompletionStyle = dimStyle
 
 	s := spinner.New()
 	s.Spinner = spinner.Line
@@ -305,8 +278,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case tea.KeyCtrlC:
 			return m, tea.Quit
+		case tea.KeyEsc:
+			// Esc limpa a linha (antes encerrava o Maestro por acidente).
+			m.textInput.SetValue("")
+			return m, nil
 		case tea.KeyEnter:
 			line := strings.TrimSpace(m.textInput.Value())
 			m.textInput.SetValue("")
@@ -399,23 +376,7 @@ func (m *model) updateStatus() {
 		m.textInput.Width = 10
 	}
 
-	var b strings.Builder
-	if len(workers) == 0 {
-		b.WriteString(dimStyle.Render("Nenhum robô ativo. Digite /study <ATIVO> [TIMEFRAME]"))
-	} else {
-		b.WriteString(titleStyle.Render("ATIVOS EM EXECUÇÃO"))
-		b.WriteString("\n")
-		b.WriteString(dimStyle.Render("ATIVO    TF  STATUS"))
-		b.WriteString("\n")
-		b.WriteString(dimStyle.Render(strings.Repeat("─", m.leftWidth-2)))
-		b.WriteString("\n")
-		for _, w := range workers {
-			badge := renderBadge(statusBadge(w.StatusText), 6)
-			uptime := time.Since(w.StartTime).Round(time.Second)
-			b.WriteString(fmt.Sprintf("%-8s %-5s %s  %s\n", w.Symbol, w.Timeframe, badge, dimStyle.Render(uptime.String())))
-		}
-	}
-	m.dashboard = b.String()
+	m.dashboard = robotCards(workers, m.leftWidth-4)
 
 	m.perfContent = perfPanelContent(workers, m.mode, m.rightWidth-2)
 	contentLines := 1
@@ -430,7 +391,7 @@ func (m *model) updateStatus() {
 	// Alturas: top bar (1) + rodapé (1) + painel performance (dinâmico) +
 	// chrome do log (4). vpHeight = m.height - perfPanelHeight - 6 alinha o
 	// rodapé do log com o do painel esquerdo.
-	const topBarHeight, footerHeight, logChrome = 1, 1, 4
+	const topBarHeight, footerHeight, logChrome = 2, 1, 4
 	panelsHeight := m.height - topBarHeight - footerHeight
 	vpHeight := panelsHeight - m.perfPanelHeight - logChrome
 	if vpHeight < 0 {
@@ -515,34 +476,27 @@ func (m *model) handleCommand(line string) tea.Cmd {
 		}
 
 	case "report":
-		m.logs = append(m.logs, dim.Render(tr("report_gen")))
-		cmdPy := exec.Command("python", "../tracker.py", "--report")
-		out, err := cmdPy.CombinedOutput()
+		// Relatorio direto do trades.json (US$, por setup). Antes chamava
+		// ../tracker.py, que nao existe mais.
+		trades, err := readTradesFile(tradesFilePath(false))
 		if err != nil {
-			m.logs = append(m.logs, red.Render(fmt.Sprintf("Error running report: %v\n%s", err, string(out))))
+			m.logs = append(m.logs, dim.Render("Nenhum trade real registrado ainda."))
 		} else {
-			m.logs = append(m.logs, string(out))
+			m.logs = append(m.logs, reportLines(trades)...)
 		}
 
 	case "dashboard":
+		// Antes chamava ../dashboard.py (inexistente). O dashboard web roda
+		// como modulo a partir da raiz do projeto e abre o navegador.
 		m.logs = append(m.logs, dim.Render(tr("dashboard_open")))
-		cmdPy := exec.Command("python", "../dashboard.py")
-		cmdPy.Start()
+		cmdPy := exec.Command("python", "-m", "interfaces.dashboard")
+		cmdPy.Dir = ".."
+		if err := cmdPy.Start(); err != nil {
+			m.logs = append(m.logs, red.Render(fmt.Sprintf("Falha ao abrir o dashboard: %v", err)))
+		}
 
 	case "help":
-		m.logs = append(m.logs, bold.Render(tr("help_title")))
-		m.logs = append(m.logs, tr("help_add"))
-		m.logs = append(m.logs, tr("help_study"))
-		m.logs = append(m.logs, tr("help_stop"))
-		m.logs = append(m.logs, tr("help_list"))
-		m.logs = append(m.logs, tr("help_report"))
-		m.logs = append(m.logs, tr("help_dashboard"))
-		m.logs = append(m.logs, tr("help_fix"))
-		m.logs = append(m.logs, tr("help_quit"))
-		m.logs = append(m.logs, tr("help_quit_cancel"))
-		m.logs = append(m.logs, tr("help_quit_flat"))
-		m.logs = append(m.logs, tr("help_quit_all"))
-		m.logs = append(m.logs, tr("help_lang"))
+		m.logs = append(m.logs, helpLines()...)
 
 	case "idioma":
 		if cmd.Symbol == "" || normalizeLang(cmd.Symbol) == "" {
@@ -557,7 +511,10 @@ func (m *model) handleCommand(line string) tea.Cmd {
 		m.logs = append(m.logs, lipgloss.NewStyle().Foreground(lipgloss.Color("#FFA500")).Render(tr("shutdown_start")))
 		if cmd.Action != "" {
 			m.logs = append(m.logs, dim.Render(fmt.Sprintf(tr("action_requested"), cmd.Action)))
-			shutdownCmd := exec.Command("python", "../brain/shutdown_manager.py", cmd.Action)
+			// Antes chamava ../brain/shutdown_manager.py (inexistente): o close-all
+			// nao fechava nada. Roda da raiz para o lock .no_new_trades valer.
+			shutdownCmd := exec.Command("python", "-m", "mt5bot.core.shutdown_manager", cmd.Action)
+			shutdownCmd.Dir = ".."
 			out, err := shutdownCmd.CombinedOutput()
 			if err != nil {
 				m.logs = append(m.logs, red.Render(fmt.Sprintf("%s %v\n%s", tr("shutdown_err"), err, string(out))))
@@ -580,7 +537,7 @@ func (m model) View() string {
 		return "\n  Iniciando Maestro..."
 	}
 
-	header := m.topBar()
+	header := m.headerView()
 
 	// Nota lipgloss v1.1.0: Width/Height com border SOMAM a borda ao tamanho
 	// (Width(n) + borda = n+2). Por isso subtraímos 2 do frame para o total
@@ -589,8 +546,8 @@ func (m model) View() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBorder).
 		Width(m.leftWidth - 2).
-		Height(m.height - 4).
-		Render(m.dashboard)
+		Height(m.height - 5).
+		Render(clipLines(m.dashboard, m.height-5))
 
 	logTitle := "EVENT LOG (Live)"
 	if m.mode == "SIMULATOR" {
@@ -626,6 +583,16 @@ func (m model) View() string {
 	middle := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightColumn)
 
 	return fmt.Sprintf("%s\n%s\n %s%s", header, middle, m.spin.View(), m.textInput.View())
+}
+
+// clipLines limita o conteudo a n linhas (cartoes demais nao quebram o grid).
+func clipLines(s string, n int) string {
+	lines := strings.Split(s, "\n")
+	if n < 1 || len(lines) <= n {
+		return s
+	}
+	lines = lines[:n-1]
+	return strings.Join(append(lines, dimStyle.Render("… mais robôs: /list")), "\n")
 }
 
 func main() {

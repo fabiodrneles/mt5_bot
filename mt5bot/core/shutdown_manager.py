@@ -12,15 +12,20 @@ if _ROOT not in sys.path:
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - SHUTDOWN - %(message)s')
 
+
+def _is_bot(item):
+    """So posicoes/ordens do robo (MAGIC). As manuais do usuario ficam intactas."""
+    return getattr(item, "magic", None) == getattr(config, "MAGIC", None)
+
 def cancel_pending_orders():
-    """Cancela todas as ordens pendentes (Buy Stop / Sell Stop)"""
+    """Cancela as ordens pendentes do robo (Buy Stop / Sell Stop)."""
     orders = mt5.orders_get()
     if orders is None:
         logging.error("Falha ao obter ordens do MT5.")
         return
 
     count = 0
-    for order in orders:
+    for order in [o for o in orders if _is_bot(o)]:
         request = {
             "action": mt5.TRADE_ACTION_REMOVE,
             "order": order.ticket,
@@ -35,14 +40,14 @@ def cancel_pending_orders():
     logging.info(f"Total de {count} ordens pendentes canceladas.")
 
 def close_all_positions():
-    """Fecha todas as posicoes ativas a mercado."""
+    """Fecha a mercado todas as posicoes do robo (as manuais ficam)."""
     positions = mt5.positions_get()
     if positions is None:
         logging.error("Falha ao obter posicoes do MT5.")
         return
 
     count = 0
-    for pos in positions:
+    for pos in [p for p in positions if _is_bot(p)]:
         tick = mt5.symbol_info_tick(pos.symbol)
         
         request = {
@@ -82,8 +87,8 @@ def wait_flat():
     logging.info("Aguardando zerar todas as posicoes. Pode demorar...")
     
     while True:
-        positions = mt5.positions_get()
-        if positions is None or len(positions) == 0:
+        positions = [p for p in (mt5.positions_get() or []) if _is_bot(p)]
+        if len(positions) == 0:
             logging.info("Todas as posicoes foram zeradas! Pronto para desligar.")
             break
         

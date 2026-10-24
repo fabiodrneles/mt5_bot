@@ -25,6 +25,7 @@ if "%CMD%"=="" (
     echo   backtest    - Roda backtest ^(ex: bot backtest HK50 1^)
     echo   test        - Roda os testes unitarios
     echo   quant       - Liga as rotas quant ^(HK50 H4 PULLB / US500 D1 RSI2MR^)
+    echo   dashboard   - Abre o painel web ao vivo no navegador
     echo ==============================================
     exit /b 0
 )
@@ -99,6 +100,11 @@ if /i "%CMD%"=="backtest" (
 
 if /i "%CMD%"=="quant" (
     python tools\quant_runner.py
+    goto :fim
+)
+
+if /i "%CMD%"=="dashboard" (
+    python -m interfaces.dashboard
     goto :fim
 )
 

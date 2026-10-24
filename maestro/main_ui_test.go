@@ -164,9 +164,9 @@ func TestViewRenderizaPainéis(t *testing.T) {
 	out := m.View()
 	for _, want := range []string{
 		"MAESTRO v" + botVersion(),
-		"[ MODE: LIVE ]",
-		"[ MT5: ON ]",
-		"ATIVOS EM EXECUÇÃO",
+		"LIVE",
+		"MT5 ON",
+		"ROBÔS",
 		"EVENT LOG",
 		"PERFORMANCE RESUMO",
 	} {
@@ -205,7 +205,7 @@ func TestViewSimulador(t *testing.T) {
 	m.updateStatus()
 
 	out := m.View()
-	if !strings.Contains(out, "[ MODE: SIMULATOR ]") {
+	if !strings.Contains(out, "SIMULADOR") {
 		t.Fatalf("View sem badge SIMULATOR:\n%s", out)
 	}
 	if !strings.Contains(out, "EVENT LOG (Simulador)") {

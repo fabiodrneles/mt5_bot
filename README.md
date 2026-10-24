@@ -11,11 +11,11 @@
 **Robô de trading algorítmico para MetaTrader 5, em Python e Go, feito para contas pequenas.**
 Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respeita a sua margem.
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.11.0-FF7300?style=flat-square)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.12.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Testes](https://img.shields.io/badge/testes-183%20passando-2EA043?style=flat-square)
+![Testes](https://img.shields.io/badge/testes-184%20passando-2EA043?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-555?style=flat-square)
 
 </div>
@@ -130,25 +130,25 @@ bot.bat quant
 Ele roda continuamente, com um ciclo a cada 5 segundos, e mostra um **painel ao vivo**. Deixe a janela aberta e pare com **Ctrl+C**:
 
 ```
- MT5Bot · Modo Quant                                            24/10 22:20:00
-──────────────────────────────────────────────────────────────────────────────
- Conta 50352457 REAL   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
- Hoje +$0.12   Placar quant: 3 trades (2 no lucro) · +$0.35
+  ◆ MT5BOT  ·  MODO QUANT                                       26/10 22:20:00
+ REAL  Conta 50352457   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
+        Hoje +$0.12   Placar quant 3 trades (2 no lucro)  +$0.35
 
- ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
- HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
- US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        ✓ $1.62 (limite $1.95)
+ ▍ROTAS
+   ATIVO            ESTADO                       PRÓX. CANDLE     RISCO / LIMITE
+   HK50 H4 PULLB    🟢 EM POSIÇÃO (PULLB BUY)     em 1h 05m        ✓ $0.21 / $0.33
+   US500 D1 RSI2MR  ⏳ AGUARDANDO MERCADO         mercado fechado  ✓ $1.62 / $1.95
 
- POSIÇÕES DO ROBÔ
-   HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
+ ▍POSIÇÕES DO ROBÔ
+   HK50 ▲ BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
 
- EVENTOS
-   24/10 22:15 [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01 risco=$0.21
-──────────────────────────────────────────────────────────────────────────────
- Ctrl+C para parar · emergência: .\bot.bat panic · log: logs\quant_runner.log
+ ▍EVENTOS
+   26/10 22:15  [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01
+────────────────────────────────────────────────────────────────────────────────
+  Ctrl+C  parar    .\bot.bat panic  emergência   log: logs\quant_runner.log
 ```
 
-- **Risco por trade:** ✓ quando o trade cabe no limite; 🔒 quando está travado para proteger a margem, mostrando o porquê.
+- **Risco / limite:** ✓ quando o trade cabe no limite; 🔒 quando está travado para proteger a margem, mostrando o porquê.
 - **Próx. candle:** quanto falta para o candle fechar, pelo relógio do servidor. Indica "mercado fechado" no fim de semana.
 - **Placar quant:** só os trades das rotas quant, com o lucro real (comissão e swap incluídos).
 - `python tools\quant_runner.py --plain` mostra só o log, sem painel (útil para redirecionar para um arquivo). `--once` roda um ciclo e sai.
@@ -204,22 +204,61 @@ mt5bot.bat          # usa o maestro.exe pronto
 
 O painel abre no terminal. Cada ativo vira um "robô" (um worker Python) supervisionado pelo Maestro:
 
+```
+ ◆ MT5BOT MAESTRO v2.12.0   LIVE   MT5 ON   CONTA REAL  ─────────────────── 26/10 22:20:00
+ Saldo $16.26   Patrimônio $16.38   Margem livre $14.20   Flutuante +$0.12   Posições do robô 1
+╭──────────────────────────────────────╮╭──────────────────────────────────────────────────╮
+│ROBÔS  2 ativo(s)                     ││EVENT LOG (Live)                                  │
+│● HK50 H4                 [POS] 2h13m ││[HK50|H4] PULLB BUY @ 23050.0 ... Enviando a      │
+│  EM POSIÇÃO (PULLB BUY)              ││mercado.                                          │
+│  ★ QUANT PULLB · candle em 1h 05m    ││                                                  │
+│  ✓ risco $0.21 / limite $0.33        │╰──────────────────────────────────────────────────╯
+│  ▲ BUY 0.01 @ 23050.00  +$0.12       │╭──────────────────────────────────────────────────╮
+│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄  ││PERFORMANCE RESUMO (Por Ativo)                    │
+│● US500 D1               [WAIT] 2h13m ││[HK50|H4] LOTE 0.01  +$0.35  WR 66.7%  3T         │
+│  AGUARDANDO MERCADO                  ││[US500|D1] LOTE 0.01  sem dados                   │
+╰──────────────────────────────────────╯╰──────────────────────────────────────────────────╯
+ | mt5bot ❯ /add US500 D1
+```
+
+- **Cabeçalho:** modo (LIVE/SIMULADOR), conexão com o MT5, conta **REAL/DEMO**, saldo, patrimônio, margem livre e o lucro/prejuízo flutuante das posições do robô.
+- **Cartão por robô:** estado colorido, rota quant (★), quanto falta para o candle fechar, risco × limite (✓ ou 🔒) e a posição aberta com P/L.
+- **Prompt:** digite `/` e as sugestões aparecem em cinza; **Tab** completa, **Esc** limpa a linha e **Ctrl+C** sai.
+
 | Comando | O que faz |
 |---|---|
 | `/study HK50 H1` | **Simulação.** Mostra os sinais e abre trades virtuais, **sem ordem real**. Comece por aqui. |
 | `/add HK50 H4` | Liga o robô **real** no ativo e timeframe. `HK50 H4` e `US500 D1` usam o Modo Quant automaticamente. |
 | `/stop HK50` | Para o robô do ativo |
 | `/list` | Lista os robôs ativos |
-| `/report` | Relatório de performance no terminal |
-| `/dashboard` | Abre o painel visual no navegador |
+| `/report` | Relatório em dólar dos trades reais, por estratégia |
+| `/dashboard` | Abre o dashboard web ao vivo no navegador |
 | `/fix` | Reinicia robôs que entraram em crash loop |
 | `/idioma pt\|en\|es` | Troca o idioma da interface |
 | `/quit` | Encerra e mantém as ordens no MT5 |
-| `/quit cancel-open` | Cancela as ordens pendentes e encerra |
-| `/quit wait-flat` | Espera as posições zerarem para encerrar |
-| `/quit close-all` | **[PÂNICO]** Liquida todas as posições a mercado |
+| `/quit cancel-open` | Cancela as ordens pendentes **do robô** e encerra |
+| `/quit wait-flat` | Bloqueia novas entradas e espera as posições **do robô** zerarem |
+| `/quit close-all` | **[PÂNICO]** Fecha a mercado as posições **do robô** (as manuais ficam) |
 
 > ⚠️ **Não rode o Modo Quant e o `/add` do mesmo ativo ao mesmo tempo.** Seriam dois processos disputando a mesma posição.
+
+---
+
+## 🖥 Dashboard web
+
+```powershell
+.\bot.bat dashboard     # ou /dashboard no Maestro
+```
+
+Abre no navegador um painel **ao vivo** (atualiza a cada 5 s), em português, inglês ou espanhol:
+
+- **Indicadores:** saldo, patrimônio, margem livre, resultado do dia e flutuante do robô, com o selo REAL/DEMO.
+- **Rotas quant:** risco por trade × limite e quanto falta para o próximo candle.
+- **Posições do robô** com SL, TP e P/L.
+- **Curva de patrimônio**, desempenho (trades, acerto, fator de lucro, queda máxima) e resultado por estratégia — tudo em **dólar**, com o lucro real do MT5.
+- **Configuração** (somente leitura): rotas quant, travas de risco e setups por ativo.
+
+Roda só com a biblioteca padrão do Python, em `localhost`. Nada sai do seu computador.
 
 ---
 
@@ -273,6 +312,7 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | Comando | O que faz |
 |---|---|
 | `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1) |
+| `bot.bat dashboard` | **Abre o dashboard web ao vivo** no navegador |
 | `bot.bat diagnose` | Conexão com o MT5, saldo, margem e erros do `bot.log` nas últimas 24h |
 | `bot.bat market` | Preço, spread, valor do tick e margem dos ativos configurados |
 | `bot.bat config` | Risco %, perda diária, filtro de IA, **rotas quant com o limite em $ pelo saldo atual** e setups por ativo |

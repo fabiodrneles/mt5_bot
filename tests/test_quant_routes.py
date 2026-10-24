@@ -284,3 +284,14 @@ def test_route_risk_override_unlocks_only_that_route(market, monkeypatch):
     assert quant_manager.max_risk_pct(route) == 12.0
     assert quant_manager.max_risk_pct(config.QUANT_ROUTES["HK50"]) == config.QUANT_MAX_RISK_PCT
     assert quant_manager.quant_cycle("HK50", df, "H4", route).startswith("🟢 EM POSIÇÃO")
+
+
+def test_quant_respects_no_new_trades_lock(market, monkeypatch, tmp_path):
+    """/quit wait-flat cria .no_new_trades: a rota quant nao pode abrir nada."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".no_new_trades").write_text("locked")
+    df = _pullback_df()
+    _open_at_next_bar(market, df)
+
+    assert quant_manager.quant_cycle("HK50", df, "H4", config.QUANT_ROUTES["HK50"]) == "🔴 BLOQUEADO"
+    assert market["sent"] == []

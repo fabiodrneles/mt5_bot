@@ -101,6 +101,14 @@ def process_payload(payload_str: str):
             "status": "processed",
             "state_text": state
         }
+        # Telemetria para o painel do Maestro (conta, posicao do robo, rota quant).
+        # Falha aqui nunca derruba o ciclo de trading.
+        if not is_study_mode:
+            try:
+                from mt5bot.core import telemetry
+                response["telemetry"] = telemetry.symbol_telemetry(symbol, timeframe_str, df)
+            except Exception as e:
+                logging.debug(f"Telemetria indisponivel: {e}")
 
         sys.stdout.write(json.dumps(response) + '\n')
         sys.stdout.flush()

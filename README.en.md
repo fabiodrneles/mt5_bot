@@ -11,11 +11,11 @@
 **Algorithmic trading bot for MetaTrader 5 in Python and Go, built for small accounts.**
 Strict risk management, out-of-sample validated strategies, and respect for your margin.
 
-![Version](https://img.shields.io/badge/version-2.11.0-FF7300?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.12.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-183%20passing-2EA043?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-184%20passing-2EA043?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)
 
 </div>
@@ -130,25 +130,25 @@ If you have never run the bot, start with **Quant Mode on a demo account** and l
 It runs continuously, with one cycle every 5 seconds, and shows a **live panel** (labels are in Portuguese). Keep the window open and stop it with **Ctrl+C**:
 
 ```
- MT5Bot · Modo Quant                                            24/10 22:20:00
-──────────────────────────────────────────────────────────────────────────────
- Conta 50352457 REAL   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
- Hoje +$0.12   Placar quant: 3 trades (2 no lucro) · +$0.35
+  ◆ MT5BOT  ·  MODO QUANT                                       26/10 22:20:00
+ REAL  Conta 50352457   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
+        Hoje +$0.12   Placar quant 3 trades (2 no lucro)  +$0.35
 
- ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
- HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
- US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        ✓ $1.62 (limite $1.95)
+ ▍ROTAS
+   ATIVO            ESTADO                       PRÓX. CANDLE     RISCO / LIMITE
+   HK50 H4 PULLB    🟢 EM POSIÇÃO (PULLB BUY)     em 1h 05m        ✓ $0.21 / $0.33
+   US500 D1 RSI2MR  ⏳ AGUARDANDO MERCADO         mercado fechado  ✓ $1.62 / $1.95
 
- POSIÇÕES DO ROBÔ
-   HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
+ ▍POSIÇÕES DO ROBÔ
+   HK50 ▲ BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
 
- EVENTOS
-   24/10 22:15 [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01 risco=$0.21
-──────────────────────────────────────────────────────────────────────────────
- Ctrl+C para parar · emergência: .\bot.bat panic · log: logs\quant_runner.log
+ ▍EVENTOS
+   26/10 22:15  [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01
+────────────────────────────────────────────────────────────────────────────────
+  Ctrl+C  parar    .\bot.bat panic  emergência   log: logs\quant_runner.log
 ```
 
-- **Risk per trade (RISCO POR TRADE):** ✓ when the trade fits the limit; 🔒 when it is locked to protect margin, showing why.
+- **Risk / limit (RISCO / LIMITE):** ✓ when the trade fits the limit; 🔒 when it is locked to protect margin, showing why.
 - **Next candle (PRÓX. CANDLE):** time left until the candle closes, by the server clock. Shows "mercado fechado" (market closed) on weekends.
 - **Quant scoreboard (Placar quant):** only quant-route trades, with real profit (commission and swap included).
 - `python tools\quant_runner.py --plain` prints log lines only, without the panel (useful for redirecting to a file). `--once` runs one cycle and exits.
@@ -202,7 +202,28 @@ US500 has the strongest evidence: it is Connors' RSI2 effect, documented for dec
 # or: .\run.bat     # builds and runs via "go run" (requires Go)
 ```
 
-The panel opens in the terminal. Each symbol becomes a "bot" (a Python worker) supervised by the Maestro:
+The panel opens in the terminal. Each symbol becomes a "bot" (a Python worker) supervised by the Maestro (labels in the screenshot are Portuguese; type `/idioma en` to switch the help and messages):
+
+```
+ ◆ MT5BOT MAESTRO v2.12.0   LIVE   MT5 ON   CONTA REAL  ─────────────────── 26/10 22:20:00
+ Saldo $16.26   Patrimônio $16.38   Margem livre $14.20   Flutuante +$0.12   Posições do robô 1
+╭──────────────────────────────────────╮╭──────────────────────────────────────────────────╮
+│ROBÔS  2 ativo(s)                     ││EVENT LOG (Live)                                  │
+│● HK50 H4                 [POS] 2h13m ││[HK50|H4] PULLB BUY @ 23050.0 ... Enviando a      │
+│  EM POSIÇÃO (PULLB BUY)              ││mercado.                                          │
+│  ★ QUANT PULLB · candle em 1h 05m    ││                                                  │
+│  ✓ risco $0.21 / limite $0.33        │╰──────────────────────────────────────────────────╯
+│  ▲ BUY 0.01 @ 23050.00  +$0.12       │╭──────────────────────────────────────────────────╮
+│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄  ││PERFORMANCE RESUMO (Por Ativo)                    │
+│● US500 D1               [WAIT] 2h13m ││[HK50|H4] LOTE 0.01  +$0.35  WR 66.7%  3T         │
+│  AGUARDANDO MERCADO                  ││[US500|D1] LOTE 0.01  sem dados                   │
+╰──────────────────────────────────────╯╰──────────────────────────────────────────────────╯
+ | mt5bot ❯ /add US500 D1
+```
+
+- **Header:** mode (LIVE/SIMULATOR), MT5 connection, **REAL/DEMO** account, balance, equity, free margin and the bot's floating P/L.
+- **One card per bot:** colored state, quant route (★), time until the candle closes, risk × limit (✓ or 🔒) and the open position with P/L.
+- **Prompt:** type `/` and suggestions appear in grey; **Tab** completes, **Esc** clears the line and **Ctrl+C** exits.
 
 | Command | What it does |
 |---|---|
@@ -210,16 +231,34 @@ The panel opens in the terminal. Each symbol becomes a "bot" (a Python worker) s
 | `/add HK50 H4` | Starts the **live** bot on that symbol and timeframe. `HK50 H4` and `US500 D1` use Quant Mode automatically. |
 | `/stop HK50` | Stops the bot for that symbol |
 | `/list` | Lists running bots |
-| `/report` | Performance report in the terminal |
-| `/dashboard` | Opens the visual dashboard in the browser |
+| `/report` | Dollar report of real trades, by strategy |
+| `/dashboard` | Opens the live web dashboard in the browser |
 | `/fix` | Restarts bots stuck in a crash loop |
 | `/idioma pt\|en\|es` | Changes the interface language |
 | `/quit` | Shuts down and keeps orders in MT5 |
-| `/quit cancel-open` | Cancels pending orders and shuts down |
-| `/quit wait-flat` | Waits for positions to close before shutting down |
-| `/quit close-all` | **[PANIC]** Closes all positions at market |
+| `/quit cancel-open` | Cancels the **bot's** pending orders and shuts down |
+| `/quit wait-flat` | Blocks new entries and waits for the **bot's** positions to close |
+| `/quit close-all` | **[PANIC]** Closes the **bot's** positions at market (manual ones are kept) |
 
 > ⚠️ **Do not run Quant Mode and `/add` on the same symbol at the same time.** Two processes would fight over the same position.
+
+---
+
+## 🖥 Web dashboard
+
+```powershell
+.\bot.bat dashboard     # or /dashboard in the Maestro
+```
+
+Opens a **live** panel in the browser (refreshes every 5 s), in Portuguese, English or Spanish:
+
+- **Indicators:** balance, equity, free margin, today's result and the bot's floating P/L, with the REAL/DEMO badge.
+- **Quant routes:** risk per trade × limit and time until the next candle.
+- **Bot positions** with SL, TP and P/L.
+- **Equity curve**, performance (trades, win rate, profit factor, max drawdown) and result per strategy — all in **dollars**, using MT5's real profit.
+- **Configuration** (read-only): quant routes, risk locks and setups per symbol.
+
+It runs on Python's standard library only, on `localhost`. Nothing leaves your computer.
 
 ---
 
@@ -273,6 +312,7 @@ Quick tools to inspect the bot without opening large files. Each command returns
 | Command | What it does |
 |---|---|
 | `.\bot.bat quant` | **Starts Quant Mode** (HK50 H4 / US500 D1) |
+| `.\bot.bat dashboard` | **Opens the live web dashboard** in the browser |
 | `.\bot.bat diagnose` | MT5 connection, balance, margin and `bot.log` errors from the last 24h |
 | `.\bot.bat market` | Price, spread, tick value and margin for configured symbols |
 | `.\bot.bat config` | Risk %, daily loss, AI filter, **quant routes with the $ limit for the current balance**, and setups per symbol |

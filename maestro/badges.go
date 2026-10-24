@@ -23,8 +23,20 @@ func statusBadge(stateText string) StatusBadge {
 		strings.Contains(upper, "EXTERNAL"):
 		return StatusBadge{Label: "WAIT", Color: ColorAmber}
 	case strings.Contains(upper, "IN_POSITION"),
-		strings.Contains(upper, "PAPER_TRADE"):
+		strings.Contains(upper, "PAPER_TRADE"),
+		strings.Contains(upper, "EM POSIÇÃO"),
+		strings.Contains(upper, "SAIDA"):
 		return StatusBadge{Label: "POS", Color: ColorGreen}
+	case strings.Contains(upper, "SEM MARGEM"),
+		strings.Contains(upper, "GARAGE"):
+		return StatusBadge{Label: "LOCK", Color: ColorAmber}
+	case strings.Contains(upper, "AGUARDANDO"),
+		strings.Contains(upper, "EXPIRADO"),
+		strings.Contains(upper, "ML VETO"):
+		return StatusBadge{Label: "WAIT", Color: ColorAmber}
+	case strings.Contains(upper, "SEM TICK"),
+		strings.Contains(upper, "SEM DADOS"):
+		return StatusBadge{Label: "ERRO", Color: ColorRed}
 	case strings.Contains(upper, "LOCK"),
 		strings.Contains(upper, "BLOQUEADO"):
 		return StatusBadge{Label: "LOCK", Color: ColorDim}

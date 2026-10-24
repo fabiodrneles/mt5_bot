@@ -4,14 +4,29 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
+
+// tradesCache evita reler/parsear o JSON de trades a cada segundo por robo:
+// so rele quando o arquivo muda (mtime ou tamanho).
+var tradesCache = struct {
+	sync.Mutex
+	entries map[string]cachedTrades
+}{entries: map[string]cachedTrades{}}
+
+type cachedTrades struct {
+	mod    time.Time
+	size   int64
+	trades []Trade
+}
 
 // Trade espelha o JSON gravado pelo tracker Python (mt5bot/data/tracker.py e paper_tracker.py).
 type Trade struct {
 	Result    string   `json:"result"`
 	PnLMoney  *float64 `json:"pnl_money"`
 	Symbol    string   `json:"symbol"`
+	Setup     string   `json:"setup"`
 	EntryTime string   `json:"entry_time"`
 }
 
@@ -45,6 +60,23 @@ func tradesFilePath(virtual bool) string {
 }
 
 func readTradesFile(path string) ([]Trade, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	tradesCache.Lock()
+	defer tradesCache.Unlock()
+	if c, ok := tradesCache.entries[path]; ok && c.mod.Equal(info.ModTime()) && c.size == info.Size() {
+		return c.trades, nil
+	}
+	trades, err := parseTradesFile(path)
+	if err == nil {
+		tradesCache.entries[path] = cachedTrades{mod: info.ModTime(), size: info.Size(), trades: trades}
+	}
+	return trades, err
+}
+
+func parseTradesFile(path string) ([]Trade, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

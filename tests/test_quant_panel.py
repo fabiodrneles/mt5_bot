@@ -1,4 +1,4 @@
-"""Painel do Modo Quant (tools/quant_runner.py): conteudo, relogio e cache."""
+"""Painel do Modo Quant (tools/quant_runner.py): conteudo, cores, relogio e cache."""
 import importlib
 import os
 import re
@@ -7,10 +7,12 @@ import sys
 import numpy as np
 import MetaTrader5 as mt5
 
+from mt5bot.core import telemetry
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tools"))
 qr = importlib.import_module("quant_runner")
 
-_ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 
 
 def _snap(**kw):
@@ -29,12 +31,23 @@ def _snap(**kw):
 
 def test_panel_shows_account_routes_locks_and_positions():
     out = _ANSI.sub("", qr.render_panel(_snap(), now="24/10 22:20:00"))
-    assert "REAL" in out and "Saldo $16.26" in out
-    assert "Placar quant: 3 trades (2 no lucro) · +$0.35" in out
-    assert "✓ $0.21 (limite $0.33)" in out          # HK50 cabe no limite
-    assert "🔒 $1.62 > limite $0.33" in out         # US500 travado, e o painel diz por que
-    assert "HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12" in out
-    assert "PULLB BUY enviado" in out
+    assert "MT5BOT  ·  MODO QUANT" in out and " REAL " in out and "Saldo $16.26" in out
+    assert "Placar quant 3 trades (2 no lucro)  +$0.35" in out
+    assert "Hoje -$0.21" in out
+    assert "✓ $0.21 / $0.33" in out          # HK50 cabe no limite
+    assert "🔒 $1.62 > $0.33" in out         # US500 travado, e o painel diz por que
+    assert "HK50 ▲ BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12" in out
+    assert "PULLB BUY enviado" in out and ".\\bot.bat panic" in out
+
+
+def test_panel_is_colored_and_highlights_state_and_side():
+    raw = qr.render_panel(_snap())
+    assert qr._bg(208) in raw                                        # barra de titulo laranja
+    assert f"{qr._bg(160)}" in raw                                    # selo REAL vermelho
+    assert f"{qr.GREEN}🟢 IN_POSITION" in raw                         # posicao em verde
+    assert f"{qr.GREEN}{qr.BOLD}▲ BUY" in raw                         # compra em verde
+    demo = qr.render_panel(_snap(real=False, positions=[{**_snap()["positions"][0], "side": "SELL"}]))
+    assert qr._bg(28) in demo and f"{qr.RED}{qr.BOLD}▼ SELL" in demo
 
 
 def test_panel_empty_state_is_explicit():
@@ -44,9 +57,9 @@ def test_panel_empty_state_is_explicit():
 
 def test_next_close_text_uses_server_clock_and_detects_closed_market():
     forming, h4 = 1_000_000, 14400
-    assert qr.next_close_text(forming, h4, tick_time=forming + 60, server_now=forming + 120) == "em 3h 58m"
-    assert qr.next_close_text(forming, h4, tick_time=forming + 60, server_now=forming + 3 * 86400) == "mercado fechado"
-    assert qr.next_close_text(None, h4, tick_time=1, server_now=1) == "—"
+    assert telemetry.next_close_text(forming, h4, tick_time=forming + 60, now=forming + 120) == "em 3h 58m"
+    assert telemetry.next_close_text(forming, h4, tick_time=forming + 60, now=forming + 3 * 86400) == "mercado fechado"
+    assert telemetry.next_close_text(None, h4, tick_time=1, now=1) == "—"
 
 
 def test_candle_cache_refetches_only_when_a_candle_closes(monkeypatch):

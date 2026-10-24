@@ -13,6 +13,39 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Telemetry espelha response["telemetry"] do brain_worker (mt5bot/core/telemetry.py).
+type Telemetry struct {
+	Account   *Account   `json:"account"`
+	Positions []Position `json:"positions"`
+	NextClose string     `json:"next_close"`
+	Quant     *QuantInfo `json:"quant"`
+}
+
+type Account struct {
+	Login      int64   `json:"login"`
+	Real       bool    `json:"real"`
+	Balance    float64 `json:"balance"`
+	Equity     float64 `json:"equity"`
+	MarginFree float64 `json:"margin_free"`
+}
+
+type Position struct {
+	Side   string  `json:"side"`
+	Volume float64 `json:"volume"`
+	Open   float64 `json:"open"`
+	SL     float64 `json:"sl"`
+	TP     float64 `json:"tp"`
+	Profit float64 `json:"profit"`
+	Setup  string  `json:"setup"`
+}
+
+// QuantInfo: rota quant do ativo. Risk nil = ainda sem estimativa.
+type QuantInfo struct {
+	Setup string   `json:"setup"`
+	Risk  *float64 `json:"risk"`
+	Limit float64  `json:"limit"`
+}
+
 type PythonWorker struct {
 	Symbol    string
 	Timeframe string
@@ -26,6 +59,8 @@ type PythonWorker struct {
 	StatusText string
 	StartTime   time.Time
 	ColorHex    string
+	telemetry   Telemetry
+	telemetryAt time.Time
 	// Crash Loop Protection (spec 6.4)
 	crashFirst time.Time // instante da 1a falha dentro da janela de observacao
 	crashCount int       // falhas na janela
@@ -264,6 +299,19 @@ func (w *PythonWorker) handleResponse(line string) {
 		return
 	}
 	
+	// Telemetria (conta, posicao do robo, rota quant) para o painel.
+	if _, ok := resp["telemetry"]; ok {
+		var tr struct {
+			Telemetry Telemetry `json:"telemetry"`
+		}
+		if json.Unmarshal([]byte(line), &tr) == nil {
+			w.mu.Lock()
+			w.telemetry = tr.Telemetry
+			w.telemetryAt = time.Now()
+			w.mu.Unlock()
+		}
+	}
+
 	// Atualiza StatusText
 	if st, ok := resp["state_text"]; ok && st != nil {
 		if stStr, ok := st.(string); ok {
@@ -272,6 +320,21 @@ func (w *PythonWorker) handleResponse(line string) {
 			w.mu.Unlock()
 		}
 	}
+}
+
+// Snapshot devolve estado e telemetria sob lock (o painel le a cada segundo).
+func (w *PythonWorker) Snapshot() (string, Telemetry, time.Time) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.StatusText, w.telemetry, w.telemetryAt
+}
+
+// SetTelemetry e usado pelos testes e por quem injeta telemetria.
+func (w *PythonWorker) SetTelemetry(t Telemetry) {
+	w.mu.Lock()
+	w.telemetry = t
+	w.telemetryAt = time.Now()
+	w.mu.Unlock()
 }
 
 func (w *PythonWorker) heartbeatLoop() {
