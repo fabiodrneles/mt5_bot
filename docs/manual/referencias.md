@@ -3,26 +3,42 @@
 ## Mercados, análise técnica e estratégias
 
 - **[Aronson 2006]** ARONSON, D. *Evidence-Based Technical Analysis: Applying the Scientific Method and Statistical Inference to Trading Signals*. Hoboken: Wiley, 2006.
+- **[Barber & Odean 2000]** BARBER, B. M.; ODEAN, T. Trading Is Hazardous to Your Wealth: The Common Stock Investment Performance of Individual Investors. *The Journal of Finance*, v. 55, n. 2, p. 773–806, 2000.
 - **[Bollinger 2001]** BOLLINGER, J. *Bollinger on Bollinger Bands*. New York: McGraw-Hill, 2001.
+- **[Brock, Lakonishok & LeBaron 1992]** BROCK, W.; LAKONISHOK, J.; LeBARON, B. Simple Technical Trading Rules and the Stochastic Properties of Stock Returns. *The Journal of Finance*, v. 47, n. 5, p. 1731–1764, 1992.
+- **[Chague, De-Losso & Giovannetti 2019]** CHAGUE, F.; DE-LOSSO, R.; GIOVANNETTI, B. *Day Trading for a Living?* Working paper. São Paulo: FEA-USP, 2019. Disponível em: SSRN 3423101.
+- **[Chan 2009]** CHAN, E. P. *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Hoboken: Wiley, 2009.
 - **[Connors & Alvarez 2009]** CONNORS, L.; ALVAREZ, C. *Short Term Trading Strategies That Work*. Jersey City: TradingMarkets Publishing, 2009.
+- **[De Bondt & Thaler 1985]** DE BONDT, W. F. M.; THALER, R. Does the Stock Market Overreact? *The Journal of Finance*, v. 40, n. 3, p. 793–805, 1985.
 - **[DiNapoli 1998]** DiNAPOLI, J. *Trading with DiNapoli Levels: The Practical Application of Fibonacci Analysis to Investment Markets*. Sarasota: Coast Investment Software, 1998.
+- **[ESMA 2018]** EUROPEAN SECURITIES AND MARKETS AUTHORITY. Decision (EU) 2018/796 of 22 May 2018 to temporarily restrict contracts for differences in the Union in accordance with Article 40 of Regulation (EU) No 600/2014. *Official Journal of the European Union*, L 136, 1 jun. 2018.
 - **[Faber 2007]** FABER, M. T. A Quantitative Approach to Tactical Asset Allocation. *The Journal of Wealth Management*, v. 9, n. 4, p. 69–79, 2007.
+- **[Fama 1970]** FAMA, E. F. Efficient Capital Markets: A Review of Theory and Empirical Work. *The Journal of Finance*, v. 25, n. 2, p. 383–417, 1970.
 - **[Farley 2000]** FARLEY, A. S. *The Master Swing Trader: Tools and Techniques to Profit from Outstanding Short-Term Trading Opportunities*. New York: McGraw-Hill, 2000.
 - **[Fernandes, Estratégias Operacionais]** FERNANDES, A. (Palex). *Estratégias Operacionais de Análise Técnica de Ações*. Texto-fonte em `memoria/raw/estrategias-operacionais.txt`.
 - **[Fernandes, Fundamentos]** FERNANDES, A. (Palex). *Fundamentos de Análise Técnica de Ações*. Texto-fonte em `memoria/raw/fundamentos.txt`.
+- **[Harris 2003]** HARRIS, L. *Trading and Exchanges: Market Microstructure for Practitioners*. New York: Oxford University Press, 2003.
+- **[Jegadeesh & Titman 1993]** JEGADEESH, N.; TITMAN, S. Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency. *The Journal of Finance*, v. 48, n. 1, p. 65–91, 1993.
+- **[Kahneman & Tversky 1979]** KAHNEMAN, D.; TVERSKY, A. Prospect Theory: An Analysis of Decision under Risk. *Econometrica*, v. 47, n. 2, p. 263–291, 1979.
 - **[Kaufman 2013]** KAUFMAN, P. J. *Trading Systems and Methods*. 5. ed. Hoboken: Wiley, 2013.
 - **[Lo & MacKinlay 1990]** LO, A. W.; MacKINLAY, A. C. When Are Contrarian Profits Due to Stock Market Overreaction? *The Review of Financial Studies*, v. 3, n. 2, p. 175–205, 1990.
+- **[Lo 2004]** LO, A. W. The Adaptive Markets Hypothesis: Market Efficiency from an Evolutionary Perspective. *The Journal of Portfolio Management*, v. 30, n. 5, p. 15–29, 2004.
 - **[Lo, Mamaysky & Wang 2000]** LO, A. W.; MAMAYSKY, H.; WANG, J. Foundations of Technical Analysis: Computational Algorithms, Statistical Inference, and Empirical Implementation. *The Journal of Finance*, v. 55, n. 4, p. 1705–1765, 2000.
+- **[Moskowitz, Ooi & Pedersen 2012]** MOSKOWITZ, T. J.; OOI, Y. H.; PEDERSEN, L. H. Time Series Momentum. *Journal of Financial Economics*, v. 104, n. 2, p. 228–250, 2012.
 - **[Murphy 1999]** MURPHY, J. J. *Technical Analysis of the Financial Markets*. New York: New York Institute of Finance, 1999.
 - **[Pardo 2008]** PARDO, R. *The Evaluation and Optimization of Trading Strategies*. 2. ed. Hoboken: Wiley, 2008.
+- **[Park & Irwin 2007]** PARK, C.-H.; IRWIN, S. H. What Do We Know About the Profitability of Technical Analysis? *Journal of Economic Surveys*, v. 21, n. 4, p. 786–826, 2007.
+- **[Samuelson 1965]** SAMUELSON, P. A. Proof That Properly Anticipated Prices Fluctuate Randomly. *Industrial Management Review*, v. 6, n. 2, p. 41–49, 1965.
+- **[Shleifer & Vishny 1997]** SHLEIFER, A.; VISHNY, R. W. The Limits of Arbitrage. *The Journal of Finance*, v. 52, n. 1, p. 35–55, 1997.
 - **[Wilder 1978]** WILDER, J. W. *New Concepts in Technical Trading Systems*. Greensboro: Trend Research, 1978.
 
 ## Estatística, *overfitting* e aprendizado de máquina
 
+- **[Bailey & López de Prado 2014]** BAILEY, D. H.; LÓPEZ DE PRADO, M. The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting, and Non-Normality. *The Journal of Portfolio Management*, v. 40, n. 5, p. 94–107, 2014.
 - **[Bailey et al. 2014]** BAILEY, D. H.; BORWEIN, J. M.; LÓPEZ DE PRADO, M.; ZHU, Q. J. Pseudo-Mathematics and Financial Charlatanism: The Effects of Backtest Overfitting on Out-of-Sample Performance. *Notices of the American Mathematical Society*, v. 61, n. 5, p. 458–471, 2014.
 - **[Bailey et al. 2017]** BAILEY, D. H.; BORWEIN, J. M.; LÓPEZ DE PRADO, M.; ZHU, Q. J. The Probability of Backtest Overfitting. *Journal of Computational Finance*, v. 20, n. 4, p. 39–69, 2017.
-- **[Bailey & López de Prado 2014]** BAILEY, D. H.; LÓPEZ DE PRADO, M. The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting, and Non-Normality. *The Journal of Portfolio Management*, v. 40, n. 5, p. 94–107, 2014.
 - **[Chen & Guestrin 2016]** CHEN, T.; GUESTRIN, C. XGBoost: A Scalable Tree Boosting System. In: *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*. 2016. p. 785–794.
+- **[Feller 1968]** FELLER, W. *An Introduction to Probability Theory and Its Applications*. v. 1. 3. ed. New York: Wiley, 1968.
 - **[Friedman 2001]** FRIEDMAN, J. H. Greedy Function Approximation: A Gradient Boosting Machine. *The Annals of Statistics*, v. 29, n. 5, p. 1189–1232, 2001.
 - **[Grinsztajn et al. 2022]** GRINSZTAJN, L.; OYALLON, E.; VAROQUAUX, G. Why Do Tree-Based Models Still Outperform Deep Learning on Typical Tabular Data? In: *Advances in Neural Information Processing Systems 35 (Datasets and Benchmarks Track)*. 2022.
 - **[Harvey, Liu & Zhu 2016]** HARVEY, C. R.; LIU, Y.; ZHU, H. … and the Cross-Section of Expected Returns. *The Review of Financial Studies*, v. 29, n. 1, p. 5–68, 2016.
@@ -30,6 +46,9 @@
 - **[López de Prado 2018]** LÓPEZ DE PRADO, M. *Advances in Financial Machine Learning*. Hoboken: Wiley, 2018.
 - **[McKinney 2017]** McKINNEY, W. *Python for Data Analysis*. 2. ed. Sebastopol: O'Reilly, 2017.
 - **[Niculescu-Mizil & Caruana 2005]** NICULESCU-MIZIL, A.; CARUANA, R. Predicting Good Probabilities with Supervised Learning. In: *Proceedings of the 22nd International Conference on Machine Learning (ICML)*. 2005. p. 625–632.
+- **[Peng 2011]** PENG, R. D. Reproducible Research in Computational Science. *Science*, v. 334, n. 6060, p. 1226–1227, 2011.
+- **[Shadish, Cook & Campbell 2002]** SHADISH, W. R.; COOK, T. D.; CAMPBELL, D. T. *Experimental and Quasi-Experimental Designs for Generalized Causal Inference*. Boston: Houghton Mifflin, 2002.
+- **[Sharpe 1994]** SHARPE, W. F. The Sharpe Ratio. *The Journal of Portfolio Management*, v. 21, n. 1, p. 49–58, 1994.
 - **[White 2000]** WHITE, H. A Reality Check for Data Snooping. *Econometrica*, v. 68, n. 5, p. 1097–1126, 2000.
 
 ## Gestão de risco e segurança
@@ -51,6 +70,7 @@
 - **[DeMillo, Lipton & Sayward 1978]** DeMILLO, R. A.; LIPTON, R. J.; SAYWARD, F. G. Hints on Test Data Selection: Help for the Practicing Programmer. *Computer*, v. 11, n. 4, p. 34–41, 1978.
 - **[Forsgren, Humble & Kim 2018]** FORSGREN, N.; HUMBLE, J.; KIM, G. *Accelerate: The Science of Lean Software and DevOps*. Portland: IT Revolution, 2018.
 - **[Fowler 2007]** FOWLER, M. *Mocks Aren't Stubs*. 2007. Disponível em: https://martinfowler.com/articles/mocksArentStubs.html.
+- **[Gamma et al. 1994]** GAMMA, E.; HELM, R.; JOHNSON, R.; VLISSIDES, J. *Design Patterns: Elements of Reusable Object-Oriented Software*. Reading: Addison-Wesley, 1994.
 - **[Harel 1987]** HAREL, D. Statecharts: A Visual Formalism for Complex Systems. *Science of Computer Programming*, v. 8, n. 3, p. 231–274, 1987.
 - **[Hohpe & Woolf 2003]** HOHPE, G.; WOOLF, B. *Enterprise Integration Patterns: Designing, Building, and Deploying Messaging Solutions*. Boston: Addison-Wesley, 2003.
 - **[Humble & Farley 2010]** HUMBLE, J.; FARLEY, D. *Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation*. Upper Saddle River: Addison-Wesley, 2010.
@@ -59,9 +79,12 @@
 - **[Meszaros 2007]** MESZAROS, G. *xUnit Test Patterns: Refactoring Test Code*. Upper Saddle River: Addison-Wesley, 2007.
 - **[Nielsen 1994]** NIELSEN, J. Enhancing the Explanatory Power of Usability Heuristics. In: *Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (CHI '94)*. 1994. p. 152–158.
 - **[Nygard 2018]** NYGARD, M. T. *Release It! Design and Deploy Production-Ready Software*. 2. ed. Raleigh: Pragmatic Bookshelf, 2018.
+- **[Ousterhout 2018]** OUSTERHOUT, J. *A Philosophy of Software Design*. Palo Alto: Yaknyam Press, 2018.
+- **[Parnas 1972]** PARNAS, D. L. On the Criteria to Be Used in Decomposing Systems into Modules. *Communications of the ACM*, v. 15, n. 12, p. 1053–1058, 1972.
 - **[Preston-Werner 2013]** PRESTON-WERNER, T. *Semantic Versioning 2.0.0*. 2013. Disponível em: https://semver.org.
 - **[Triantaphyllou 2000]** TRIANTAPHYLLOU, E. *Multi-Criteria Decision Making Methods: A Comparative Study*. Dordrecht: Kluwer Academic, 2000.
 - **[Tufte 2001]** TUFTE, E. R. *The Visual Display of Quantitative Information*. 2. ed. Cheshire: Graphics Press, 2001.
+- **[Wohlin et al. 2012]** WOHLIN, C.; RUNESON, P.; HÖST, M.; OHLSSON, M. C.; REGNELL, B.; WESSLÉN, A. *Experimentation in Software Engineering*. Berlin: Springer, 2012.
 
 ## Recuperação de informação
 

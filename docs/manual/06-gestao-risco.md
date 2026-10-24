@@ -22,6 +22,16 @@ $$f^* = p - \frac{1-p}{b}, \qquad f_{\text{usado}} = \text{clamp}\Big(\tfrac{f^*
 
 $f^*$ é a fração de Kelly, que maximiza o crescimento logarítmico esperado do capital [Kelly 1956; Thorp 2006]. Usa-se **metade de Kelly** porque $p$ é uma estimativa com erro: apostar o Kelly cheio sobre um $p$ superestimado leva a *drawdowns* severos, enquanto meio Kelly preserva cerca de 75% da taxa de crescimento com variância muito menor [MacLean, Thorp & Ziemba 2011].
 
+```python
+# Listagem 6.1 — mt5bot/risk/risk_calculator.py
+    kelly_fraction = prob_win - ((1.0 - prob_win) / rrr)
+    half_kelly = kelly_fraction / 2.0
+
+    # Clamping de seguranca (0.5% a 2.0%)
+    safe_risk = max(0.005, min(0.02, half_kelly))
+    return safe_risk * 100.0  # Retorna em percentual (ex: 1.5%)
+```
+
 **Limitação (análise crítica).** O piso de 0,5% faz o sistema **arriscar mesmo quando $f^* \le 0$**, isto é, quando o próprio modelo diz que não há vantagem. Pela teoria de Kelly, a aposta ótima com $f^* \le 0$ é **zero**. Na prática o veto de ML (probabilidade < 0,40) bloqueia boa parte desses casos antes, mas não todos: com $b = 3$ e $p = 0{,}2$ (aprovado se o limiar fosse menor), $f^* = -0{,}067$. Uma correção seria rejeitar a operação quando $f^* \le 0$.
 
 ## 6.3 Travas das rotas quant
@@ -30,6 +40,22 @@ $f^*$ é a fração de Kelly, que maximiza o crescimento logarítmico esperado d
 
 - **Risco por trade:** perda no SL com o lote mínimo ≤ `max_risk_pct` da rota (ou `QUANT_MAX_RISK_PCT` = 2%) × saldo. Com saldo de $16,26, o HK50 arrisca ~$0,21 (limite de $0,33) e opera; o US500 arrisca ~$1,62 e só opera porque a rota tem limite próprio de 12% ($1,95), por decisão explícita do dono.
 - **Reserva de margem:** a margem livre restante precisa ser ≥ 3 × a margem da posição (`QUANT_MARGIN_RESERVE_MULT`). Isso evita usar toda a margem numa operação e ficar sem capacidade para as próximas.
+
+As duas travas, no código da rota quant. Ambas usam funções do próprio MT5 (`order_calc_profit`, `order_calc_margin`), que já devolvem valores na moeda da conta:
+
+```python
+# Listagem 6.2 — mt5bot/execution/quant_manager.py
+    account = mt5.account_info()
+    balance = float(getattr(account, "balance", 0.0) or 0.0)
+    loss = mt5.order_calc_profit(order_type, symbol, volume, price, sl)
+    max_loss = balance * risk_pct / 100.0
+    if loss is None or abs(loss) > max_loss:
+    ...
+    margin = mt5.order_calc_margin(order_type, symbol, volume, price)
+    free = float(getattr(account, "margin_free", 0.0) or 0.0)
+    reserve = getattr(config, "QUANT_MARGIN_RESERVE_MULT", 3.0)
+    if margin is None or free - margin < margin * reserve:
+```
 
 **Por que limite por rota?** Rotas diferentes têm stops com magnitudes muito diferentes (1 ATR no H4 contra 2 ATR no D1). Um limite global único ou bloqueia a rota de stop largo ou é frouxo demais para a de stop curto.
 
@@ -60,6 +86,10 @@ Funciona como um disjuntor diário: limita os dias catastróficos, como uma sequ
 ## 6.6 Confirmação de conta REAL
 
 Uma conta REAL só abre posições depois que o usuário roda o assistente (`bot.bat setup`), vê o risco de cada rota no próprio saldo e digita `CONFIRMO`; a confirmação fica em `live_confirmed = true` (spec 006). É uma **barreira de consentimento informado** contra o erro mais caro possível, que é operar dinheiro real por engano achando que era demo. Contas DEMO operam direto.
+
+![Figura 6.1: assistente de primeiro uso numa conta REAL](img/assistente-setup.png)
+
+*Figura 6.1: `bot.bat setup` numa conta REAL. Antes de pedir a confirmação, o assistente mostra quanto cada rota pode perder por trade **no saldo do usuário** e se ela opera ou fica travada; só a palavra exata libera, e Enter, "sim" ou uma entrada fechada nunca liberam. Dados de demonstração.*
 
 ## 6.7 Proteções de execução
 

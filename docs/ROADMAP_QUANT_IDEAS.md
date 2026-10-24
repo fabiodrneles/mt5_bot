@@ -22,4 +22,4 @@ Este documento arquiva as frentes de pesquisa quantitativa para otimizar a perfo
 **A Solução:** Exportar os logs de todos os trades simulados dos últimos 2 anos e treinar um modelo de *Machine Learning* simples (ex: Random Forest ou XGBoost) para classificação binária (Win/Loss).
 **Features Sugeridas:** Volume de ticks na abertura, ângulo (slope) da EMA50, correlação do IFR no timeframe superior (H1), e distância exata para a VWAP.
 **Objetivo:** Atuar como um porteiro ("Filtro de Machine Learning"). O motor Russo encontra o sinal, mas o modelo de ML diz: "Essa configuração histórica tem 70% de chance de dar stop, aborte a missão."
-**Status:** ⚪ Ideia Mapeada (Projeto longo prazo)
+**Status:** 🟡 **IMPLEMENTADO COMO FILTRO DO CAMINHO CLÁSSICO** - XGBoost por ativo (`mt5bot/mentorship/ml_xgboost.py`) veta setups com probabilidade < 0,40. Não é usado nas rotas quant, que foram validadas sem ele. Análise crítica (vazamento temporal, métrica, calibração) em `docs/manual/07-machine-learning.md`.

@@ -26,6 +26,25 @@ Backtest sem custos é a fonte mais comum de resultados ilusórios em estratégi
 - **Gap através do stop:** a saída é na abertura, se ela for pior que o stop (`min(o[j], sl)`).
 - Uma posição por vez por estratégia; o próximo sinal só vale depois da saída.
 
+O núcleo do simulador para uma compra (a venda é espelhada e avaliada pelo *ask*):
+
+```python
+# Listagem 8.1 — tools/quant_research/research.py
+        entry = o[e]
+        sl = entry - dr * sd
+        tp = entry + dr * tgt[i] if np.isfinite(tgt[i]) else np.nan
+        exit_p = None; j = e
+        while j < n:
+            # stop / alvo intrabar (stop primeiro: conservador)
+            if dr > 0:
+                if l[j] <= sl: exit_p = min(o[j], sl) if j > e else sl; break
+                if np.isfinite(tp) and h[j] >= tp: exit_p = max(o[j], tp) if j > e else tp; break
+    ...
+        pnl_price = dr * (exit_p - entry) - spr[e]
+```
+
+`entry = o[e]`, com `e = i + 1`, é a entrada na abertura do candle seguinte; o teste do *stop* vem antes do teste do alvo; e `min(o[j], sl)` cobra o *gap* quando o candle já abre além do *stop*.
+
 Essas escolhas tornam o backtest **conservador**: a execução real tende a ser igual ou melhor do que a simulada, nunca sistematicamente pior por construção.
 
 ## 8.4 Espaço de busca

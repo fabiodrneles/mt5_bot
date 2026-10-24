@@ -29,6 +29,16 @@ $$\text{score}(D, Q) = \sum_{q \in Q} \text{IDF}(q)\cdot \frac{f(q,D)\,(k_1 + 1)
 
 $$\text{IDF}(q) = \ln\!\left(1 + \frac{N - n(q) + 0{,}5}{n(q) + 0{,}5}\right)$$
 
+```python
+# Listagem 11.1 — memoria/scripts/query_memory.py
+    for term in q_terms:
+        idf = math.log(1 + (N - df[term] + 0.5) / (df[term] + 0.5))
+        for doc_idx_raw, tf in postings[term].items():
+            doc_idx = int(doc_idx_raw)
+            dl = len(tokenize(corpus[doc_idx]["text"]))
+            scores[doc_idx] += idf * (tf * (K1 + 1)) / (tf + K1 * (1 - B + B * dl / avgdl))
+```
+
 com $k_1 = 1{,}5$ e $b = 0{,}75$, os valores clássicos da literatura [Manning, Raghavan & Schütze 2008]. Interpretação:
 - **IDF:** termos raros ("RSI2MR", "Kelly") pesam mais que termos comuns. O "+1" dentro do logaritmo mantém o IDF positivo mesmo para termos presentes em mais da metade dos blocos, o que a fórmula original permite ser negativo.
 - **Saturação ($k_1$):** a 10ª ocorrência de um termo acrescenta muito menos que a 1ª.

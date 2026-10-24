@@ -66,7 +66,7 @@ O projeto tem dois modos de operação:
 
 O MT5Bot é um **projeto de estudo e de portfólio**, não um produto comercial. Ele serve como estudo de caso completo de engenharia de software aplicado a um domínio onde erros têm custo real: um robô que opera dinheiro de verdade numa corretora. Isso obriga a praticar o que costuma ficar só na teoria, como requisitos verificáveis, testes, segurança, observabilidade e processo.
 
-> 📘 **Manual técnico completo:** [`docs/manual/`](docs/manual/README.md). São 11 capítulos com fórmulas, justificativas de projeto, análise crítica das limitações e referencial teórico (mais de 50 obras).
+> 📘 **Manual técnico completo:** [`docs/manual/`](docs/manual/README.md). São 14 capítulos e 3 apêndices: fundamentos teóricos de mercado e risco, arquitetura e motores, fórmulas, justificativas de projeto, ameaças à validade, reprodutibilidade e referencial teórico (mais de 75 obras). Também sai em arquivo único em cada release (`MT5Bot-Guia-Tecnico-<versão>.md`).
 
 ### O que se estuda aqui
 

@@ -23,6 +23,19 @@ $$G_t = \max(C_t - C_{t-1}, 0), \qquad P_t = \max(C_{t-1} - C_t, 0)$$
 $$\bar G_t = \tfrac{1}{n} G_t + (1-\tfrac{1}{n})\bar G_{t-1}, \qquad \bar P_t \text{ análogo}$$
 $$RSI_t = 100 - \frac{100}{1 + \bar G_t / \bar P_t}$$
 
+```python
+# Listagem 4.1 — mt5bot/engine/indicators.py
+    delta = series.diff()
+    gain = delta.clip(lower=0.0)
+    loss = -delta.clip(upper=0.0)
+
+    avg_gain = gain.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+
+    rs = avg_gain / avg_loss
+    rsi = 100.0 - (100.0 / (1.0 + rs))
+```
+
 A suavização usa $\alpha = 1/n$, a **média de Wilder** [Wilder 1978], e não a EMA comum ($\alpha = 2/(n+1)$). A diferença é relevante: com a EMA comum, um "IFR(14)" equivale aproximadamente a um IFR de Wilder de período 7,5. Usar a definição original mantém os níveis de referência (30/70, ou 5/95 no IFR2) com o mesmo significado da literatura que os propôs [Wilder 1978; Connors & Alvarez 2009].
 
 ## 4.3 Average True Range (ATR)

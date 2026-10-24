@@ -16,6 +16,14 @@ Para depurar, o mesmo protocolo funciona no terminal: `echo '{"symbol":"HK50","t
 
 O trabalhador busca **400 candles a partir da posição 1** (`copy_rates_from_pos(symbol, tf, 1, 400)`); a posição 0 é o candle ainda em formação. Isso implementa uma regra fundamental de pesquisa e operação: **toda decisão usa só informação disponível no momento da decisão**. Avaliar o candle aberto produz sinais que aparecem e somem dentro do mesmo período (o máximo e o fechamento ainda mudam). É o equivalente operacional do *look-ahead bias* de backtests, que infla resultados ao usar dados do futuro [Bailey et al. 2014; López de Prado 2018].
 
+```python
+# Listagem 3.1 — interfaces/brain_worker.py
+            start_pos = 0 if data.get("action") == "study" else 1
+            # 400 velas: SMA200/EMA50 das rotas quant precisam de aquecimento
+            # (com 200 a SMA200 tem um unico valor valido).
+            rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, 400)
+```
+
 Por que 400? A SMA200 precisa de 200 candles para ter **um** valor válido, e as médias exponenciais precisam de "aquecimento": com $\alpha = 2/(n+1)$, o peso do valor inicial após $k$ passos é $(1-\alpha)^k$, que para a EMA50 cai abaixo de 1% depois de cerca de 115 candles. Com 400 candles, a SMA200 tem histórico e as EMAs convergiram. O modo `study` (simulação) usa a posição 0 de propósito, porque acompanha SL e alvo virtuais no candle corrente.
 
 ## 3.3 Máquina de estados *stateless*
@@ -29,6 +37,25 @@ manage_cycle(df) ───┤
                               ├─ posição do robô? ──▶ _manage_position (gestão)
                               ├─ ordem pendente? ───▶ _manage_pending_order
                               └─ nada ─▶ travas (§3.4) ─▶ _scan_and_execute
+```
+
+O despacho em código é direto; note que nada é lido de uma variável de estado do próprio programa, só do MT5:
+
+```python
+# Listagem 3.2 — mt5bot/execution/execution_manager.py
+    # Rotas quant (setups validados fora da amostra) tem caminho proprio.
+    from mt5bot.execution import quant_manager
+    route = quant_manager.get_route(symbol, timeframe_name)
+    if route:
+        return quant_manager.quant_cycle(symbol, df, timeframe_name, route)
+
+    # 1. Sincronizar historico: se o usario fechou algo manualmente, registrar saida.
+    _reconcile_closed_trades(symbol, df)
+
+    # 2. Obter estado atual no MT5 (posicoes quant sao geridas so pela rota quant)
+    positions = [p for p in (mt5.positions_get(symbol=symbol) or [])
+                 if not quant_manager.is_quant_position(p)]
+    orders = mt5.orders_get(symbol=symbol)
 ```
 
 Cada ciclo devolve um **texto de estado** (ex.: `🟢 IN_POSITION (9.1 BUY)`, `🔒 SÓ SIMULAÇÃO`) que vira o selo do Maestro (cap. 2 §2.4).
