@@ -1,4 +1,4 @@
-# Guia técnico acadêmico (manual) — v3.0.0
+# Guia técnico acadêmico (manual) — v3.1.0
 
 Fonte: `docs/manual/` · Status: documentação de referência para estudo acadêmico
 

@@ -30,7 +30,7 @@ Entregue em 2026-10-24 (épico #22; PRs #29, #30, #31, #32, #33, #34).
 
 ## Fase 3 — Profissional (P2) → `v3.0.0` ✅
 
-Entregue em 2026-10-24 (épico #36; PRs #42–#46). Extra: manual técnico (T17, #45). Pacote Wine verificado no CI depois (#47, PR #49); guia técnico completo com figuras e listagens (PR #50).
+Entregue em 2026-10-24 (épico #36; PRs #42–#46). Extra: manual técnico (T17, #45). Fechamento em `v3.1.0`: pacote Wine verificado no CI (#47, PR #49) e guia técnico completo com figuras e listagens (PR #50).
 
 - [x] **T13** Pacotes Linux e macOS via Wine (experimental) — 002 FR-6
 - [x] **T14** Assistente de primeiro uso — 006 FR-1..4, AC-1/2

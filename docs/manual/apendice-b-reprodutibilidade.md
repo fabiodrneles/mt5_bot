@@ -9,7 +9,7 @@ Um resultado computacional só é científico se outra pessoa conseguir reproduz
 | Python | 3.12 no instalador; CI testa 3.10 e 3.13 | `packaging/windows/build.ps1`, `.github/workflows/ci.yml` |
 | Dependências | `numpy`, `pandas`, `MetaTrader5`, `xgboost-cpu`, `psutil` | `pyproject.toml` |
 | Go (Maestro) | a do `go.mod` | `maestro/go.mod` |
-| Software | 3.0.0 | `pyproject.toml`, tag `v3.0.0` |
+| Software | 3.1.0 | `pyproject.toml`, tag `v3.1.0` |
 
 Para estudar sem instalar o MT5, os testes usam um MT5 falso (`tests/conftest.py`), e o Python pode rodar no Linux.
 
@@ -27,10 +27,10 @@ Resultado esperado: tudo verde, cobertura acima do piso configurado no `pyprojec
 
 ```powershell
 powershell -File packaging/windows/build.ps1      # gera dist/MT5Bot-Setup-<versão>.exe e o pacote Wine
-powershell -File packaging/windows/smoke.ps1 -Setup dist\MT5Bot-Setup-3.0.0.exe
+powershell -File packaging/windows/smoke.ps1 -Setup dist\MT5Bot-Setup-3.1.0.exe
 ```
 
-Para conferir que um instalador baixado corresponde ao código publicado, compare o hash com o `SHA256SUMS` da *release*: `certutil -hashfile MT5Bot-Setup-3.0.0.exe SHA256` (Windows) ou `sha256sum -c SHA256SUMS` (Linux).
+Para conferir que um instalador baixado corresponde ao código publicado, compare o hash com o `SHA256SUMS` da *release*: `certutil -hashfile MT5Bot-Setup-3.1.0.exe SHA256` (Windows) ou `sha256sum -c SHA256SUMS` (Linux).
 
 ## B.4 Pesquisa das rotas quant (cap. 8)
 
