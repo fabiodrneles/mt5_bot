@@ -295,3 +295,14 @@ def test_quant_respects_no_new_trades_lock(market, monkeypatch, tmp_path):
 
     assert quant_manager.quant_cycle("HK50", df, "H4", config.QUANT_ROUTES["HK50"]) == "🔴 BLOQUEADO"
     assert market["sent"] == []
+
+
+def test_unconfirmed_real_account_sends_no_order(market, monkeypatch):
+    """Spec 006 AC-2: conta REAL sem confirmacao no assistente nao abre posicao."""
+    monkeypatch.setattr(mt5, "account_info", lambda: _Obj(balance=16.26, margin_free=14.35, trade_mode=2))
+    monkeypatch.setattr(config, "LIVE_CONFIRMED", False)
+    df = _pullback_df()
+    _open_at_next_bar(market, df)
+
+    assert quant_manager.quant_cycle("HK50", df, "H4", config.QUANT_ROUTES["HK50"]) == quant_manager.UNCONFIRMED_STATE
+    assert market["sent"] == []

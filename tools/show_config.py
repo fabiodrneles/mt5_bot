@@ -101,6 +101,9 @@ def config_template():
         "",
         "# Setups SEM validacao fora da amostra operando ao vivo (risco maior).",
         f"# allow_unvalidated_live = {str(getattr(config, 'ALLOW_UNVALIDATED_LIVE', False)).lower()}",
+        "",
+        "# Confirmacao de conta REAL (prefira gravar pelo assistente: bot.bat setup).",
+        f"# live_confirmed = {str(getattr(config, 'LIVE_CONFIRMED', False)).lower()}",
     ]
     for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
         lines += ["", f"# Rota {symbol} {route['timeframe']} {route['setup']}",

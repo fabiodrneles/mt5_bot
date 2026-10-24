@@ -28,6 +28,7 @@ func statusBadge(stateText string) StatusBadge {
 		strings.Contains(upper, "SAIDA"):
 		return StatusBadge{Label: "POS", Color: ColorGreen}
 	case strings.Contains(upper, "SÓ SIMULAÇÃO"),
+		strings.Contains(upper, "CONFIRME"),
 		strings.Contains(upper, "SEM MARGEM"),
 		strings.Contains(upper, "GARAGE"):
 		return StatusBadge{Label: "LOCK", Color: ColorAmber}

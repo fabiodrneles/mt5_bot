@@ -41,6 +41,23 @@ def max_risk_pct(route) -> float:
     return float(pct if pct is not None else getattr(config, "QUANT_MAX_RISK_PCT", 2.0))
 
 
+UNCONFIRMED_STATE = "🔒 CONFIRME A CONTA REAL (bot.bat setup)"
+_unconfirmed_warned = False
+
+
+def real_account_unconfirmed() -> bool:
+    """Conta REAL sem confirmacao no assistente: nao abre posicao (spec 006 FR-2)."""
+    global _unconfirmed_warned
+    acc = mt5.account_info()
+    if getattr(acc, "trade_mode", 0) != 2 or getattr(config, "LIVE_CONFIRMED", False):
+        return False
+    if not _unconfirmed_warned:
+        _unconfirmed_warned = True
+        logging.warning("Conta REAL sem confirmacao: o robo NAO abre posicoes. Rode 'bot.bat setup' "
+                        "para revisar o risco e confirmar (posicoes ja abertas seguem geridas).")
+    return True
+
+
 def is_quant_position(position) -> bool:
     prefix = getattr(config, "QUANT_COMMENT_PREFIX", "Q ")
     return (getattr(position, "magic", None) == getattr(config, "MAGIC", 0)
@@ -103,6 +120,8 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
     # /quit wait-flat (shutdown_manager) cria esta trava: nada de novas entradas.
     if os.path.exists(".no_new_trades"):
         return "🔴 BLOQUEADO"
+    if real_account_unconfirmed():
+        return UNCONFIRMED_STATE
 
     last_time = df["time"].iloc[-1]
     if _last_signal_candle.get(symbol) == last_time:

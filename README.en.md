@@ -113,7 +113,10 @@ MT5Bot is a **study and portfolio project**, not a commercial product. It is a c
 1. Download **`MT5Bot-Setup-<version>.exe`** from the [Releases](https://github.com/fabiodrneles/mt5_bot/releases/latest) page. Next to it is a `SHA256SUMS` file to verify the download.
 2. Run it. No admin rights needed, and no need to install Python, Go or git: everything is bundled.
 3. The installer is **not code-signed yet**, so Windows may show "Windows protected your PC". Click **More info → Run anyway**.
-4. Use the Start menu shortcuts: **MT5Bot Quant**, **MT5Bot Maestro**, **MT5Bot Dashboard** and **Diagnóstico**.
+4. At the end, the **setup wizard** opens (also `bot.bat setup`). It checks MT5, shows whether the account is REAL or DEMO and how much each trade can lose on your balance.
+5. Use the Start menu shortcuts: **MT5Bot Quant**, **MT5Bot Maestro**, **MT5Bot Dashboard**, **Assistente de configuração** and **Diagnóstico**.
+
+> 🔒 **A REAL account only trades after you confirm it.** Until you run the wizard and type `CONFIRMO`, the bot opens no positions on a real account (it shows "CONFIRME A CONTA REAL"). DEMO accounts trade right away. The confirmation is saved in `config.toml` (`live_confirmed = true`).
 
 To uninstall, use "Desinstalar MT5Bot" in the Start menu. Your data (`%APPDATA%\mt5bot`) is only deleted if you confirm.
 
@@ -356,6 +359,7 @@ Quick tools to inspect the bot without opening large files. Each command returns
 
 | Command | What it does |
 |---|---|
+| `.\bot.bat setup` | **Wizard:** checks MT5, the account (REAL/DEMO) and each route's risk; unlocks a REAL account |
 | `.\bot.bat quant` | **Starts Quant Mode** (HK50 H4 / US500 D1) |
 | `.\bot.bat dashboard` | **Opens the live web dashboard** in the browser |
 | `.\bot.bat diagnose` | MT5 connection, balance, margin and `bot.log` errors from the last 24h |

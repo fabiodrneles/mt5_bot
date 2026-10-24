@@ -30,6 +30,7 @@ GLOBAL_KEYS = {
     "max_risk_per_trade_percent": ("MAX_RISK_PER_TRADE_PERCENT", float, 0.1, 10.0),
     "ml_filter_enabled": ("ML_FILTER_ENABLED", bool, None, None),
     "allow_unvalidated_live": ("ALLOW_UNVALIDATED_LIVE", bool, None, None),
+    "live_confirmed": ("LIVE_CONFIRMED", bool, None, None),
 }
 ROUTE_KEYS = {
     "max_risk_pct": (float, 0.1, 50.0),
@@ -116,3 +117,27 @@ def apply(cfg: dict, path: str = None) -> list:
                 routes[symbol] = dict(routes[symbol], **{key: checked})
                 sources[f"QUANT_ROUTES.{symbol}.{key}"] = "config.toml"
     return errors
+
+
+def set_value(key: str, value, path: str = None) -> str:
+    """Grava `key = value` (chave global) no config.toml, preservando o resto.
+
+    Substitui a linha da chave, comentada ou nao; se nao existir, acrescenta no
+    topo (antes das secoes [routes.*], onde chaves globais precisam ficar).
+    """
+    import re
+    if key not in GLOBAL_KEYS:
+        raise KeyError(key)
+    path = path or paths.config_file()
+    literal = str(value).lower() if isinstance(value, bool) else repr(value)
+    line = f"{key} = {literal}"
+    text = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+    pattern = re.compile(rf"(?m)^[ \t]*#?[ \t]*{re.escape(key)}[ \t]*=.*$")
+    if pattern.search(text):
+        text = pattern.sub(line, text, count=1)
+    else:
+        text = line + "\n" + text
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+    return path
+
