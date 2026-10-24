@@ -1,6 +1,6 @@
 # Manual técnico do MT5Bot
 
-> Versão do software documentada: **3.1.0**. Escrito para estudo acadêmico: cada capítulo descreve **como** o módulo funciona, com referência ao código, **por que** foi projetado assim, com as alternativas consideradas e as limitações conhecidas, e o **referencial teórico** que o sustenta.
+> Versão do software documentada: **3.2.0**. Escrito para estudo acadêmico: cada capítulo descreve **como** o módulo funciona, com referência ao código, **por que** foi projetado assim, com as alternativas consideradas e as limitações conhecidas, e o **referencial teórico** que o sustenta.
 
 ## Como ler este manual
 

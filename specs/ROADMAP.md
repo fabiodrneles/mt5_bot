@@ -37,7 +37,11 @@ Entregue em 2026-10-24 (épico #36; PRs #42–#46). Extra: manual técnico (T17,
 - [x] **T15** `bot.bat config --edit` — 003 FR-5
 - [x] **T16** Cobertura medida com piso — 001 FR-7
 
-## Fase 4 — Capital blindado (P0) → `v3.2.0`
+## Entre fases — Pesquisa ampla, diário de sinais e rotas em estudo → `v3.2.0` ✅
+
+Entregue em 2026-10-24 (PRs #52–#56): specs 007–018, pesquisa ampla de padrões (guia cap. 14), diário de sinais, modo estudo das rotas quant (US100 D1 e USDJPY H1), setups 9.2/9.3/PC conferidos com o livro e rascunho do artigo. Por isso as Fases 4–6 andaram uma versão.
+
+## Fase 4 — Capital blindado (P0) → `v3.3.0`
 
 Base: [ANALYSIS-v3.1](ANALYSIS-v3.1.md). Antes de codar: decidir D9 e D10.
 
@@ -50,7 +54,7 @@ Base: [ANALYSIS-v3.1](ANALYSIS-v3.1.md). Antes de codar: decidir D9 e D10.
 - [ ] **T24** SL confirmado na corretora após cada abertura — 008 FR-4, AC-4
 - [ ] **T25** Filtro de *spread* no Modo Quant — 008 FR-5, AC-5
 
-## Fase 5 — Evidência robusta (P1) → `v3.3.0`
+## Fase 5 — Evidência robusta (P1) → `v3.4.0`
 
 - [ ] **T26** Núcleo `mt5bot/sim` extraído de `research.py`, com `CostModel` e rolagem tripla — 010 FR-1/2/5, AC-1..3
 - [ ] **T27** Ferramentas de backtest migradas para o núcleo e teste de paridade — 010 FR-3/4, AC-4/5
@@ -58,7 +62,7 @@ Base: [ANALYSIS-v3.1](ANALYSIS-v3.1.md). Antes de codar: decidir D9 e D10.
 - [ ] **T29** Revalidação publicada das rotas atuais — 009 FR-3, AC-4
 - [ ] **T30** Sombra, *tracking error* e CUSUM com pausa da rota — 011 FR-1..6, AC-1..4
 
-## Fase 6 — Operação supervisionada (P1) → `v3.4.0`
+## Fase 6 — Operação supervisionada (P1) → `v3.5.0`
 
 Antes de codar: decidir D12 e D16.
 

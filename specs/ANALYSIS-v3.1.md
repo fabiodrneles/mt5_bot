@@ -89,9 +89,9 @@ Um robô de varejo **médio** opera uma estratégia, tem stop e um backtest de u
 
 | Fase | Tema | Specs | Versão |
 |---|---|---|---|
-| 4 | Capital blindado | 007, 008 | `v3.2.0` |
-| 5 | Evidência robusta | 009, 010, 011 | `v3.3.0` |
-| 6 | Operação supervisionada | 012, 013, 014, 018 | `v3.4.0` |
+| 4 | Capital blindado | 007, 008 | `v3.3.0` |
+| 5 | Evidência robusta | 009, 010, 011 | `v3.4.0` |
+| 6 | Operação supervisionada | 012, 013, 014, 018 | `v3.5.0` |
 | 7 | Produto completo | 015, 016, 017 | `v4.0.0` |
 
 A Fase 7 é *major* porque 015 muda o dimensionamento quando há várias rotas, e isso altera o comportamento ao vivo de quem já usa.
