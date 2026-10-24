@@ -1,135 +1,436 @@
 <div align="center">
-  <img src="docs/assets/banner.jpg" alt="MT5Bot Maestro Banner" width="100%">
+  <img src="docs/assets/banner.jpg" alt="MT5Bot Maestro" width="100%">
 </div>
-
-<br>
 
 <div align="center">
-  <strong>🌍 Read in:</strong> <strong>Português</strong> | <a href="README.en.md">English</a>
+
+**🌍 Idioma:** **Português** | [English](README.en.md)
+
+# MT5Bot Maestro
+
+**Robô de trading algorítmico para MetaTrader 5, em Python e Go, feito para contas pequenas.**
+Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respeita a sua margem.
+
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.10.0-FF7300?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
+![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
+![Testes](https://img.shields.io/badge/testes-177%20passando-2EA043?style=flat-square)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-555?style=flat-square)
+
 </div>
 
-<br>
-
-<div align="center">
-  <strong>Plataforma Quantitativa de Trading Algorítmico com Filtro Preditivo de Machine Learning</strong><br>
-  <em>Arquitetura híbrida institucional focada na mitigação extrema de risco e precisão matemática.</em>
-</div>
-
-<br>
-
-<div align="center">
-  <img src="https://img.shields.io/badge/Language-Go_%7C_Python-black?style=for-the-badge&logo=go&logoColor=FF7300" alt="Go/Python">
-  <img src="https://img.shields.io/badge/AI_Engine-XGBoost-black?style=for-the-badge&logo=xgboost&logoColor=FF7300" alt="XGBoost">
-  <img src="https://img.shields.io/badge/Platform-MetaTrader_5-black?style=for-the-badge&logo=metatrader&logoColor=FF7300" alt="MT5">
-  <img src="https://img.shields.io/badge/License-MIT-black?style=for-the-badge&logoColor=FF7300" alt="MIT">
-</div>
+> [!WARNING]
+> **Trading envolve risco real de perda.** Resultados de backtest não garantem resultados futuros. Teste primeiro em **conta demo**. Na conta real, use só dinheiro que você aceita perder. Este software não é recomendação de investimento.
 
 ---
 
-## ⬛ A Borda Competitiva (The Edge)
+## 📑 Sumário
 
-Robôs MQL5 de prateleira falham porque são otimizados para um mercado que já não existe mais (overfitting em backtests ilusórios). 
-
-O **MT5Bot Maestro** adota a filosofia de um *Hedge Fund Quantitativo*: o objetivo primário não é encontrar o "setup mágico", mas aplicar uma **gestão de risco brutal**. 
-O tamanho da mão nunca excede 1% do saldo da conta (`Dynamic Risk-Sizer`) e a exposição diária tem trava matemática rígida (`Max Daily Loss`). **Isso significa que o seu capital sobrevive intacto aos piores crashes e "cisnes negros" do mercado.**
-
----
-
-## 🟧 Arquitetura de Ponta: Maestro (Go) + Cérebro (Python)
-
-Ambientes nativos MQL5 são obsoletos para Inteligência Artificial e Data Science. O **MT5Bot Maestro** foi reconstruído em uma arquitetura híbrida revolucionária:
-
-* **Maestro (Golang)**: O núcleo de orquestração. Construído em Go, ele roda no terminal com uma *CLI TUI (Text User Interface)* de baixa latência. Ele gerencia o ciclo de vida dos workers em threads paralelas e fornece *Crash-Loop Protection* (Stateless Recovery). Se o sistema cair ou o PC desligar, ele remonta as posições a partir do servidor da corretora em menos de 5 segundos.
-* **Cérebro (Python 3.10+)**: Onde o processamento pesado ocorre. As bibliotecas de Data Science (Pandas/NumPy) fatiam a microestrutura de milhares de velas, calculam cruzamentos de VWAP, geram Scoring dinâmico para cada ativo e conversam diretamente com o motor de Machine Learning.
-
----
-
-## ⬛ Filtro Preditivo (Machine Learning XGBoost)
-
-A estratégia base pode lhe dar as regras, mas é a **Inteligência Artificial** que lhe dá a visão do futuro. Implementamos o que chamamos de **Data Flywheel**.
-
-Quando um setup matemático apita (ex: Setup 9.1), a ordem **não** é enviada imediatamente. O extrator captura as 24 variáveis instantâneas daquele segundo exato (Distância da MM200, Força do ADX, Volatilidade do ATR, Aceleração do Preço).
-Essa matriz passa pelo nosso modelo **XGBoost (Decision Trees)**, que responde a uma única pergunta de forma binária e estatística:
-
-> *"Historicamente, com o mercado respirando exatamente desta forma, qual a probabilidade deste trade retornar lucro?"*
-
-Se a probabilidade inferida for menor que `ML_MIN_WIN_PROB` (ex: 40%), **o bot veta a operação**. Você para de sangrar dinheiro em dias de consolidação extrema. 
-*(Para os engenheiros de MLOps: O sistema conta com Pipeline de Treinamento Contínuo no Colab/GitHub Actions via arquivos de tracking virtual - Phantom Orders).*
+1. [O que é](#-o-que-é)
+2. [Requisitos](#-requisitos)
+3. [Instalação](#-instalação)
+4. [Primeiros passos: escolha um modo](#-primeiros-passos-escolha-um-modo)
+5. [Modo Quant (recomendado)](#-modo-quant-recomendado)
+6. [Modo Maestro (interativo)](#-modo-maestro-interativo)
+7. [Estratégias](#-estratégias)
+8. [Proteção de capital](#️-proteção-de-capital)
+9. [Comandos do `bot.bat`](#-comandos-do-botbat)
+10. [Configuração](#️-configuração)
+11. [Onde ficam os dados e logs](#-onde-ficam-os-dados-e-logs)
+12. [Emergência: como parar tudo](#-emergência-como-parar-tudo)
+13. [Backtest e pesquisa de estratégias](#-backtest-e-pesquisa-de-estratégias)
+14. [Machine Learning (XGBoost)](#-machine-learning-xgboost)
+15. [Notificações no Telegram](#-notificações-no-telegram)
+16. [Arquitetura](#️-arquitetura)
+17. [Solução de problemas](#-solução-de-problemas)
+18. [Desenvolvimento](#-desenvolvimento)
 
 ---
 
-## 🟧 O Cartão de Visitas: Canivete Suíço (CLI)
+## 💡 O que é
 
-Tempo e processamento são cruciais. Criamos um orquestrador central CLI (`bot.bat`) projetado para que **Engenheiros Sêniores** ou **Inteligências Artificiais** façam a telemetria do sistema de forma cirúrgica e economizando tokens preciosos.
+O MT5Bot conecta no terminal **MetaTrader 5** aberto no seu Windows e opera sozinho. Ele lê os candles fechados, procura sinais, calcula o tamanho da posição e envia as ordens com stop loss.
 
-Basta abrir o terminal e digitar:
+O projeto tem dois modos de operação:
+
+| Modo | Para quem | O que roda |
+|---|---|---|
+| **Quant** (`bot.bat quant`) | Contas pequenas que querem **só o que foi validado** | 2 estratégias testadas com custos reais e fora da amostra |
+| **Maestro** (`mt5bot.bat`) | Quem quer explorar a família 9.x, o Ponto Contínuo, o Setup Russo e outros | Painel interativo com vários robôs em paralelo |
+
+---
+
+## 🧰 Requisitos
+
+- **Windows 10/11.** A biblioteca `MetaTrader5` do Python só existe para Windows.
+- **MetaTrader 5** instalado, logado na corretora e **aberto** enquanto o bot roda.
+- **Python 3.10+** (testado no 3.13).
+- **Go 1.21+** *(opcional)*: só é preciso para recompilar o Maestro. Já existe um `maestro/maestro.exe` pronto.
+- O hardware pode ser modesto: o projeto roda em um i3 de 4ª geração com 4 GB de RAM.
+
+---
+
+## 📦 Instalação
 
 ```powershell
-bot.bat diagnose    # Health Check completo do core e ping de conectividade MT5
-bot.bat hardware    # Telemetria profunda de CPU/RAM e prevenção de memory-leaks
-bot.bat market      # Scanning de Volatilidade, Spread dinâmico e Margens do mercado
-bot.bat config      # Auditoria de Risco % ativo e algoritmos em execução
-bot.bat positions   # Relatório de Exposição (Ordens Reais e Phantom Trades)
-bot.bat performance # Relatório executivo de PnL (Lucro Líquido) e WinRate dos últimos 7 dias
-bot.bat tail        # Extração cirúrgica do topo de log, dispensando cat massivo
-bot.bat panic       # 🚨 BOTÃO DO PÂNICO: Kill-Switch que liquida toda exposição a mercado
-bot.bat ask "X"     # Consulta vetorial na memória RAG do repositório (ex: bot ask "regras do 9.1")
-bot.bat train       # Gatilho de retreinamento do motor XGBoost
-bot.bat backtest    # Dispara o Simulador Financeiro Local (ex: bot backtest HK50)
-bot.bat test        # Pipeline de Testes Unitários e Mock do Motor
-python main.py      # 🔥 INICIA O ROBÔ EM MODO PRODUÇÃO / LIVE TRADING
-```
-
----
-
-## ⬛ Dicionário Estratégico (O Motor de Decisão)
-
-O Maestro carrega **11 Estratégias Quantitativas** que podem operar simultaneamente. Se duas estratégias armarem no mesmo ativo, o módulo `scoring.py` roda uma matriz de probabilidade, escolhe o vencedor e aborta o perdedor.
-
-| Algoritmo | Comportamento e Dinâmica do Mercado |
-| :--- | :--- |
-| **Família 9.1 ao 9.4** | Captura de micro-tendências e retrações em MME9. Ideal para volatilidade direcional. |
-| **Ponto Contínuo (PC)** | Sniper algorítmico. Entradas milimétricas na média de 21 durante a tendência vigente. |
-| **Gaps de Fuga** | Roteamento exclusivo p/ Índices (HK50). Explora a ineficiência e o pânico institucional na abertura asiática. |
-| **Setup Russo (Mean Reversion)** | Reversão à média utilizando desvios de Bandas de Bollinger e IFR. Lucra com exaustão extrema. |
-| **DiNapoli / SAR / IFR2** | Roteamento auxiliar para mercados altamente lateralizados e Forex. |
-
-### 🛡️ Escudos Macro-Econômicos
-- **Filtro MM50 / MM200**: Ordens contra a tendência macro são sumariamente ignoradas.
-- **Microestrutura de Spread**: Entradas com custo transacional abusivo (slippage perigoso) são abortadas antes de tocarem a corretora.
-- **Trailing Stop Adaptativo**: Uma vez dentro do trade, o bot o defende até a morte. Atingiu 1x Risco? O Stop vai pro `Breakeven` e você não perde mais 1 centavo. Daí em diante, ele espreme o lucro candle a candle até o fluxo reverter.
-
----
-
-## 🟧 Subindo o Projeto (Instalação Clean)
-
-Um ambiente robusto não deve exigir configurações dolorosas. Para colocar essa infraestrutura para rodar, basta ter o **Windows 10/11** (o Terminal MT5 é exclusivo Windows) e **Python 3.10+**.
-
-```bash
-# 1. Clone a infraestrutura
+# 1. Baixe o projeto
 git clone https://github.com/fabiodrneles/mt5_bot.git
 cd mt5_bot
 
-# 2. Instale as dependências (Core de Dados + MetaQuotes Driver)
-pip install -e .
-
-# 3. Mantenha seu Terminal MT5 aberto, logado na corretora
-# 4. Inicie o Console Interativo Maestro
-python main.py
+# 2. Instale as dependências (MetaTrader5, pandas, numpy, pytz, xgboost, pytest)
+pip install -e ".[dev]"
+pip install -r requirements-ml.txt   # scikit-learn, usado no treino do XGBoost
+pip install psutil                   # opcional: só para "bot.bat hardware"
 ```
-> O painel *Text UI* surgirá na sua tela. Digite `/help` para os manuais internos ou `/add WIN M5` para ligar as turbinas do mini-índice agora.
+
+**Prepare o MetaTrader 5:**
+
+1. Faça login na sua conta (demo ou real).
+2. Ligue o botão **Algo Trading** na barra de ferramentas. Ele precisa ficar verde.
+3. Em *Ferramentas → Opções → Expert Advisors*, marque **Permitir negociação algorítmica**.
+4. Na *Observação do Mercado*, deixe visíveis os ativos que você vai operar (ex.: `HK50`, `US500`).
+
+**Confira a conexão:**
+
+```powershell
+bot.bat diagnose
+```
+
+```
+MT5: Conectado | Saldo: $16.26 | Margem Livre: $14.35
+Erros nas ultimas 24h (bot.log): 0
+```
+
+> Rode todos os comandos **da pasta raiz do projeto**. No PowerShell, use o prefixo `.\` (ex.: `.\bot.bat diagnose`); no `cmd`, `bot.bat diagnose` basta.
 
 ---
 
-## ⬛ Arquitetura Guiada por IA (Memória Permanente RAG)
+## 🚀 Primeiros passos: escolha um modo
 
-Este software foi esculpido em parceria com agentes avançados de Inteligência Artificial para garantir código blindado, *Design Patterns* elegantes e arquitetura de alto calibre.
+```
+                 Conta pequena ou primeira vez?
+                              │
+            ┌────────── sim ──┴── não ──────────┐
+            ▼                                   ▼
+     bot.bat quant                         mt5bot.bat
+  (só estratégias validadas)       (painel Maestro: /study, /add)
+```
 
-> [!CAUTION]
-> **Aviso para Inteligências Artificiais:** Se você (uma IA) acabou de ser acionada para desenvolver este repositório, suspenda suas ações imediatas e leia o arquivo mestre `AGENTS.md`. 
-> Este repositório é dotado de uma **Memória Permanente RAG (BM25)** — dispensando *embeddings* caros e armazenando todo o contexto técnico, decisões estatísticas e lógica central do fundo. Leia os mandamentos em `AGENTS.md` antes de propor qualquer mudança ao sistema nervoso do bot.
+Se nunca rodou o bot, comece com o **Modo Quant em conta demo** e deixe passar algumas semanas antes de ir para a conta real.
 
 ---
+
+## 📈 Modo Quant (recomendado)
+
+```powershell
+bot.bat quant
+```
+
+Ele roda continuamente, com um ciclo a cada 5 segundos. Deixe a janela aberta e pare com **Ctrl+C**. Saída típica:
+
+```
+Quant runner conectado: conta 50352457 (REAL) saldo $16.26 | rotas: HK50 H4 PULLB, US500 D1 RSI2MR
+[HK50] PULLB: sem sinal no candle 2026-10-23 16:00:00.
+[HK50 H4] 🔵 SCANNING
+[US500 D1] 🔵 SCANNING
+```
+
+Para um diagnóstico rápido (um ciclo só, depois sai): `python tools\quant_runner.py --once`.
+
+### As estratégias do Modo Quant
+
+As duas saíram de uma pesquisa com **3.150 combinações** (15 ativos × 4 timeframes × 4 famílias). A pesquisa usou o **spread real de cada candle**, a comissão da corretora e o swap. Os parâmetros foram escolhidos só com os 60% iniciais do histórico, e o resultado abaixo vem dos 40% finais, que o otimizador nunca viu.
+
+| Rota | Regra | Histórico (lote 0.01) | Risco por trade |
+|---|---|---|---|
+| **HK50 H4 — PULLB** | Tendência de alta (EMA20 > EMA50 e preço acima da SMA200). O candle recua até a EMA20 e fecha acima dela, e o bot compra. A venda é espelhada. **SL 1 ATR, TP 2 ATR.** | 277 trades em 4,8 anos · fator de lucro 1,24 · **+$9,96** · pior queda $4,30 | ~$0,21 |
+| **US500 D1 — RSI2MR** | IFR(2) < 5 com o preço acima da SMA200: compra a queda forte (venda espelhada). **SL 2 ATR.** Sai quando o fechamento cruza a SMA5 ou depois de 15 dias. | 54 trades em 9,5 anos · fator de lucro 2,40 · **+$13,19** · pior queda $3,04 | ~$1,63 |
+
+**Como ele opera:**
+- A entrada é **a mercado, logo após o fechamento** do candle de sinal, como no backtest. Se passar de 10% da duração do candle, o sinal é descartado.
+- Usa sempre o **lote mínimo**, com **SL e TP gravados no MT5**: a proteção continua valendo mesmo que o PC desligue.
+- Não usa scoring, XGBoost, trailing nem breakeven, porque nada disso fez parte da validação.
+
+**Expectativa honesta:** é lucro de **centavos por trade**. No HK50, a média histórica é de +$0,036 por operação, cerca de 13% ao ano sobre $16, com quedas de até ~$4 no caminho. Houve anos negativos (2024: −$1,48). Só dá para tirar conclusão depois de dezenas de trades reais.
+
+### Travas de margem do Modo Quant
+
+| Trava | Regra | Efeito com saldo de $16 |
+|---|---|---|
+| Risco por trade | Perda no SL ≤ **2% do saldo** (`QUANT_MAX_RISK_PCT`) | HK50 opera. **US500 fica travado sozinho** e só libera com saldo acima de ~$80. |
+| Reserva de margem | A margem livre que sobra deve ser ≥ **3× a margem da posição** (`QUANT_MARGIN_RESERVE_MULT`) | Nunca usa toda a margem, então sobra dinheiro para as próximas tentativas |
+| Perda diária | Bloqueia novas entradas depois de perder 2% no dia | Limita uma sequência ruim |
+| Uma entrada por candle | Não reentra no mesmo sinal | Evita repetir o prejuízo |
+
+> **Posições manuais são respeitadas.** Em conta *hedging*, o Modo Quant só gerencia as posições abertas por ele (MAGIC do bot + comentário `Q PULLB` / `Q RSI2MR`). Uma operação que você abriu na mão no mesmo ativo **não é tocada**.
+
+---
+
+## 🎛 Modo Maestro (interativo)
+
+```powershell
+mt5bot.bat          # usa o maestro.exe pronto
+# ou: run.bat        # compila e roda via "go run" (exige Go)
+```
+
+O painel abre no terminal. Cada ativo vira um "robô" (um worker Python) supervisionado pelo Maestro:
+
+| Comando | O que faz |
+|---|---|
+| `/study HK50 H1` | **Simulação.** Mostra os sinais e abre trades virtuais, **sem ordem real**. Comece por aqui. |
+| `/add HK50 H4` | Liga o robô **real** no ativo e timeframe. `HK50 H4` e `US500 D1` usam o Modo Quant automaticamente. |
+| `/stop HK50` | Para o robô do ativo |
+| `/list` | Lista os robôs ativos |
+| `/report` | Relatório de performance no terminal |
+| `/dashboard` | Abre o painel visual no navegador |
+| `/fix` | Reinicia robôs que entraram em crash loop |
+| `/idioma pt\|en\|es` | Troca o idioma da interface |
+| `/quit` | Encerra e mantém as ordens no MT5 |
+| `/quit cancel-open` | Cancela as ordens pendentes e encerra |
+| `/quit wait-flat` | Espera as posições zerarem para encerrar |
+| `/quit close-all` | **[PÂNICO]** Liquida todas as posições a mercado |
+
+> ⚠️ **Não rode o Modo Quant e o `/add` do mesmo ativo ao mesmo tempo.** Seriam dois processos disputando a mesma posição.
+
+---
+
+## 🧠 Estratégias
+
+### Validadas (Modo Quant)
+Veja a [tabela acima](#as-estratégias-do-modo-quant). Detalhes completos em `memoria/wiki/arquitetura/pesquisa-estrategias-lucrativas.md`.
+
+### Clássicas (Modo Maestro)
+São baseadas nos setups da família 9.x (Larry Williams) e nos livros de estratégias operacionais. Qual setup roda em qual ativo é definido em `ASSET_SETUPS` (`mt5bot/core/config.py`).
+
+| Setup | Ideia | Saída |
+|---|---|---|
+| **9.1** | A EMA9 vira a favor | EMA9 virando contra / trailing |
+| **9.2** | Correção leve contra a EMA9 em tendência | idem |
+| **9.3** | Recuo profundo com 2 fechamentos | idem |
+| **9.4** | Falso recuo (a EMA9 vira e desvira) | idem |
+| **PC** | Ponto Contínuo: toque na MM21 em tendência | idem |
+| **FFFD** | Bollinger: fechou fora, fechou dentro | trailing |
+| **GAP** | Fechamento de gap de abertura > 0,5% | alvo próprio (TP) |
+| **russian_bb** | Setup Russo: Bollinger + IFR14 (reversão à média) | só TP/SL |
+| **judas** | Fading the open (EURUSD, horários fixos) | só TP/SL |
+| **DiNapoli / IFR2 / SAR / RompFalso** | Setups auxiliares | trailing |
+
+Os setups clássicos passam por filtros extras antes da ordem: SMA200, multi-timeframe, volume relativo (RVOL), scoring (RRR ≥ 1) e o veto do XGBoost.
+
+> Em backtest recente, o Setup Russo no HK50 ficou **praticamente no zero a zero** (+$0,13 em 7 meses, −$0,30 nos últimos 2). Por isso o Modo Quant é o recomendado para contas pequenas.
+
+---
+
+## 🛡️ Proteção de capital
+
+| Proteção | Configuração | Onde vale |
+|---|---|---|
+| Risco por trade 1% do saldo (lote dinâmico, Half-Kelly com a IA) | `MAX_RISK_PER_TRADE_PERCENT` | Maestro |
+| Risk Shield: recusa o trade se o lote mínimo arriscar > 1,5% | `ABSOLUTE_MAX_TRADE_RISK_PERCENT` | Maestro |
+| Risco no SL ≤ 2% e reserva de margem 3× | `QUANT_MAX_RISK_PCT`, `QUANT_MARGIN_RESERVE_MULT` | Quant |
+| Perda diária máxima 2% (bloqueia entradas; no Maestro também liquida) | `MAX_DAILY_LOSS_PERCENT`, `DAILY_MAX_LOSS_CLOSE_ENABLED` | Ambos |
+| Filtro de spread (aborta se o spread estiver alto) | `MAX_SPREAD_POINTS`, `SYMBOL_MAX_SPREAD_POINTS` | Ambos |
+| Breakeven com trava (entrada + spread + 1 tick) | `ENABLE_BREAKEVEN`, `BREAKEVEN_LOCK_SPREAD_MULT` | Maestro |
+| Janela de horário por ativo (ex.: HK50 22:15–01:00 BRT) | `SYMBOL_TRADING_HOURS` | Maestro |
+| Capital mínimo por ativo ("Garage Lock") | `MIN_BALANCE_REQUIREMENTS` | Maestro |
+| Só candles **fechados** (nada de decidir com vela em formação) | — | Ambos |
+
+---
+
+## 🧭 Comandos do `bot.bat`
+
+Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes.
+
+| Comando | O que faz |
+|---|---|
+| `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1) |
+| `bot.bat diagnose` | Conexão com o MT5, saldo, margem e erros do `bot.log` nas últimas 24h |
+| `bot.bat market` | Preço, spread, valor do tick e margem dos ativos configurados |
+| `bot.bat config` | Risco %, perda diária, filtro de IA e setups por ativo *(ainda não mostra as rotas quant)* |
+| `bot.bat positions` | Posições do robô e operações virtuais (paper) |
+| `bot.bat performance` | Lucro líquido e taxa de acerto dos últimos 7 dias |
+| `bot.bat tail` | Últimas 15 linhas do `logs/bot.log` |
+| `bot.bat hardware` | Uso de CPU/RAM (precisa de `pip install psutil`) |
+| `bot.bat backtest HK50 3` | Backtest do Setup Russo (ativo, meses). Só lê o histórico. |
+| `bot.bat train` | Retreina o modelo XGBoost |
+| `bot.bat ask "pergunta"` | Consulta a memória do projeto (RAG) |
+| `bot.bat test` | Roda a suíte de testes |
+| `bot.bat panic` | 🚨 **Fecha a mercado todas as posições do robô** (as manuais ficam) |
+
+Para ver o log do Modo Quant: `Get-Content logs\quant_runner.log -Tail 20`
+
+---
+
+## ⚙️ Configuração
+
+Toda a configuração fica em **`mt5bot/core/config.py`**. Os ajustes mais comuns:
+
+```python
+# Rotas quant: (ativo) -> timeframe, setup e parametros validados
+QUANT_ROUTES = {
+    "HK50":  {"timeframe": "H4", "setup": "PULLB",  "params": {"sl_atr": 1.0, "tp_r": 2.0}},
+    "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
+                                                              "long_only": False, "max_bars": 15}},
+}
+QUANT_MAX_RISK_PCT = 2.0           # perda maxima no SL, % do saldo
+QUANT_MARGIN_RESERVE_MULT = 3.0    # margem livre que precisa sobrar (x margem da posicao)
+
+MAX_RISK_PER_TRADE_PERCENT = 1.0   # Maestro: risco por trade
+MAX_DAILY_LOSS_PERCENT = 2.0       # trava diaria
+ML_FILTER_ENABLED = True           # veto do XGBoost nos setups classicos
+ML_MIN_WIN_PROB = 0.40
+ASSET_SETUPS = {...}               # quais setups classicos rodam em cada ativo
+SYMBOL_TRADING_HOURS = {...}       # janela de horario por ativo (BRT)
+MAGIC = 20260731                   # identifica as ordens do robo no MT5
+```
+
+> **Não mude os parâmetros das rotas quant sem refazer a validação** ([veja como](#-backtest-e-pesquisa-de-estratégias)). Ajustar um número para "melhorar" o passado é o caminho mais curto para o overfitting.
+
+---
+
+## 📂 Onde ficam os dados e logs
+
+| Arquivo | Conteúdo |
+|---|---|
+| `%APPDATA%\mt5bot\trades.json` | Histórico de trades (entradas, saídas, lucro real com comissão e swap) |
+| `%APPDATA%\mt5bot\virtual_rejections.json` | Sinais rejeitados (risco, spread, IA), usados pelo Otimizador |
+| `logs\quant_runner.log` | Log do Modo Quant |
+| `logs\bot_AAAAMMDD.log` | Logs do Maestro/Cérebro |
+
+O bot é **stateless**: se o PC reiniciar, ele relê as posições direto do MT5 e continua de onde parou.
+
+---
+
+## 🚨 Emergência: como parar tudo
+
+1. **Pare o robô** para ele não reabrir posições: **Ctrl+C** na janela do `bot.bat quant`, ou `/quit` no Maestro.
+2. **Feche as posições do robô:** `bot.bat panic` (ou `/quit close-all` no Maestro).
+3. Se o PC travar: as posições abertas pelo robô já têm **SL no servidor da corretora**. Feche manualmente pelo MT5 (inclusive pelo celular) se precisar.
+
+---
+
+## 🔬 Backtest e pesquisa de estratégias
+
+**Backtest do Setup Russo** (só lê o histórico):
+
+```powershell
+bot.bat backtest HK50 3
+```
+
+**Refazer a pesquisa quant** (com o MT5 aberto; não envia ordens):
+
+```powershell
+cd tools\quant_research
+python fetch.py JP225,US500,FR40,AU200,HK50,USOIL+,ETHUSD,EU50,UK100   # baixa candles
+python meta.py                                                          # custos e valor do ponto
+python research.py HK50,US500 M15,H1,H4,D1 r_all.json                   # grade (~1 min)
+python analyze.py r_all.json                                            # robustez dentro x fora da amostra
+python deep.py                                                          # ano a ano + spread 1,5x
+```
+
+Antes de mudar uma rota, exija: lucro **nos dois períodos**, a maioria das variações da família positiva, queda máxima que caiba no seu saldo e resultado que se mantém com spread 1,5×.
+
+---
+
+## 🤖 Machine Learning (XGBoost)
+
+Nos setups clássicos, cada sinal leva um "retrato" do mercado: distâncias das médias, ADX, ATR, IFR, microestrutura do candle, horário e outras variáveis. Um modelo **XGBoost** estima a probabilidade de acerto e **veta** o trade abaixo de `ML_MIN_WIN_PROB`. Os sinais vetados continuam sendo acompanhados como "ordens fantasma" e viram dados de treino.
+
+- Modelos: `mt5bot_xgboost_<ATIVO>_v*.json` na raiz.
+- Retreinar: `bot.bat train`.
+- O Modo Quant **não** usa o XGBoost (não fez parte da validação).
+
+---
+
+## 📲 Notificações no Telegram
+
+O logger envia alertas ao Telegram se as variáveis `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` existirem. O `.env.example` explica como obter o token (@BotFather) e o chat id. O bot **não carrega o arquivo `.env` sozinho**, então defina as variáveis no Windows:
+
+```powershell
+setx TELEGRAM_BOT_TOKEN "123456789:ABC..."
+setx TELEGRAM_CHAT_ID "123456789"
+# feche e reabra o terminal
+```
+
+---
+
+## 🏗️ Arquitetura
+
+```
+┌──────────────────────┐   JSON (stdin/stdout)   ┌───────────────────────────────┐
+│  Maestro (Go, TUI)   │ ──────────────────────▶ │  Cérebro (Python)             │
+│  supervisiona workers│ ◀────────────────────── │  interfaces/brain_worker.py   │
+│  /add /study /quit   │                         │   └─ execution_manager        │
+└──────────────────────┘                         │       ├─ rota quant ──▶ quant_manager
+                                                 │       └─ clássico   ──▶ strategy + filtros + IA
+┌──────────────────────┐                         │                               │
+│ tools/quant_runner.py│ ──── manage_cycle ────▶ │  executor ──▶ MetaTrader 5    │
+│   (bot.bat quant)    │                         └───────────────────────────────┘
+└──────────────────────┘
+```
+
+- **Só o Python fala com o MT5.** O Maestro fica fora do caminho da ordem.
+- **Stateless:** cada ciclo deduz o estado a partir das posições e ordens no MT5.
+
+```
+mt5_bot/
+├── mt5bot/
+│   ├── core/          config.py (todos os parâmetros), launcher, logger
+│   ├── engine/        strategy.py (setups clássicos), quant_setups.py, indicators, scoring, trailing
+│   ├── execution/     execution_manager.py, quant_manager.py, executor.py (ordens)
+│   ├── risk/          risk_calculator.py (lote, travas, horários)
+│   ├── data/          tracker.py (trades reais), paper_tracker.py (virtuais/rejeições)
+│   └── mentorship/    ml_xgboost.py, supervisor, optimizer, simulator
+├── interfaces/        brain_worker.py (worker chamado pelo Maestro)
+├── maestro/           Maestro em Go (TUI) + maestro.exe
+├── tools/             bot.bat tools, quant_runner.py, quant_research/, backtest.py
+├── memoria/           memória permanente do projeto (wiki + RAG BM25)
+├── tests/             suíte pytest (MT5 simulado)
+└── bot.bat            canivete de comandos
+```
+
+---
+
+## 🩺 Solução de problemas
+
+| Sintoma | Causa provável | O que fazer |
+|---|---|---|
+| `MT5: Falha` / `Falha ao conectar no MT5` | Terminal fechado ou deslogado | Abra o MT5, faça login e rode `bot.bat diagnose` |
+| Erro de ordem `10027` | **Algo Trading** desligado | Ligue o botão Algo Trading (verde) |
+| Erro `10016` (invalid stops) | SL muito perto do preço | O Modo Quant já confere o *stops level*; no Maestro, veja o ATR/timeframe |
+| `SPREAD FILTER REJECTED` | Spread acima do limite (baixa liquidez) | Normal fora do horário principal; ajuste `SYMBOL_MAX_SPREAD_POINTS` se fizer sentido |
+| `perda no SL $X > limite` | Trade arriscaria mais de 2% do saldo | É a trava de margem funcionando (ex.: US500 com saldo < ~$80) |
+| `SEM MARGEM` | Margem livre insuficiente para a reserva | Feche outras posições ou aumente o saldo |
+| `SINAL EXPIRADO` | O bot ligou depois da abertura do candle seguinte | Normal; ele espera o próximo sinal |
+| `AGUARDANDO MERCADO` | Mercado fechado ou candle seguinte ainda não abriu | Aguarde (ex.: HK50 abre domingo ~22:15 BRT) |
+| `GARAGE LOCK` | Saldo abaixo do mínimo do ativo no Maestro | Veja `MIN_BALANCE_REQUIREMENTS` |
+| `HORÁRIO FECHADO` | Fora da janela do ativo no Maestro | Veja `SYMBOL_TRADING_HOURS` |
+| `bot.bat hardware` dá `No module named psutil` | Dependência opcional | `pip install psutil` |
+| `bot.bat` não é reconhecido no PowerShell | O PowerShell não executa scripts da pasta atual sem prefixo | Use `.\bot.bat quant` |
+
+---
+
+## 🧪 Desenvolvimento
+
+```powershell
+bot.bat test                       # ou: python -m pytest -q
+```
+
+- Os testes usam um **MT5 simulado** (`tests/conftest.py`) e não precisam do terminal aberto.
+- Toda mudança de lógica precisa de teste (`tests/test_*.py`).
+- Logue com `logging`, nunca com `print()` no caminho de produção.
+- Histórico de versões: [`CHANGELOG.md`](CHANGELOG.md) · Arquitetura detalhada: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+
+> [!NOTE]
+> **Desenvolvendo com IA?** Leia primeiro o [`AGENTS.md`](AGENTS.md). O projeto tem uma **memória permanente RAG** (`memoria/`) com os livros-fonte das estratégias e todas as decisões de arquitetura. Consulte com `bot.bat ask "sua pergunta"`.
+
+---
+
 <div align="center">
-  <em>Não corra atrás do preço. Deixe a matemática cuidar do resto.</em>
+
+**Licença MIT** · Feito por [Fabio Dornele](https://github.com/fabiodrneles)
+
+*Não corra atrás do preço. Deixe a matemática e a gestão de risco cuidarem do resto.*
+
 </div>

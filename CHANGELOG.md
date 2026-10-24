@@ -9,6 +9,8 @@
 - **Novo:** `bot.bat quant` / `tools/quant_runner.py` (executor headless); brain_worker passa a puxar 400 velas.
 - **Fix:** modo real quebrava (AttributeError) ao rejeitar sinal por risco/spread/IA: `tracker.record_rejection` nao existia; rejeicoes agora vao para `paper_tracker.record_rejection` (dataset do Otimizador).
 - **Fix (critico):** `bot.bat panic` procurava `config.MAGIC_NUMBER` (inexistente -> 999) e nunca fechava as posicoes do bot; agora usa `config.MAGIC`.
+- **Fix:** `bot.bat <comando>` sempre mostrava a ajuda e saia: um `)` nas linhas de ajuda fechava o bloco `if` antes da hora. Parenteses escapados; `.gitattributes` fixa CRLF nos `.bat`.
+- **Docs:** README reescrito como guia completo (instalacao, Modo Quant, Maestro, travas, comandos, emergencia, solucao de problemas).
 
 ## [2.9.1] - 2026-10-24
 - **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).

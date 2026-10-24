@@ -7,7 +7,7 @@ set "ARG2=%~3"
 if "%CMD%"=="" (
     echo.
     echo ==============================================
-    echo        MT5BOT - CANIVETE SUIÇO (CLI)
+    echo        MT5BOT - CANIVETE SUIÇO ^(CLI^)
     echo ==============================================
     echo Uso: bot.bat [comando]
     echo.
@@ -15,16 +15,16 @@ if "%CMD%"=="" (
     echo   diagnose    - Checa MT5, saldo e erros no bot.log
     echo   market      - Mostra spread, tick_value e margem dos ativos
     echo   config      - Mostra configuracoes vitais de risco e setups
-    echo   positions   - Mostra trades abertos (Reais e Fantasmas)
+    echo   positions   - Mostra trades abertos ^(Reais e Fantasmas^)
     echo   performance - Mostra PnL e WinRate dos ultimos 7 dias
     echo   hardware    - Mostra uso de CPU e RAM
     echo   tail        - Le as ultimas 15 linhas do bot.log
     echo   panic       - Fecha TODAS as ordens do robo instantaneamente
-    echo   ask         - Pesquisa na Memoria RAG (ex: bot ask "setup russo")
+    echo   ask         - Pesquisa na Memoria RAG ^(ex: bot ask "setup russo"^)
     echo   train       - Roda o script de treinamento de IA localmente
-    echo   backtest    - Roda backtest (ex: bot backtest HK50 1)
+    echo   backtest    - Roda backtest ^(ex: bot backtest HK50 1^)
     echo   test        - Roda os testes unitarios
-    echo   quant       - Liga as rotas quant (HK50 H4 PULLB / US500 D1 RSI2MR)
+    echo   quant       - Liga as rotas quant ^(HK50 H4 PULLB / US500 D1 RSI2MR^)
     echo ==============================================
     exit /b 0
 )
