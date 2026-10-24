@@ -35,6 +35,8 @@ if "%CMD%"=="" (
     echo   setup       - Assistente: confere MT5, conta e risco; libera conta REAL
     echo   quant       - Liga as rotas quant ^(HK50 H4 PULLB / US500 D1 RSI2MR^)
     echo   dashboard   - Abre o painel web ao vivo no navegador
+    echo   anotar      - Diario de sinais: anota um sinal ANTES do resultado ^(ex: bot anotar US500 M15 venda bom "motivo"^)
+    echo   diario      - Mede os sinais anotados e diz se o seu olho tem vantagem estatistica
     echo ==============================================
     exit /b 0
 )
@@ -119,6 +121,16 @@ if /i "%CMD%"=="quant" (
 
 if /i "%CMD%"=="dashboard" (
     "%PY%" -m interfaces.dashboard
+    goto :fim
+)
+
+if /i "%CMD%"=="anotar" (
+    "%PY%" tools\signal_journal.py %*
+    goto :fim
+)
+
+if /i "%CMD%"=="diario" (
+    "%PY%" tools\signal_journal.py diario
     goto :fim
 )
 
