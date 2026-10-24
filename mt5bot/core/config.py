@@ -191,6 +191,10 @@ QUANT_MAX_RISK_PCT = 2.0
 # Margem livre minima que deve sobrar depois de abrir a posicao (x margem dela).
 QUANT_MARGIN_RESERVE_MULT = 3.0
 QUANT_COMMENT_PREFIX = "Q "
+# Setups sem validacao fora da amostra (9.x, PC, russian_bb...) so abrem
+# posicao ao vivo com esta opcao ligada (D5 / spec 005 FR-2). No /study eles
+# rodam normalmente. Ligue no config.toml: allow_unvalidated_live = true
+ALLOW_UNVALIDATED_LIVE = False
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {

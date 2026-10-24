@@ -148,3 +148,20 @@ func TestClipLinesLimitaAltura(t *testing.T) {
 		t.Fatalf("clipLines inesperado: %q", out)
 	}
 }
+
+func TestCartaoMostraValidadaOuExperimental(t *testing.T) {
+	quant := NewPythonWorker("HK50", "H4")
+	quant.ColorHex = string(ColorBlue)
+	quant.SetTelemetry(Telemetry{Validated: true, LiveAllowed: true, Quant: &QuantInfo{Setup: "PULLB"}})
+	classic := NewPythonWorker("EURUSD", "H1")
+	classic.ColorHex = string(ColorGreen)
+	classic.StatusText = "🔒 SÓ SIMULAÇÃO"
+	classic.SetTelemetry(Telemetry{Validated: false, LiveAllowed: false})
+
+	out := stripAnsi(robotCards([]*PythonWorker{quant, classic}, 60))
+	for _, want := range []string{"★ QUANT PULLB", "experimental · só simulação (/study)", "[LOCK]"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("cartoes sem %q:\n%s", want, out)
+		}
+	}
+}

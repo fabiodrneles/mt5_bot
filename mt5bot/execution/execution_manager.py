@@ -182,9 +182,29 @@ def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
         side = "BUY" if orders[0].type == mt5.ORDER_TYPE_BUY_STOP else "SELL"
         return f"🟡 PENDING ({side})"
     else:
+        # Setups classicos nao foram validados fora da amostra: ao vivo so
+        # com opcao explicita (D5). Posicoes ja abertas seguem geridas acima.
+        if not getattr(config, "ALLOW_UNVALIDATED_LIVE", False):
+            return _unvalidated_blocked(symbol, timeframe_name)
         # Nao temos nada, buscar novos setups
         scan_state = _scan_and_execute(symbol, df, timeframe_name=timeframe_name)
         return scan_state if scan_state else "🔵 SCANNING"
+
+
+_unvalidated_warned = set()
+
+
+def _unvalidated_blocked(symbol, timeframe_name):
+    """Ativo sem rota quant no modo ao vivo: nao abre posicao (spec 005 FR-2)."""
+    key = f"{symbol}_{timeframe_name}"
+    if key not in _unvalidated_warned:
+        _unvalidated_warned.add(key)
+        logging.warning(
+            f"[{symbol}] {timeframe_name} nao tem estrategia validada: o robo NAO abre posicoes ao vivo. "
+            f"Para testar sem risco use /study {symbol} {timeframe_name}. Rotas validadas: "
+            + ", ".join(f"{s} {r['timeframe']}" for s, r in getattr(config, 'QUANT_ROUTES', {}).items())
+            + ". Para liberar mesmo assim: allow_unvalidated_live = true no config.toml.")
+    return "🔒 SÓ SIMULAÇÃO"
 
 
 def _manage_study_cycle(symbol, df, timeframe_name):

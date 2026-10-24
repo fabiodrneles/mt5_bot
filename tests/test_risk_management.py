@@ -153,6 +153,7 @@ def test_daily_max_loss_shield(monkeypatch):
     monkeypatch.setattr(executor, "place_buy_stop", place_mock)
 
     # Setup válido (9.1 de compra) para garantir que a única barreira é o shield
+    monkeypatch.setattr(config, "ALLOW_UNVALIDATED_LIVE", True, raising=False)
     df = _make_scannable_df(ema_down_prev=True)
     execution_manager.manage_cycle("EURUSD", df)
 
