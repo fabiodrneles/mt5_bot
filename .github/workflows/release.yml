@@ -48,7 +48,7 @@ jobs:
             fi
           fi
           python3 tools/release_notes.py "$version" > notes.md
-          (cd dist && sha256sum MT5Bot-Setup-*.exe > SHA256SUMS && sha256sum -c SHA256SUMS)
+          (cd dist && sha256sum MT5Bot-* > SHA256SUMS && sha256sum -c SHA256SUMS)
           ls -la dist
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
@@ -57,7 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/MT5Bot-Setup-*.exe dist/SHA256SUMS \
+          gh release create "$GITHUB_REF_NAME" dist/MT5Bot-* dist/SHA256SUMS \
             --title "MT5Bot ${{ steps.meta.outputs.version }}" --notes-file notes.md --verify-tag
 
       - name: Dry run (sem tag)
