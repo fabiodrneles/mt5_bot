@@ -74,5 +74,62 @@ def run_show_config():
 
     print("="*50)
 
+def config_template():
+    """Modelo comentado e valido do config.toml (spec 003 FR-5).
+
+    Tudo comentado: o arquivo novo nao muda nada ate o usuario descomentar.
+    """
+    lines = [
+        "# config.toml do MT5Bot - sobrepoe os padroes de mt5bot/core/config.py.",
+        "# Descomente (tire o #) so o que quiser mudar. Valores invalidos sao",
+        "# recusados com aviso e o padrao e mantido. Confira com: bot.bat config",
+        "",
+        "# Perda maxima no stop, em % do saldo, para as rotas sem limite proprio.",
+        f"# quant_max_risk_pct = {config.QUANT_MAX_RISK_PCT}",
+        "",
+        "# Margem livre que precisa sobrar depois de abrir (x margem da posicao).",
+        f"# quant_margin_reserve_mult = {config.QUANT_MARGIN_RESERVE_MULT}",
+        "",
+        "# Trava diaria: bloqueia novas entradas depois de perder X% no dia.",
+        f"# max_daily_loss_percent = {config.MAX_DAILY_LOSS_PERCENT}",
+        "",
+        "# Risco por trade dos setups classicos (Maestro).",
+        f"# max_risk_per_trade_percent = {config.MAX_RISK_PER_TRADE_PERCENT}",
+        "",
+        "# Veto do XGBoost nos setups classicos.",
+        f"# ml_filter_enabled = {str(config.ML_FILTER_ENABLED).lower()}",
+        "",
+        "# Setups SEM validacao fora da amostra operando ao vivo (risco maior).",
+        f"# allow_unvalidated_live = {str(getattr(config, 'ALLOW_UNVALIDATED_LIVE', False)).lower()}",
+    ]
+    for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
+        lines += ["", f"# Rota {symbol} {route['timeframe']} {route['setup']}",
+                  f"# [routes.{symbol}]",
+                  f"# max_risk_pct = {route.get('max_risk_pct', config.QUANT_MAX_RISK_PCT)}",
+                  "# enabled = true"]
+    return "\n".join(lines) + "\n"
+
+
+def edit_config(open_editor=True):
+    """Cria o config.toml comentado (se nao existir) e abre no editor."""
+    import subprocess
+    path = config.USER_CONFIG_FILE
+    created = not os.path.exists(path)
+    if created:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(config_template())
+    print(("Criado: " if created else "Ja existe (nao foi alterado): ") + path)
+    if open_editor:
+        if sys.platform == "win32":
+            subprocess.Popen(["notepad.exe", path])
+        else:
+            editor = os.environ.get("EDITOR") or ("open" if sys.platform == "darwin" else "xdg-open")
+            subprocess.Popen([editor, path])
+    return path, created
+
+
 if __name__ == "__main__":
-    run_show_config()
+    if "--edit" in sys.argv[1:]:
+        edit_config(open_editor="--no-open" not in sys.argv[1:])
+    else:
+        run_show_config()

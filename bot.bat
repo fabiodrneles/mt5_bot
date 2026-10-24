@@ -20,7 +20,7 @@ if "%CMD%"=="" (
     echo Comandos disponiveis:
     echo   diagnose    - Checa MT5, saldo e erros no bot.log
     echo   market      - Mostra spread, tick_value e margem dos ativos
-    echo   config      - Mostra configuracoes vitais de risco e setups
+    echo   config      - Mostra configuracoes vitais de risco e setups ^(--edit abre o config.toml^)
     echo   positions   - Mostra trades abertos ^(Reais e Fantasmas^)
     echo   performance - Mostra PnL e WinRate dos ultimos 7 dias
     echo   hardware    - Mostra uso de CPU e RAM
@@ -49,7 +49,7 @@ if /i "%CMD%"=="market" (
 )
 
 if /i "%CMD%"=="config" (
-    "%PY%" tools\show_config.py
+    "%PY%" tools\show_config.py %ARG1% %ARG2%
     goto :fim
 )
 
