@@ -11,6 +11,9 @@
 - **Fix (critico):** `bot.bat panic` procurava `config.MAGIC_NUMBER` (inexistente -> 999) e nunca fechava as posicoes do bot; agora usa `config.MAGIC`.
 - **Fix:** `bot.bat <comando>` sempre mostrava a ajuda e saia: um `)` nas linhas de ajuda fechava o bloco `if` antes da hora. Parenteses escapados; `.gitattributes` fixa CRLF nos `.bat`.
 - **Docs:** README reescrito como guia completo (instalacao, Modo Quant, Maestro, travas, comandos, emergencia, solucao de problemas).
+- **Fix:** `bot.bat` devolvia sempre 0 (o `%ERRORLEVEL%` dentro de bloco `( )` e expandido antes do comando rodar); agora retorna o codigo real.
+- **Melhoria:** `bot.bat config` mostra as rotas quant e o limite em $ pelo saldo atual, e le a chave real `MAX_RISK_PER_TRADE_PERCENT`.
+- **Docs:** `README.en.md` atualizado com o mesmo guia em ingles.
 
 ## [2.9.1] - 2026-10-24
 - **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).

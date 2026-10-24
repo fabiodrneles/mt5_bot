@@ -15,7 +15,7 @@ Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respe
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Testes](https://img.shields.io/badge/testes-177%20passando-2EA043?style=flat-square)
+![Testes](https://img.shields.io/badge/testes-178%20passando-2EA043?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-555?style=flat-square)
 
 </div>
@@ -240,14 +240,14 @@ Os setups clássicos passam por filtros extras antes da ordem: SMA200, multi-tim
 
 ## 🧭 Comandos do `bot.bat`
 
-Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes.
+Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada comando devolve o código de saída real (0 = sucesso).
 
 | Comando | O que faz |
 |---|---|
 | `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1) |
 | `bot.bat diagnose` | Conexão com o MT5, saldo, margem e erros do `bot.log` nas últimas 24h |
 | `bot.bat market` | Preço, spread, valor do tick e margem dos ativos configurados |
-| `bot.bat config` | Risco %, perda diária, filtro de IA e setups por ativo *(ainda não mostra as rotas quant)* |
+| `bot.bat config` | Risco %, perda diária, filtro de IA, **rotas quant com o limite em $ pelo saldo atual** e setups por ativo |
 | `bot.bat positions` | Posições do robô e operações virtuais (paper) |
 | `bot.bat performance` | Lucro líquido e taxa de acerto dos últimos 7 dias |
 | `bot.bat tail` | Últimas 15 linhas do `logs/bot.log` |

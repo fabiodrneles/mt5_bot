@@ -31,42 +31,42 @@ if "%CMD%"=="" (
 
 if /i "%CMD%"=="diagnose" (
     python tools\diagnose.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="market" (
     python tools\market_status.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="config" (
     python tools\show_config.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="positions" (
     python tools\show_positions.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="performance" (
     python tools\show_performance.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="hardware" (
     python tools\system_resources.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="tail" (
     python tools\tail_logs.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="panic" (
     python tools\panic.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="ask" (
@@ -75,12 +75,12 @@ if /i "%CMD%"=="ask" (
         exit /b 1
     )
     python memoria\scripts\query_memory.py "%ARG1%"
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="train" (
     python tools\train_xgboost.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="backtest" (
@@ -94,19 +94,23 @@ if /i "%CMD%"=="backtest" (
             python tools\backtest.py --symbol %ARG1% --months %ARG2%
         )
     )
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="quant" (
     python tools\quant_runner.py
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 if /i "%CMD%"=="test" (
     pytest -q
-    exit /b %ERRORLEVEL%
+    goto :fim
 )
 
 echo Comando invalido: %CMD%
 echo Digite "bot.bat" para ver a lista de comandos.
 exit /b 1
+
+:fim
+rem Fora de bloco ( ): aqui %ERRORLEVEL% e o codigo real do ultimo comando.
+exit /b %ERRORLEVEL%
