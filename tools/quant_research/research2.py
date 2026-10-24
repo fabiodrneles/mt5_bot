@@ -234,7 +234,9 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     swap3 = (int(m.get("swap3", 3)) + 6) % 7
     last_of_day = np.r_[day[1:] != day[:-1], True]
     bar = np.median(np.diff(t)) if n > 1 else 0
-    pause = np.r_[False, np.diff(t) > bar * 1.5] if d.get("tf") != "D1" else np.zeros(n, bool)
+    # D1: todo candle abre depois de uma pausa e, em 37 de 72 CFDs, a abertura do historico e irreal
+    # (gap medio -0,12 ATR desfeito pelo corpo). Entrada sempre pelo pior entre abertura e fechamento anterior.
+    pause = np.r_[False, np.diff(t) > bar * 1.5] if d.get("tf") != "D1" else np.r_[False, np.ones(n - 1, bool)]
     rollover = (d["hour"] == 0) if d.get("tf") in ("H1", "H4") and "hour" in d else np.zeros(n, bool)
     trades = []
     sig_idx = np.flatnonzero(sig)

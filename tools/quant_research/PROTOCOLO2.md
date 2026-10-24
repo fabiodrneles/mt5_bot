@@ -43,3 +43,15 @@ comprovada". O relatório lista as duas, e também quantas configurações foram
 
 - **Custos (2026-10-24):** o protocolo diz "spread real de cada candle". Na execução apareceram três subestimações, todas corrigidas para o lado conservador antes da análise final: comissão de CFDs de ações (0,1% por lado, estimada), spread do rollover nos candles intradiários e spread da reabertura do fim de semana no D1. Detalhes em `ESTADO_PESQUISA.md`.
 - **Variância do DSR:** o protocolo não fixava o estimador de $V[\widehat{SR}]$. A variância bruta é dominada por configurações degeneradas (por exemplo, Sharpe por trade de −97 em leilões de ações, onde todo trade perde só o custo), que não representam a dispersão das tentativas. Uso o desvio robusto $1{,}4826\cdot\mathrm{MAD}$. **Atenção:** o robusto é **menos rigoroso** que o bruto (variância menor → limiar $SR_0$ menor). Por transparência, o relatório mostra o DSR pelos dois e marca quem só passa pelo robusto.
+
+## Faixa experimental (decisão do dono em 2026-10-24, antes da rodada final)
+
+O critério 6 continua 0,95 para dinheiro real. Fica criada uma faixa intermediária:
+
+| Situação | Destino |
+|---|---|
+| Critérios 1–7 aprovados (DSR ≥ 0,95) | Rota ao vivo |
+| Critérios 1–5 e 7 aprovados, DSR entre 0,80 e 0,95 | **Experimental**: só `/study` (simulação ao vivo, sem dinheiro), com acompanhamento da sombra e CUSUM (spec 011). Promoção ao vivo só se repetir o resultado em trades novos (no mínimo 30) com t ≥ 2 |
+| DSR < 0,80 ou outro critério reprovado | Descartada |
+
+Motivo: o DSR depende do número efetivo de tentativas N, que não é observável (as configurações de uma família são correlacionadas). Entre N = configurações e N = células o DSR de um mesmo candidato pode ir de 0,86 a 0,99. Casos de fronteira são resolvidos com **dados novos**, não com outro limiar.

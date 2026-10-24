@@ -107,7 +107,9 @@ def month_cells(sym):
     size = np.bincount(grp)[grp]
     from_end = size - 1 - pos  # 0 = ultimo dia util
     year = t.astype("datetime64[s]").astype("datetime64[Y]").astype(int) + 1970
-    move = c - o
+    prev_c = np.r_[c[:1], c[:-1]]
+    move_l = c - np.maximum(o, prev_c)  # abertura diaria irreal em CFDs: pior preco (ver research2)
+    move_s = c - np.minimum(o, prev_c)
     out = []
     for kind, idx in (("tdm", pos), ("tdm_end", from_end)):
         for v in range(0, 6):
@@ -115,9 +117,10 @@ def month_cells(sym):
             if sel.sum() < 60:
                 continue
             for side in (1, -1):
-                p = (side * move[sel] - spr[sel]) * upu - comm
+                mv = move_l[sel] if side > 0 else -move_s[sel]
+                p = (mv - spr[sel]) * upu - comm
                 out.append(summarize(sym, kind, -1, v, 1, side, p, t[sel], year[sel], cut,
-                                     side * move[sel] * upu, spr[sel] * upu + comm))
+                                     mv * upu, spr[sel] * upu + comm))
     return out
 
 
