@@ -80,7 +80,7 @@ def intraday_cells(sym):
         short_usd = (-move_s - spr_out[x]) * upu - comm
         for wd in (-1, 0, 1, 2, 3, 4):
             sel_wd = ok & ((dow[e] == wd) if wd >= 0 else True)
-            for h in range(24):
+            for h in range(1, 24):  # hora 0 = rollover: candles nao precificam o spread real (ver research2)
                 sel = sel_wd & (hour[e] == h)
                 if sel.sum() < 60:
                     continue

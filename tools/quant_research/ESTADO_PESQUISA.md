@@ -45,6 +45,8 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados e 
 
 3. **Abertura irreal do pregão (artefato de dados).** No H1 das ações, a cotação de abertura do 1º candle do pregão (hora 16 do servidor) vem ~$1 abaixo do fechamento anterior e o candle "sobe" o mesmo valor (LKQCorp 2023: +1,053 no candle × −1,096 na abertura). Ninguém compra nesse preço. Confirmado com M1 recente: na 1ª hora real o bid sobe em média só $0,018. Correção: o 1º candle depois de qualquer pausa entra pelo pior entre a abertura e o fechamento anterior (`research2.simulate` e `seasonal2`). Teste: `test_first_candle_after_pause_enters_at_worse_of_open_and_previous_close`.
 
+4. **Rollover não precificável.** Depois da correção 3, sobraram 3 "padrões": comprar EURUSD/EURGBP na quinta à 0h. Com **ticks reais**, o spread do EURGBP entre 0h00 e 0h10 de quinta fica em 82–224 pts, enquanto o candle registra ~30, porque o campo spread do candle guarda o **mínimo** da hora. O bid afunda e o ask fica parado: artefato. Regra: nenhuma entrada na hora 0 do servidor em H1/H4 (`research2.simulate`, `seasonal2`). O motor real seguirá a mesma regra. Teste: `test_no_entry_in_rollover_hour`.
+
 Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
 
 ## Resultados parciais
@@ -64,5 +66,5 @@ Os resultados da primeira passada, anteriores às correções, ficaram em `data/
 ### Lead-lag entre ativos (46 ativos, 12.420 cruzamentos A → B)
 - **Nenhum passou no FDR.** Só 164 cruzamentos têm movimento médio maior que o spread, e nenhum é estatisticamente distinguível do acaso. O movimento de um par na última hora **não** antecipa outro par a ponto de pagar o custo.
 
-### Sazonalidade (refazendo com a correção 3)
-- Os 64 "padrões de horário" da primeira varredura eram, na maioria, o artefato da abertura irreal (correção 3). Recalculando.
+### Sazonalidade
+- 1ª varredura: 64 "padrões". Com a correção 3 (abertura irreal): 3. Os 3 eram o rollover (correção 4). Recalculando com a regra da hora 0.

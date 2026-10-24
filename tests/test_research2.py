@@ -95,3 +95,12 @@ def test_first_candle_after_pause_enters_at_worse_of_open_and_previous_close():
     sig = np.array([0, 1, 0, 0])
     tr = R.simulate("X", d, sig, np.full(4, 50.0), np.full(4, np.nan), None, None, 1, False)
     assert tr[0, 2] == pytest.approx(0.0)
+
+
+def test_no_entry_in_rollover_hour():
+    d = frame([100] * 3, [100] * 3, [100] * 3, [100] * 3, day0=8)
+    d["tf"] = "H1"
+    d["t"] = np.array([23 * 3600, 24 * 3600, 25 * 3600])
+    d["hour"] = (d["t"] % 86400) // 3600
+    tr = R.simulate("X", d, np.array([1, 0, 0]), np.full(3, 50.0), np.full(3, np.nan), None, None, 1, False)
+    assert len(tr) == 0

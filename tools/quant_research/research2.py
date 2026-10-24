@@ -235,6 +235,7 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     last_of_day = np.r_[day[1:] != day[:-1], True]
     bar = np.median(np.diff(t)) if n > 1 else 0
     pause = np.r_[False, np.diff(t) > bar * 1.5] if d.get("tf") != "D1" else np.zeros(n, bool)
+    rollover = (d["hour"] == 0) if d.get("tf") in ("H1", "H4") and "hour" in d else np.zeros(n, bool)
     trades = []
     sig_idx = np.flatnonzero(sig)
     k = 0
@@ -247,6 +248,11 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
             continue
         dr = sig[i]
         e = i + 1
+        if rollover[e]:
+            # Hora do rollover: o campo spread dos candles guarda o MINIMO da hora e esconde o pico
+            # real (ticks EURGBP: 82-224 pts x ~30 no candle). Nao da para precificar: nao entra.
+            k += 1
+            continue
         sd = stop[i]
         if not np.isfinite(sd) or sd <= 0:
             k += 1
