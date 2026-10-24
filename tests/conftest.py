@@ -1,4 +1,11 @@
 # Pytest conftest to ensure a consistent MetaTrader5 mock available for all tests
+import os
+import tempfile
+
+# Pasta de dados isolada: os testes nunca leem o config.toml nem gravam nos
+# trades/logs reais do usuario (spec 003).
+os.environ["MT5BOT_DATA_DIR"] = tempfile.mkdtemp(prefix="mt5bot-tests-")
+
 import sys
 
 class MockMT5Module:

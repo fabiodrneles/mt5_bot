@@ -355,3 +355,9 @@ RVOL_THRESHOLD = 1.15
 # --- Machine Learning (XGBoost) ---
 ML_FILTER_ENABLED = True
 ML_MIN_WIN_PROB = 0.40
+
+# --- config.toml do usuario (spec 003) ---
+# Sobrepoe os padroes acima; valores invalidos sao recusados com aviso.
+from mt5bot.core import user_config as _user_config  # noqa: E402
+
+USER_CONFIG_ERRORS = _user_config.apply(globals())

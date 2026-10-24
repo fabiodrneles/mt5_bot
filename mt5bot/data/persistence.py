@@ -11,16 +11,8 @@ def _get_data_dir():
     Isso evita gravar em site-packages onde o usuário não tem controle fácil e onde
     arquivos podem ficar corrompidos após reinstalação.
     """
-    appdata = os.getenv('APPDATA') or os.getenv('LOCALAPPDATA')
-    if appdata:
-        base = os.path.join(appdata, 'mt5bot')
-    else:
-        base = os.path.join(os.path.expanduser('~'), '.mt5bot')
-    try:
-        os.makedirs(base, exist_ok=True)
-    except Exception:
-        base = os.path.dirname(os.path.abspath(__file__))
-    return base
+    from mt5bot.core import paths
+    return paths.data_dir()
 
 
 def _get_path():

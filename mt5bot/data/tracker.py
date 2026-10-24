@@ -9,16 +9,9 @@ from datetime import datetime, timezone
 
 from mt5bot.core import logger
 
-_TRADES_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot')
-if not os.path.isabs(_TRADES_FILE):
-    _TRADES_FILE = os.path.join(os.path.expanduser('~'), '.mt5bot', 'trades.json')
-else:
-    _TRADES_FILE = os.path.join(_TRADES_FILE, 'trades.json')
+from mt5bot.core import paths  # noqa: E402
 
-try:
-    os.makedirs(os.path.dirname(_TRADES_FILE), exist_ok=True)
-except Exception:
-    _TRADES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trades.json")
+_TRADES_FILE = paths.data_file("trades.json")
 
 
 def _load_trades():

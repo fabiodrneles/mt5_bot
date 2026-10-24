@@ -1,10 +1,11 @@
 import json
 import os
+from mt5bot.core import paths
 from datetime import datetime, timezone
 
 from mt5bot.core import logger
 
-_CALIBRATIONS_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot', 'calibrations.json')
+_CALIBRATIONS_FILE = paths.data_file('calibrations.json')
 
 class AdaptiveSupervisor:
     """

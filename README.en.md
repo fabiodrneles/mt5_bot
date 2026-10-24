@@ -145,7 +145,7 @@ It runs continuously, with one cycle every 5 seconds, and shows a **live panel**
  ▍EVENTOS
    26/10 22:15  [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01
 ────────────────────────────────────────────────────────────────────────────────
-  Ctrl+C  parar    .\bot.bat panic  emergência   log: logs\quant_runner.log
+  Ctrl+C  parar    .\bot.bat panic  emergência   log: %APPDATA%\mt5bot\logs
 ```
 
 - **Risk / limit (RISCO / LIMITE):** ✓ when the trade fits the limit; 🔒 when it is locked to protect margin, showing why.
@@ -318,7 +318,7 @@ Quick tools to inspect the bot without opening large files. Each command returns
 | `.\bot.bat config` | Risk %, daily loss, AI filter, **quant routes with the $ limit for the current balance**, and setups per symbol |
 | `.\bot.bat positions` | Bot positions and virtual (paper) trades |
 | `.\bot.bat performance` | Net profit and win rate for the last 7 days |
-| `.\bot.bat tail` | Last 15 lines of `logs/bot.log` |
+| `.\bot.bat tail` | Last 15 lines of the newest log (`%APPDATA%\mt5bot\logs`) |
 | `.\bot.bat hardware` | CPU/RAM usage (requires `pip install psutil`) |
 | `.\bot.bat backtest HK50 3` | Russian Setup backtest (symbol, months). Read-only. |
 | `.\bot.bat train` | Retrains the XGBoost model |
@@ -328,13 +328,27 @@ Quick tools to inspect the bot without opening large files. Each command returns
 | `.\bot.bat build` | Builds the Maestro (`maestro\maestro.exe`) |
 | `.\bot.bat panic` | 🚨 **Closes all bot positions at market** (manual ones are kept) |
 
-To view the Quant Mode log: `Get-Content logs\quant_runner.log -Tail 20`
+To view the Quant Mode log: `Get-Content $env:APPDATA\mt5bot\logs\quant_runner.log -Tail 20`
 
 ---
 
 ## ⚙️ Configuration
 
-All settings live in **`mt5bot/core/config.py`**. The most common ones:
+Defaults live in **`mt5bot/core/config.py`**. To change them without editing code, create **`%APPDATA%\mt5bot\config.toml`** (`bot.bat config` prints the exact path and tags each value that came from it with `[config.toml]`):
+
+```toml
+quant_max_risk_pct = 2.0          # max loss at SL, % of balance (routes' default)
+max_daily_loss_percent = 2.0      # daily lock
+ml_filter_enabled = true          # XGBoost veto on classic setups
+
+[routes.US500]
+max_risk_pct = 12.0               # this route's own limit
+enabled = true                    # false turns the route off
+```
+
+Values with the wrong type or out of range are **refused with a warning** (naming the file and key) and the default is kept. Nothing crashes the bot.
+
+The most important defaults in `config.py`:
 
 ```python
 # Quant routes: (symbol) -> timeframe, setup and validated parameters
@@ -366,8 +380,9 @@ MAGIC = 20260731                   # identifies the bot's orders in MT5
 |---|---|
 | `%APPDATA%\mt5bot\trades.json` | Trade history (entries, exits, real profit including commission and swap) |
 | `%APPDATA%\mt5bot\virtual_rejections.json` | Rejected signals (risk, spread, AI), used by the Optimizer |
-| `logs\quant_runner.log` | Quant Mode log |
-| `logs\bot_YYYYMMDD.log` | Maestro/Brain logs |
+| `%APPDATA%\mt5bot\config.toml` | Your configuration (optional), on top of `config.py` defaults |
+| `%APPDATA%\mt5bot\logs\quant_runner.log` | Quant Mode log |
+| `%APPDATA%\mt5bot\logs\bot_YYYYMMDD.log` | Maestro/Brain logs |
 
 The bot is **stateless**: if the PC restarts, it re-reads positions straight from MT5 and picks up where it left off.
 

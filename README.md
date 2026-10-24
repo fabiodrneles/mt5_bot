@@ -145,7 +145,7 @@ Ele roda continuamente, com um ciclo a cada 5 segundos, e mostra um **painel ao 
  ▍EVENTOS
    26/10 22:15  [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01
 ────────────────────────────────────────────────────────────────────────────────
-  Ctrl+C  parar    .\bot.bat panic  emergência   log: logs\quant_runner.log
+  Ctrl+C  parar    .\bot.bat panic  emergência   log: %APPDATA%\mt5bot\logs
 ```
 
 - **Risco / limite:** ✓ quando o trade cabe no limite; 🔒 quando está travado para proteger a margem, mostrando o porquê.
@@ -318,7 +318,7 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | `bot.bat config` | Risco %, perda diária, filtro de IA, **rotas quant com o limite em $ pelo saldo atual** e setups por ativo |
 | `bot.bat positions` | Posições do robô e operações virtuais (paper) |
 | `bot.bat performance` | Lucro líquido e taxa de acerto dos últimos 7 dias |
-| `bot.bat tail` | Últimas 15 linhas do `logs/bot.log` |
+| `bot.bat tail` | Últimas 15 linhas do log mais recente (`%APPDATA%\mt5bot\logs`) |
 | `bot.bat hardware` | Uso de CPU/RAM (precisa de `pip install psutil`) |
 | `bot.bat backtest HK50 3` | Backtest do Setup Russo (ativo, meses). Só lê o histórico. |
 | `bot.bat train` | Retreina o modelo XGBoost |
@@ -328,13 +328,27 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | `bot.bat build` | Compila o Maestro (`maestro\maestro.exe`) |
 | `bot.bat panic` | 🚨 **Fecha a mercado todas as posições do robô** (as manuais ficam) |
 
-Para ver o log do Modo Quant: `Get-Content logs\quant_runner.log -Tail 20`
+Para ver o log do Modo Quant: `Get-Content $env:APPDATA\mt5bot\logs\quant_runner.log -Tail 20`
 
 ---
 
 ## ⚙️ Configuração
 
-Toda a configuração fica em **`mt5bot/core/config.py`**. Os ajustes mais comuns:
+Os padrões ficam em **`mt5bot/core/config.py`**. Para mudar sem editar código, crie o arquivo **`%APPDATA%\mt5bot\config.toml`** (o `bot.bat config` mostra o caminho exato e marca com `[config.toml]` cada valor que veio dele):
+
+```toml
+quant_max_risk_pct = 2.0          # perda máxima no SL, % do saldo (padrão das rotas)
+max_daily_loss_percent = 2.0      # trava diária
+ml_filter_enabled = true          # veto do XGBoost nos setups clássicos
+
+[routes.US500]
+max_risk_pct = 12.0               # limite próprio desta rota
+enabled = true                    # false desliga a rota
+```
+
+Valores com tipo errado ou fora da faixa são **recusados com aviso** (citando o arquivo e a chave), e o padrão é mantido. Nada derruba o robô.
+
+Os padrões mais importantes do `config.py`:
 
 ```python
 # Rotas quant: (ativo) -> timeframe, setup e parametros validados
@@ -366,8 +380,9 @@ MAGIC = 20260731                   # identifica as ordens do robo no MT5
 |---|---|
 | `%APPDATA%\mt5bot\trades.json` | Histórico de trades (entradas, saídas, lucro real com comissão e swap) |
 | `%APPDATA%\mt5bot\virtual_rejections.json` | Sinais rejeitados (risco, spread, IA), usados pelo Otimizador |
-| `logs\quant_runner.log` | Log do Modo Quant |
-| `logs\bot_AAAAMMDD.log` | Logs do Maestro/Cérebro |
+| `%APPDATA%\mt5bot\config.toml` | Sua configuração (opcional), sobre os padrões do `config.py` |
+| `%APPDATA%\mt5bot\logs\quant_runner.log` | Log do Modo Quant |
+| `%APPDATA%\mt5bot\logs\bot_AAAAMMDD.log` | Logs do Maestro/Cérebro |
 
 O bot é **stateless**: se o PC reiniciar, ele relê as posições direto do MT5 e continua de onde parou.
 
