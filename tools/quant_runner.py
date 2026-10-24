@@ -27,6 +27,7 @@ import MetaTrader5 as mt5
 import pandas as pd
 
 from mt5bot.core import config, telemetry
+from mt5bot.core import terminal
 from mt5bot.data import tracker
 from mt5bot.execution import execution_manager, quant_manager
 
@@ -217,7 +218,7 @@ def render_panel(snap, now=None):
 # --- loop ----------------------------------------------------------------------
 
 def run(once=False, interval=5, plain=False):
-    if not mt5.initialize():
+    if not terminal.initialize():
         logging.error(f"Falha ao conectar no MT5: {mt5.last_error()}")
         print(f"Falha ao conectar no MT5: {mt5.last_error()}. Abra o terminal e faca login.")
         return 1

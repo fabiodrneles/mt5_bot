@@ -9,6 +9,7 @@ from decimal import Decimal, ROUND_DOWN
 from typing import Tuple, Optional, Dict, Any
 import MetaTrader5 as mt5
 from mt5bot.core import config
+from mt5bot.core import terminal
 from mt5bot.core import logger
 
 
@@ -398,7 +399,7 @@ def opening_gap_filter(symbol: str, max_gap_pips: float = 50.0, safe_minutes: in
     Bloqueia operações nos primeiros minutos do pregão se o gap de abertura for violento.
     """
     try:
-        if not mt5.initialize():
+        if not terminal.initialize():
             return True, "Gap ignorado (Mock)"
             
         sym_info = mt5.symbol_info(symbol)

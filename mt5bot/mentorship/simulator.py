@@ -7,6 +7,7 @@ import pandas as pd
 import MetaTrader5 as mt5
 
 from mt5bot.core import logger, config
+from mt5bot.core import terminal
 from mt5bot.engine.indicators import add_all_indicators
 
 _REJECTIONS_FILE = paths.data_file('virtual_rejections.json')
@@ -114,7 +115,7 @@ def run_simulation(symbol, side, entry_price, sl_price, df_m1):
 
 def simulate_rejections():
     """Roda backtest para cada rejeicao pendente."""
-    if not mt5.initialize():
+    if not terminal.initialize():
         logger.error("Falha ao inicializar MT5 para simulacao.")
         return
 

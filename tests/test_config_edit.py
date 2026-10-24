@@ -28,8 +28,11 @@ def test_every_setting_in_template_is_valid_when_uncommented(tmp_path):
     p.write_text(uncommented, encoding="utf-8")
     ns = _ns()
     assert user_config.apply(ns, str(p)) == []
-    for key in user_config.GLOBAL_KEYS:          # o modelo documenta todas as chaves aceitas
-        assert user_config.GLOBAL_KEYS[key][0] in ns["CONFIG_SOURCES"], key
+    for key, spec in user_config.GLOBAL_KEYS.items():  # o modelo documenta todas as chaves aceitas
+        if spec[1] == "path":  # caminho depende da maquina: so precisa estar documentado
+            assert f"{key} = " in show_config.config_template(), key
+            continue
+        assert spec[0] in ns["CONFIG_SOURCES"], key
 
 
 def test_edit_creates_once_and_never_overwrites(tmp_path, monkeypatch):

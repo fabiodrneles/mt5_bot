@@ -26,6 +26,7 @@ import MetaTrader5 as mt5
 import pandas as pd
 
 from mt5bot.core import config, telemetry
+from mt5bot.core import terminal
 from mt5bot.data import tracker
 
 DEFAULT_LANG = "pt"
@@ -112,7 +113,7 @@ _mt5_ready = False
 def _ensure_mt5():
     global _mt5_ready
     if not _mt5_ready:
-        _mt5_ready = bool(mt5.initialize())
+        _mt5_ready = bool(terminal.initialize())
     return _mt5_ready
 
 

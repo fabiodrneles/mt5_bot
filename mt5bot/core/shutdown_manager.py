@@ -4,6 +4,7 @@ import time
 import logging
 import MetaTrader5 as mt5
 from mt5bot.core import config
+from mt5bot.core import terminal
 
 # A raiz do projeto precisa estar no path para importar config (o script roda a partir de maestro/).
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -102,7 +103,7 @@ def main():
 
     action = sys.argv[1].lower()
     
-    if not mt5.initialize():
+    if not terminal.initialize():
         logging.error("Falha ao inicializar conexao com MT5 para shutdown.")
         return
 

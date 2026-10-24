@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from mt5bot.core import config
+from mt5bot.core import terminal
 
 def run_market_status():
     print("="*60)
@@ -13,7 +14,7 @@ def run_market_status():
     
     try:
         import MetaTrader5 as mt5
-        if not mt5.initialize():
+        if not terminal.initialize():
             print("Erro: Nao foi possivel conectar ao MT5.")
             return
             
