@@ -1,5 +1,11 @@
 @echo off
 setlocal
+rem Funciona de qualquer pasta (atalhos do instalador) e usa o Python
+rem embutido da instalacao quando existir (spec 002 FR-4).
+cd /d "%~dp0"
+set "PY=python"
+if exist "%~dp0python\python.exe" set "PY=%~dp0python\python.exe"
+if defined MT5BOT_PYTHON set "PY=%MT5BOT_PYTHON%"
 set "CMD=%~1"
 set "ARG1=%~2"
 set "ARG2=%~3"
@@ -33,42 +39,42 @@ if "%CMD%"=="" (
 )
 
 if /i "%CMD%"=="diagnose" (
-    python tools\diagnose.py
+    "%PY%" tools\diagnose.py
     goto :fim
 )
 
 if /i "%CMD%"=="market" (
-    python tools\market_status.py
+    "%PY%" tools\market_status.py
     goto :fim
 )
 
 if /i "%CMD%"=="config" (
-    python tools\show_config.py
+    "%PY%" tools\show_config.py
     goto :fim
 )
 
 if /i "%CMD%"=="positions" (
-    python tools\show_positions.py
+    "%PY%" tools\show_positions.py
     goto :fim
 )
 
 if /i "%CMD%"=="performance" (
-    python tools\show_performance.py
+    "%PY%" tools\show_performance.py
     goto :fim
 )
 
 if /i "%CMD%"=="hardware" (
-    python tools\system_resources.py
+    "%PY%" tools\system_resources.py
     goto :fim
 )
 
 if /i "%CMD%"=="tail" (
-    python tools\tail_logs.py
+    "%PY%" tools\tail_logs.py
     goto :fim
 )
 
 if /i "%CMD%"=="panic" (
-    python tools\panic.py
+    "%PY%" tools\panic.py
     goto :fim
 )
 
@@ -77,36 +83,36 @@ if /i "%CMD%"=="ask" (
         echo Forneca uma pergunta. Ex: bot ask "como funciona o setup russo?"
         exit /b 1
     )
-    python memoria\scripts\query_memory.py "%ARG1%"
+    "%PY%" memoria\scripts\query_memory.py "%ARG1%"
     goto :fim
 )
 
 if /i "%CMD%"=="train" (
-    python tools\train_xgboost.py
+    "%PY%" tools\train_xgboost.py
     goto :fim
 )
 
 if /i "%CMD%"=="backtest" (
     if "%ARG1%"=="" (
         echo Ativo e meses em branco. Rodando HK50 por 1 mes.
-        python tools\backtest.py --symbol HK50 --months 1
+        "%PY%" tools\backtest.py --symbol HK50 --months 1
     ) else (
         if "%ARG2%"=="" (
-            python tools\backtest.py --symbol %ARG1% --months 1
+            "%PY%" tools\backtest.py --symbol %ARG1% --months 1
         ) else (
-            python tools\backtest.py --symbol %ARG1% --months %ARG2%
+            "%PY%" tools\backtest.py --symbol %ARG1% --months %ARG2%
         )
     )
     goto :fim
 )
 
 if /i "%CMD%"=="quant" (
-    python tools\quant_runner.py
+    "%PY%" tools\quant_runner.py
     goto :fim
 )
 
 if /i "%CMD%"=="dashboard" (
-    python -m interfaces.dashboard
+    "%PY%" -m interfaces.dashboard
     goto :fim
 )
 
@@ -123,7 +129,7 @@ if /i "%CMD%"=="ci" (
 )
 
 if /i "%CMD%"=="test" (
-    pytest -q
+    "%PY%" -m pytest -q
     goto :fim
 )
 

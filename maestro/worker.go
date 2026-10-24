@@ -222,7 +222,7 @@ func (w *PythonWorker) Stop() {
 }
 
 func (w *PythonWorker) runProcess() error {
-	w.cmd = exec.Command("python", "-u", "-m", "interfaces.brain_worker")
+	w.cmd = exec.Command(pythonExe(), "-u", "-m", "interfaces.brain_worker")
 	w.cmd.Dir = ".."
 	
 	stdin, err := w.cmd.StdinPipe()

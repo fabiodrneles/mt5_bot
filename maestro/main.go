@@ -507,7 +507,7 @@ func (m *model) handleCommand(line string) tea.Cmd {
 		// Antes chamava ../dashboard.py (inexistente). O dashboard web roda
 		// como modulo a partir da raiz do projeto e abre o navegador.
 		m.logs = append(m.logs, dim.Render(tr("dashboard_open")))
-		cmdPy := exec.Command("python", "-m", "interfaces.dashboard")
+		cmdPy := exec.Command(pythonExe(), "-m", "interfaces.dashboard")
 		cmdPy.Dir = ".."
 		if err := cmdPy.Start(); err != nil {
 			m.logs = append(m.logs, red.Render(fmt.Sprintf("Falha ao abrir o dashboard: %v", err)))
@@ -531,7 +531,7 @@ func (m *model) handleCommand(line string) tea.Cmd {
 			m.logs = append(m.logs, dim.Render(fmt.Sprintf(tr("action_requested"), cmd.Action)))
 			// Antes chamava ../brain/shutdown_manager.py (inexistente): o close-all
 			// nao fechava nada. Roda da raiz para o lock .no_new_trades valer.
-			shutdownCmd := exec.Command("python", "-m", "mt5bot.core.shutdown_manager", cmd.Action)
+			shutdownCmd := exec.Command(pythonExe(), "-m", "mt5bot.core.shutdown_manager", cmd.Action)
 			shutdownCmd.Dir = ".."
 			out, err := shutdownCmd.CombinedOutput()
 			if err != nil {
