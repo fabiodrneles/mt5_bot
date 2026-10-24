@@ -67,14 +67,14 @@ def train_for_dataset(csv_path):
     print(classification_report(y_test, y_pred, zero_division=0))
     
     # Salvar o Modelo
-    out_json = os.path.join(ROOT_DIR, f"mt5bot_xgboost_{symbol}_v2.json")
+    out_json = os.path.join(ROOT_DIR, "models", f"mt5bot_xgboost_{symbol}_v2.json")
     model.save_model(out_json)
     print(f"[SUCCESS] Modelo atualizado: {os.path.basename(out_json)}")
 
 def main():
     # Procura por todos os arquivos de dataset na raiz do projeto
     search_patterns = [
-        os.path.join(ROOT_DIR, "dataset_live_experience_*.csv"),
+        os.path.join(ROOT_DIR, "data", "dataset_live_experience_*.csv"),
         os.path.join(ROOT_DIR, "data", "dataset_massive*.csv")
     ]
     

@@ -20,7 +20,7 @@ Fonte: `raw/estrategias-operacionais.txt` · Status: já implementado (`check_se
 ## No código (estado atual)
 - `indicators.py`: `check_pullback_to_ema9` (identifica recuo de 2+ candles).
 - `strategy.py`: `check_setup_93_buy/sell` — usa o rompimento da máxima do último candle de recuo.
-- Implementado na Fase 2 (ver `ROADMAP_IMPROVEMENTS.md`, CHANGELOG L62-68).
+- Implementado na Fase 2 (ver `docs/ROADMAP_IMPROVEMENTS.md`, CHANGELOG L62-68).
 
 ## Observação de trading
 - Mais filtro de tempo que o 9.2: recuo de 2+ candles dá mais confirmação, mas entrada mais distante.

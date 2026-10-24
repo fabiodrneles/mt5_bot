@@ -77,7 +77,7 @@ def export_live_dataset(symbol=None):
     df = df.dropna()
     
     sym_suffix = f"_{symbol}" if symbol else ""
-    out_file = os.path.join(_ROOT, f"dataset_live_experience{sym_suffix}.csv")
+    out_file = os.path.join(_ROOT, "data", f"dataset_live_experience{sym_suffix}.csv")
     df.to_csv(out_file, index=False)
     
     print(f"[SUCCESS] Dataset de experiência ao vivo gerado: {out_file}")

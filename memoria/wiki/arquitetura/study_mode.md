@@ -22,7 +22,7 @@ Neste modo:
 
 O modo Study foi evoluído na **v2.7.2** para se tornar um verdadeiro **Data Flywheel (Colheitadeira)**:
 1. **Ordens Reais vs Fantasmas**: Ele registra no `virtual_trades.json` não apenas os setups que a IA aprovou, mas também **Ordens Fantasmas** (`is_vetoed=True`) para setups que a IA vetou. O robô continua rastreando esses vetos no gráfico para descobrir, no futuro, se a IA estava certa (o trade deu Loss) ou se ela "deixou dinheiro na mesa" (o trade deu Win).
-2. **Exportador**: Existe um script `tools/export_live_dataset.py` que deve ser usado para converter essa base de telemetria `virtual_trades.json` num CSV com 14 colunas prontas (`dataset_live_experience.csv`), permitindo retreinar a inteligência neural com a micro-estrutura em que o bot operou durante a semana.
+2. **Exportador**: Existe um script `tools/export_live_dataset.py` que deve ser usado para converter essa base de telemetria `virtual_trades.json` num CSV com 14 colunas prontas (`data/dataset_live_experience_<ATIVO>.csv`), permitindo retreinar a inteligência neural com a micro-estrutura em que o bot operou durante a semana.
 
 Qualquer IA que for realizar manutenção, otimização ou análise exploratória neste projeto DEVE:
 1. Verificar a existência do arquivo `virtual_trades.json`.
