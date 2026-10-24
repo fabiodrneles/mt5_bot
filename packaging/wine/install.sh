@@ -48,7 +48,9 @@ fi
 export WINEPREFIX="$PREFIX" WINEDEBUG=-all
 if [ ! -d "$PREFIX" ]; then
     say "Criando o prefixo Wine em $PREFIX (pode levar alguns minutos)"
-    wineboot --init >/dev/null 2>&1 || true
+    # Sem Mono/Gecko: o MT5Bot e o MT5 nao precisam, e o dialogo trava instalacoes sem tela.
+    WINEDLLOVERRIDES="mscoree,mshtml=" wineboot --init >/dev/null 2>&1 || true
+    wineserver -w || true
 fi
 
 DEST="$PREFIX/drive_c/MT5Bot"
