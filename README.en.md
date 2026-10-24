@@ -137,7 +137,7 @@ It runs continuously, with one cycle every 5 seconds, and shows a **live panel**
 
  ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
  HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
- US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        🔒 $1.62 > limite $0.33
+ US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        ✓ $1.62 (limite $1.95)
 
  POSIÇÕES DO ROBÔ
    HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
@@ -178,7 +178,7 @@ Both came out of a search over **3,150 combinations** (15 symbols × 4 timeframe
 
 US500 has the strongest evidence: it is Connors' RSI2 effect, documented for decades. HK50 has a signal that adds value *on HK50*, but treat it as a live experiment.
 
-**Want to unlock US500 with a small balance?** Give the route its own limit in `config.py`, e.g. `"US500": {..., "max_risk_pct": 12.0}`. With $16 each stop costs ~$1.63 (10% of the account). The worst historical drawdown was $3.04, with about 6 trades a year. It is your call: the default stays locked.
+**Want to unlock US500 with a small balance?** Give the route its own limit in `config.py`, e.g. `"US500": {..., "max_risk_pct": 12.0}`. With $16 each stop costs ~$1.63 (10% of the account). The worst historical drawdown was $3.04, with about 6 trades a year. In this installation US500 ships **unlocked at 12%**. To lock it again, remove `"max_risk_pct"` from the route.
 
 **Honest expectations:** this is **cents per trade**. On HK50 the historical average is +$0.036 per trade, about 13% a year on $16, with drawdowns of up to ~$4 along the way. There were losing years (2024: −$1.48). Only dozens of live trades will tell whether it holds up.
 
@@ -186,7 +186,7 @@ US500 has the strongest evidence: it is Connors' RSI2 effect, documented for dec
 
 | Safeguard | Rule | Effect with a $16 balance |
 |---|---|---|
-| Risk per trade | Loss at SL ≤ **2% of balance** (`QUANT_MAX_RISK_PCT`) | HK50 trades. **US500 is blocked automatically** and unlocks above ~$80. |
+| Risk per trade | Loss at SL ≤ **2% of balance** (`QUANT_MAX_RISK_PCT`) | HK50 trades within 2%. **US500 uses its own 12% limit** (`max_risk_pct`); without it, it would only unlock above ~$80. |
 | Margin reserve | Free margin left must be ≥ **3× the position's margin** (`QUANT_MARGIN_RESERVE_MULT`) | Never uses all the margin, so there is room for the next attempts |
 | Daily loss | Blocks new entries after losing 2% in a day | Caps a bad streak |
 | One entry per candle | Never re-enters the same signal | Avoids repeating a loss |
@@ -299,7 +299,8 @@ All settings live in **`mt5bot/core/config.py`**. The most common ones:
 QUANT_ROUTES = {
     "HK50":  {"timeframe": "H4", "setup": "PULLB",  "params": {"sl_atr": 1.0, "tp_r": 2.0}},
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
-                                                              "long_only": False, "max_bars": 15}},
+                                                              "long_only": False, "max_bars": 15},
+              "max_risk_pct": 12.0},   # own limit: each stop ~10% of the account at $16
 }
 QUANT_MAX_RISK_PCT = 2.0           # max loss at SL, % of balance (a route may set its own "max_risk_pct")
 QUANT_MARGIN_RESERVE_MULT = 3.0    # free margin that must remain (x position margin)
@@ -428,7 +429,7 @@ mt5_bot/
 | Order error `10027` | **Algo Trading** turned off | Turn on the Algo Trading button (green) |
 | Error `10016` (invalid stops) | SL too close to the price | Quant Mode already checks the *stops level*; on the Maestro, check the ATR/timeframe |
 | `SPREAD FILTER REJECTED` | Spread above the limit (low liquidity) | Normal outside main hours; adjust `SYMBOL_MAX_SPREAD_POINTS` if it makes sense |
-| `perda no SL $X > limite` | Trade would risk more than 2% of balance | The margin lock working as intended (e.g. US500 with balance < ~$80) |
+| `perda no SL $X > limite` | Trade would risk more than 2% of balance | The margin lock working as intended (e.g. HK50 with a very high ATR, or the balance dropped below what the route allows) |
 | `SEM MARGEM` | Not enough free margin for the reserve | Close other positions or increase the balance |
 | `SINAL EXPIRADO` | The bot started after the next candle opened | Normal; it waits for the next signal |
 | `AGUARDANDO MERCADO` | Market closed or next candle not open yet | Wait (e.g. HK50 opens Sunday ~22:15 BRT) |

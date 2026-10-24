@@ -137,7 +137,7 @@ Ele roda continuamente, com um ciclo a cada 5 segundos, e mostra um **painel ao 
 
  ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
  HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
- US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        🔒 $1.62 > limite $0.33
+ US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        ✓ $1.62 (limite $1.95)
 
  POSIÇÕES DO ROBÔ
    HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
@@ -178,7 +178,7 @@ As duas saíram de uma pesquisa com **3.150 combinações** (15 ativos × 4 time
 
 O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado há décadas. O HK50 tem um sinal que agrega valor *no HK50*, mas deve ser tratado como experimento ao vivo.
 
-**Quer liberar o US500 com saldo pequeno?** Dê à rota um limite próprio em `config.py`, por exemplo `"US500": {..., "max_risk_pct": 12.0}`. Com $16, cada stop custa ~$1,63 (10% da conta). A pior queda histórica foi de $3,04, com cerca de 6 trades por ano. A decisão é sua: o padrão continua travado.
+**Quer liberar o US500 com saldo pequeno?** Dê à rota um limite próprio em `config.py`, por exemplo `"US500": {..., "max_risk_pct": 12.0}`. Com $16, cada stop custa ~$1,63 (10% da conta). A pior queda histórica foi de $3,04, com cerca de 6 trades por ano. Nesta instalação o US500 já vem **liberado com 12%**. Para voltar a travá-lo, apague o `"max_risk_pct"` da rota.
 
 **Expectativa honesta:** é lucro de **centavos por trade**. No HK50, a média histórica é de +$0,036 por operação, cerca de 13% ao ano sobre $16, com quedas de até ~$4 no caminho. Houve anos negativos (2024: −$1,48). Só dá para tirar conclusão depois de dezenas de trades reais.
 
@@ -186,7 +186,7 @@ O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado h�
 
 | Trava | Regra | Efeito com saldo de $16 |
 |---|---|---|
-| Risco por trade | Perda no SL ≤ **2% do saldo** (`QUANT_MAX_RISK_PCT`) | HK50 opera. **US500 fica travado sozinho** e só libera com saldo acima de ~$80. |
+| Risco por trade | Perda no SL ≤ **2% do saldo** (`QUANT_MAX_RISK_PCT`) | HK50 opera dentro de 2%. O **US500 usa limite próprio de 12%** (`max_risk_pct`); sem ele, só liberaria com saldo acima de ~$80. |
 | Reserva de margem | A margem livre que sobra deve ser ≥ **3× a margem da posição** (`QUANT_MARGIN_RESERVE_MULT`) | Nunca usa toda a margem, então sobra dinheiro para as próximas tentativas |
 | Perda diária | Bloqueia novas entradas depois de perder 2% no dia | Limita uma sequência ruim |
 | Uma entrada por candle | Não reentra no mesmo sinal | Evita repetir o prejuízo |
@@ -299,7 +299,8 @@ Toda a configuração fica em **`mt5bot/core/config.py`**. Os ajustes mais comun
 QUANT_ROUTES = {
     "HK50":  {"timeframe": "H4", "setup": "PULLB",  "params": {"sl_atr": 1.0, "tp_r": 2.0}},
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
-                                                              "long_only": False, "max_bars": 15}},
+                                                              "long_only": False, "max_bars": 15},
+              "max_risk_pct": 12.0},   # limite proprio: cada stop ~10% da conta com $16
 }
 QUANT_MAX_RISK_PCT = 2.0           # perda maxima no SL, % do saldo (rota pode ter "max_risk_pct" proprio)
 QUANT_MARGIN_RESERVE_MULT = 3.0    # margem livre que precisa sobrar (x margem da posicao)
@@ -428,7 +429,7 @@ mt5_bot/
 | Erro de ordem `10027` | **Algo Trading** desligado | Ligue o botão Algo Trading (verde) |
 | Erro `10016` (invalid stops) | SL muito perto do preço | O Modo Quant já confere o *stops level*; no Maestro, veja o ATR/timeframe |
 | `SPREAD FILTER REJECTED` | Spread acima do limite (baixa liquidez) | Normal fora do horário principal; ajuste `SYMBOL_MAX_SPREAD_POINTS` se fizer sentido |
-| `perda no SL $X > limite` | Trade arriscaria mais de 2% do saldo | É a trava de margem funcionando (ex.: US500 com saldo < ~$80) |
+| `perda no SL $X > limite` | Trade arriscaria mais de 2% do saldo | É a trava de margem funcionando (ex.: HK50 com ATR muito alto, ou o saldo caiu abaixo do que a rota permite) |
 | `SEM MARGEM` | Margem livre insuficiente para a reserva | Feche outras posições ou aumente o saldo |
 | `SINAL EXPIRADO` | O bot ligou depois da abertura do candle seguinte | Normal; ele espera o próximo sinal |
 | `AGUARDANDO MERCADO` | Mercado fechado ou candle seguinte ainda não abriu | Aguarde (ex.: HK50 abre domingo ~22:15 BRT) |

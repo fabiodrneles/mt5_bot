@@ -174,8 +174,11 @@ RUSSIAN_BB_PARAMS = {
 #   US500 D1 RSI2MR: 54 trades/9.5 anos, PF 2.40, +$13.19, DD $3.04, pior -$1.41
 QUANT_ROUTES = {
     "HK50":  {"timeframe": "H4", "setup": "PULLB",  "params": {"sl_atr": 1.0, "tp_r": 2.0}},
+    # max_risk_pct 12: liberado pelo usuario em 2026-10-23 com saldo ~$16
+    # (cada stop ~$1.63 = 10% da conta; pior DD historico $3.04).
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
-                                                              "long_only": False, "max_bars": 15}},
+                                                              "long_only": False, "max_bars": 15},
+              "max_risk_pct": 12.0},
 }
 # Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
 # ignorado para preservar margem para as proximas tentativas. Com $16 o US500

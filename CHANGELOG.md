@@ -4,6 +4,7 @@
 - **Painel ao vivo no Modo Quant** (`bot.bat quant`): conta (REAL/DEMO), saldo, patrimonio, margem, P/L do dia, placar das rotas, estado de cada rota, contagem ate o proximo candle (relogio do servidor; detecta mercado fechado), risco por trade x limite com cadeado quando travado, posicoes do robo com P/L e ultimos eventos. `--plain` mantem o modo so-log.
 - **Eficiencia:** o runner so baixa as 400 velas quando fecha um candle (antes: a cada 5 s).
 - **Limite de risco por rota** (`max_risk_pct` em `QUANT_ROUTES`), desligado por padrao.
+- **US500 D1 RSI2MR liberado** com `max_risk_pct: 12.0` (decisao do usuario, saldo ~$16: cada stop ~$1.63, pior DD historico $3.04). `bot.bat config` mostra o limite proprio da rota.
 - **Pesquisa:** teste de sorte das rotas (`portfolio.py`, `robustness.py`): US500 RSI2 e a evidencia mais forte (t=2.57, 6/8 indices); HK50 PULLB nao generaliza (8/9 indices perdem), mas vence 300 carteiras aleatorias no HK50.
 
 ## [2.10.0] - 2026-10-23

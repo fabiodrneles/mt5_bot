@@ -41,14 +41,18 @@ def run_show_config():
     print("ROTAS QUANT (bot.bat quant):")
     if not rotas:
         print("  (nenhuma)")
-    for simbolo, rota in rotas.items():
-        params = ", ".join(f"{k}={v}" for k, v in (rota.get('params') or {}).items())
-        print(f"  {simbolo:6} {rota.get('timeframe', '?'):3} {rota.get('setup', '?'):7} {params}")
     max_pct = getattr(config, 'QUANT_MAX_RISK_PCT', 2.0)
     reserva = getattr(config, 'QUANT_MARGIN_RESERVE_MULT', 3.0)
     saldo = _balance()
+    for simbolo, rota in rotas.items():
+        params = ", ".join(f"{k}={v}" for k, v in (rota.get('params') or {}).items())
+        print(f"  {simbolo:6} {rota.get('timeframe', '?'):3} {rota.get('setup', '?'):7} {params}")
+        if rota.get('max_risk_pct') is not None:
+            pct = float(rota['max_risk_pct'])
+            em_usd = f" = ${saldo * pct / 100:.2f}" if saldo else ""
+            print(f"         limite proprio: {pct}% do saldo{em_usd}")
     limite = f" = ${saldo * max_pct / 100:.2f} com saldo ${saldo:.2f}" if saldo else ""
-    print(f"  Perda max. no SL: {max_pct}% do saldo{limite} | Reserva de margem: {reserva}x")
+    print(f"  Perda max. no SL (padrao): {max_pct}% do saldo{limite} | Reserva de margem: {reserva}x")
 
     # Setups classicos (Maestro)
     print("-"*50)
