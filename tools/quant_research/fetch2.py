@@ -11,6 +11,9 @@ import time
 import MetaTrader5 as m
 
 TFS = {"H1": (m.TIMEFRAME_H1, 30000), "D1": (m.TIMEFRAME_D1, 4000)}
+# --m15: so M15 (o M30 e reamostrado dele), sem acoes (pregao curto e abertura irreal, ver cap. 14).
+if "--m15" in sys.argv:
+    TFS = {"M15": (m.TIMEFRAME_M15, 60000)}
 
 
 def commission_per_lot():
@@ -56,6 +59,8 @@ def main():
         return
     for r in uni:
         s = r["sym"]
+        if "--m15" in sys.argv and r["path"].startswith("CFD Stocks"):
+            continue
         for name, (tf, cnt) in TFS.items():
             f = f"data/{s}_{name}.npy"
             if os.path.exists(f):

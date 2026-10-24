@@ -2,6 +2,7 @@
 
 ## Mercados, análise técnica e estratégias
 
+- **[Ariel 1987]** ARIEL, R. A. A Monthly Effect in Stock Returns. *Journal of Financial Economics*, v. 18, n. 1, p. 161–174, 1987.
 - **[Aronson 2006]** ARONSON, D. *Evidence-Based Technical Analysis: Applying the Scientific Method and Statistical Inference to Trading Signals*. Hoboken: Wiley, 2006.
 - **[Barber & Odean 2000]** BARBER, B. M.; ODEAN, T. Trading Is Hazardous to Your Wealth: The Common Stock Investment Performance of Individual Investors. *The Journal of Finance*, v. 55, n. 2, p. 773–806, 2000.
 - **[Bollinger 2001]** BOLLINGER, J. *Bollinger on Bollinger Bands*. New York: McGraw-Hill, 2001.
@@ -17,6 +18,9 @@
 - **[Farley 2000]** FARLEY, A. S. *The Master Swing Trader: Tools and Techniques to Profit from Outstanding Short-Term Trading Opportunities*. New York: McGraw-Hill, 2000.
 - **[Fernandes, Estratégias Operacionais]** FERNANDES, A. (Palex). *Estratégias Operacionais de Análise Técnica de Ações*. Texto-fonte em `memoria/raw/estrategias-operacionais.txt`.
 - **[Fernandes, Fundamentos]** FERNANDES, A. (Palex). *Fundamentos de Análise Técnica de Ações*. Texto-fonte em `memoria/raw/fundamentos.txt`.
+- **[French 1980]** FRENCH, K. R. Stock Returns and the Weekend Effect. *Journal of Financial Economics*, v. 8, n. 1, p. 55–69, 1980.
+- **[Gatev, Goetzmann & Rouwenhorst 2006]** GATEV, E.; GOETZMANN, W. N.; ROUWENHORST, K. G. Pairs Trading: Performance of a Relative-Value Arbitrage Rule. *The Review of Financial Studies*, v. 19, n. 3, p. 797–827, 2006.
+- **[Granville 1963]** GRANVILLE, J. E. *Granville's New Key to Stock Market Profits*. Englewood Cliffs: Prentice-Hall, 1963.
 - **[Harris 2003]** HARRIS, L. *Trading and Exchanges: Market Microstructure for Practitioners*. New York: Oxford University Press, 2003.
 - **[Jegadeesh & Titman 1993]** JEGADEESH, N.; TITMAN, S. Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency. *The Journal of Finance*, v. 48, n. 1, p. 65–91, 1993.
 - **[Kahneman & Tversky 1979]** KAHNEMAN, D.; TVERSKY, A. Prospect Theory: An Analysis of Decision under Risk. *Econometrica*, v. 47, n. 2, p. 263–291, 1979.
@@ -26,6 +30,7 @@
 - **[Lo, Mamaysky & Wang 2000]** LO, A. W.; MAMAYSKY, H.; WANG, J. Foundations of Technical Analysis: Computational Algorithms, Statistical Inference, and Empirical Implementation. *The Journal of Finance*, v. 55, n. 4, p. 1705–1765, 2000.
 - **[Moskowitz, Ooi & Pedersen 2012]** MOSKOWITZ, T. J.; OOI, Y. H.; PEDERSEN, L. H. Time Series Momentum. *Journal of Financial Economics*, v. 104, n. 2, p. 228–250, 2012.
 - **[Murphy 1999]** MURPHY, J. J. *Technical Analysis of the Financial Markets*. New York: New York Institute of Finance, 1999.
+- **[Nison 1991]** NISON, S. *Japanese Candlestick Charting Techniques*. New York: New York Institute of Finance, 1991.
 - **[Pardo 2008]** PARDO, R. *The Evaluation and Optimization of Trading Strategies*. 2. ed. Hoboken: Wiley, 2008.
 - **[Park & Irwin 2007]** PARK, C.-H.; IRWIN, S. H. What Do We Know About the Profitability of Technical Analysis? *Journal of Economic Surveys*, v. 21, n. 4, p. 786–826, 2007.
 - **[Samuelson 1965]** SAMUELSON, P. A. Proof That Properly Anticipated Prices Fluctuate Randomly. *Industrial Management Review*, v. 6, n. 2, p. 41–49, 1965.
@@ -37,7 +42,10 @@
 - **[Bailey & López de Prado 2014]** BAILEY, D. H.; LÓPEZ DE PRADO, M. The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting, and Non-Normality. *The Journal of Portfolio Management*, v. 40, n. 5, p. 94–107, 2014.
 - **[Bailey et al. 2014]** BAILEY, D. H.; BORWEIN, J. M.; LÓPEZ DE PRADO, M.; ZHU, Q. J. Pseudo-Mathematics and Financial Charlatanism: The Effects of Backtest Overfitting on Out-of-Sample Performance. *Notices of the American Mathematical Society*, v. 61, n. 5, p. 458–471, 2014.
 - **[Bailey et al. 2017]** BAILEY, D. H.; BORWEIN, J. M.; LÓPEZ DE PRADO, M.; ZHU, Q. J. The Probability of Backtest Overfitting. *Journal of Computational Finance*, v. 20, n. 4, p. 39–69, 2017.
+- **[Benjamini & Hochberg 1995]** BENJAMINI, Y.; HOCHBERG, Y. Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing. *Journal of the Royal Statistical Society: Series B*, v. 57, n. 1, p. 289–300, 1995.
 - **[Chen & Guestrin 2016]** CHEN, T.; GUESTRIN, C. XGBoost: A Scalable Tree Boosting System. In: *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*. 2016. p. 785–794.
+- **[Efron & Tibshirani 1993]** EFRON, B.; TIBSHIRANI, R. J. *An Introduction to the Bootstrap*. New York: Chapman & Hall, 1993.
+- **[Engle & Granger 1987]** ENGLE, R. F.; GRANGER, C. W. J. Co-Integration and Error Correction: Representation, Estimation, and Testing. *Econometrica*, v. 55, n. 2, p. 251–276, 1987.
 - **[Feller 1968]** FELLER, W. *An Introduction to Probability Theory and Its Applications*. v. 1. 3. ed. New York: Wiley, 1968.
 - **[Friedman 2001]** FRIEDMAN, J. H. Greedy Function Approximation: A Gradient Boosting Machine. *The Annals of Statistics*, v. 29, n. 5, p. 1189–1232, 2001.
 - **[Grinsztajn et al. 2022]** GRINSZTAJN, L.; OYALLON, E.; VAROQUAUX, G. Why Do Tree-Based Models Still Outperform Deep Learning on Typical Tabular Data? In: *Advances in Neural Information Processing Systems 35 (Datasets and Benchmarks Track)*. 2022.
@@ -46,9 +54,12 @@
 - **[López de Prado 2018]** LÓPEZ DE PRADO, M. *Advances in Financial Machine Learning*. Hoboken: Wiley, 2018.
 - **[McKinney 2017]** McKINNEY, W. *Python for Data Analysis*. 2. ed. Sebastopol: O'Reilly, 2017.
 - **[Niculescu-Mizil & Caruana 2005]** NICULESCU-MIZIL, A.; CARUANA, R. Predicting Good Probabilities with Supervised Learning. In: *Proceedings of the 22nd International Conference on Machine Learning (ICML)*. 2005. p. 625–632.
+- **[Nosek et al. 2018]** NOSEK, B. A.; EBERSOLE, C. R.; DeHAVEN, A. C.; MELLOR, D. T. The Preregistration Revolution. *Proceedings of the National Academy of Sciences*, v. 115, n. 11, p. 2600–2606, 2018.
+- **[Page 1954]** PAGE, E. S. Continuous Inspection Schemes. *Biometrika*, v. 41, n. 1/2, p. 100–115, 1954.
 - **[Peng 2011]** PENG, R. D. Reproducible Research in Computational Science. *Science*, v. 334, n. 6060, p. 1226–1227, 2011.
 - **[Shadish, Cook & Campbell 2002]** SHADISH, W. R.; COOK, T. D.; CAMPBELL, D. T. *Experimental and Quasi-Experimental Designs for Generalized Causal Inference*. Boston: Houghton Mifflin, 2002.
 - **[Sharpe 1994]** SHARPE, W. F. The Sharpe Ratio. *The Journal of Portfolio Management*, v. 21, n. 1, p. 49–58, 1994.
+- **[Sullivan, Timmermann & White 1999]** SULLIVAN, R.; TIMMERMANN, A.; WHITE, H. Data-Snooping, Technical Trading Rule Performance, and the Bootstrap. *The Journal of Finance*, v. 54, n. 5, p. 1647–1691, 1999.
 - **[White 2000]** WHITE, H. A Reality Check for Data Snooping. *Econometrica*, v. 68, n. 5, p. 1097–1126, 2000.
 
 ## Gestão de risco e segurança

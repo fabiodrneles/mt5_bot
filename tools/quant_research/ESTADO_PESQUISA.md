@@ -5,32 +5,33 @@
 
 ## Como retomar (qualquer pessoa ou IA)
 
-Com o MT5 aberto e logado, na pasta `tools/quant_research`:
+Com o MT5 aberto e logado, nesta pasta: **`python pipeline2.py`**. Ele roda todas as etapas abaixo em ordem e pula o que já foi feito (log em `data/pipeline2.log`). Etapas avulsas, se preferir:
 
 ```
 python universe.py 16 25        # 1. universo (só se data/universe.json não existir)
 python fetch2.py                # 2. baixa H1/D1; pula os arquivos que já existem
-python fetch2.py --meta-only    # 2b. OBRIGATÓRIO depois do 2: regrava custos (comissão de ações) em data/meta2.json
-python research2.py run 3       # 3. grade completa; pula os símbolos já gravados em data/r2_<TF>.jsonl
-python pairs2.py                # 4. família de pares
-python seasonal2.py             # 4b. padrões de horário/dia/data (FDR) -> data/s2.json
-python leadlag2.py              # 4c. lead-lag entre ativos (A antecipa B) -> data/ll2.json
-python analyze2.py              # 5. critérios 1–7 do PROTOCOLO2.md -> data/a2.json
-python report2.py               # 6. gera RESULTADOS2.md (versionado) a partir de data/a2.json
+python fetch2.py --m15          # 2a. baixa M15 (forex/índices/commodities/cripto); M30 é reamostrado
+python fetch2.py --meta-only    # 2b. regrava custos em data/meta2.json (OBRIGATÓRIO depois de 2/2a)
+python research2.py run 3       # 3. grade (D1, H4, H1, M30, M15); pula ativos já gravados
+python pairs2.py                # 4. pares
+python analyze2.py              # 5. critérios 1–7 -> data/a2.json
+python seasonal2.py             # 5b. horário/dia/data (FDR) -> data/s2.json
+python leadlag2.py              # 5c. lead-lag -> data/ll2.json
+python report2.py               # 6. RESULTADOS2.md (versionado)
 ```
 
-Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados e não muda. Nenhum script envia ordens.
+Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados; mudanças só como adendo datado e conservador. Nenhum script envia ordens.
 
 ## Etapas
 
 | # | Etapa | Estado | Saída |
 |---|---|---|---|
 | 1 | Universo: 465 símbolos negociáveis, **337** com margem ≤ 25% de $16 | ✅ | `data/universe.json` |
-| 2 | Download H1 + D1 (forex/índices/commodities/cripto primeiro, ações depois) | 🔄 em andamento | `data/*.npy`, `data/meta2.json` |
-| 3 | Grade de 28 famílias × H1/H4/D1 | ⏳ | `data/r2_D1.jsonl`, `r2_H4.jsonl`, `r2_H1.jsonl` |
-| 4 | Pares (15 pares, D1) | ⏳ | `data/r2_pairs.json` |
-| 5 | Critérios 1–7 | ⏳ | `data/a2.json` |
-| 6 | Relatório final | ⏳ | `RESULTADOS2.md` |
+| 2 | Download H1 + D1 + M15 | 🔄 em andamento (pipeline2.py) | `data/*.npy`, `data/meta2.json` |
+| 3 | Grade de 28 famílias × D1/H4/H1 (M30/M15 pendente) | ✅ parcial | `data/r2_D1.jsonl`, `r2_H4.jsonl`, `r2_H1.jsonl` |
+| 4 | Pares (15 pares, D1) | ✅ | `data/r2_pairs.json` |
+| 5 | Critérios 1–7, sazonalidade, lead-lag | ✅ parcial | `data/a2.json` |
+| 6 | Relatório + guia cap. 14 | ✅ parcial | `RESULTADOS2.md` |
 
 ## Fatos já confirmados (não precisam ser refeitos)
 
@@ -49,16 +50,17 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados e 
 
 Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
 
-## Resultados parciais (após as 4 correções de custo/dados; ~107 ativos baixados)
+## Resultados (D1/H4/H1, 133–136 ativos, após as 6 correções) — documentados no guia, cap. 14
 
-### Grade de 28 famílias (31.709 configurações)
-- **Aprovadas nos 7 critérios: 0.** Promissoras (1–3 ok, caíram em 4–7): 17. Todas falham no DSR, e quase todas as de forex/cripto também na viabilidade com $16 (risco de $2–7 por trade, ruína 10–32%).
-- Mais perto: **LKQCorp D1, comprar na sexta**: DSR 0,919 (N = configurações) / ~0,99 (N = células); walk-forward 5/5 positivo; risco $0,33; ruína 0%. Contra: generaliza só em 20/55 ações; comissão estimada; sem explicação econômica. **Caso de fronteira.**
-- Pendente: decisão do dono sobre a faixa "experimental" (DSR 0,80–0,95 → só `/study` até repetir em trades novos).
+- **Grade (41.213 configurações): 0 aprovadas.** 15 chegaram aos testes 4–7; todas caem no DSR e 10 também na viabilidade com $16. Todas as 32 famílias têm t mediano OOS negativo.
+- **LKQCorp D1 sexta: artefato** (abertura diária irreal, correção 6). Motor **não** construído. Faixa experimental registrada no protocolo; hoje vazia.
+- **Calendário (75.886 células): 0.** Sequência 64 → 3 → 0 → 0 a cada correção de artefato.
+- **Lead-lag (12.420): 0. Pares (15): todos perdem.**
+- Rotas atuais: US500 D1 RSI2 sobrevive (OOS +9,73, t 3,2); HK50 H4 PULLB encolhe (OOS +2,93, t ≈ 0,7).
+- Na simulação, 1.413 configurações levaram $16 a > $50 no OOS, mas com risco de $14–38 por trade: inviáveis.
 
-### Pares (15 pares D1): todos perdem depois dos custos.
-### Lead-lag (46 ativos, 12.420 cruzamentos): 0 no FDR.
-### Sazonalidade (68.134 células hora × dia × ativo e dia do mês): 40 no FDR do IS, **0 aprovadas**. Os 64 → 3 → 0 "padrões" das varreduras anteriores eram artefatos (correções 3 e 4).
+### Correção 6 (D1)
+O candle D1 herda a abertura irreal (abertura D1 = 1ª abertura H1 em 1.943/1.943 dias do LKQCorp; 37 de 72 CFDs afetados; forex e cripto não). Todo D1 entra pelo pior entre abertura e fechamento anterior.
 
-### Falta
-- Terminar o download (forex de NZD em diante, cripto e índices restantes) e rodar de novo `research2.py run 3`, `analyze2.py`, `seasonal2.py`, `leadlag2.py` e `report2.py` (todos pulam o que já fizeram, exceto analyze/seasonal/leadlag/report, que são rápidos).
+### Em andamento
+- `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.

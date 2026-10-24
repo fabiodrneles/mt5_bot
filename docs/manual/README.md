@@ -32,6 +32,7 @@ Convenções:
 | 11 | [Memória do projeto (RAG com BM25)](11-memoria-rag.md) | Recuperação lexical, parâmetros do BM25, *chunking*, por que não *embeddings* |
 | 12 | [Os motores do sistema](12-motores.md) | Inventário dos motores, a vida de um trade, contratos, princípios de projeto, simuladores |
 | 13 | [Validade, limitações, ética e trabalhos futuros](13-validade-limitacoes.md) | Ameaças à validade, limitações técnicas, regulação, agenda de pesquisa |
+| 14 | [Pesquisa ampla de padrões](14-pesquisa-ampla.md) | 41 mil configurações, calendário, *lead-lag*, pares; artefatos de dados; FDR e DSR; engenharia da pesquisa |
 | A | [Glossário](apendice-a-glossario.md) | Termos de mercado, estatística e engenharia |
 | B | [Reprodutibilidade](apendice-b-reprodutibilidade.md) | Como refazer cada resultado: testes, instalador, pesquisa, RAG |
 | C | [Uso acadêmico](apendice-c-uso-academico.md) | Roteiros por área, perguntas de pesquisa, estrutura de trabalho, como citar |

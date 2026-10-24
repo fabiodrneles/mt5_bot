@@ -20,6 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
 META = {}
 SPLIT = 0.6
+INTRADAY_TFS = ("M15", "M30", "H1", "H4")
+SHORT_TFS = ("M15", "M30", "H1")  # timeframes com variantes intradiarias (fecham no fim do dia)
 MIN_IS_TRADES = 20
 
 
@@ -31,8 +33,8 @@ def _meta():
 
 
 # ---------------------------------------------------------------- dados
-def _resample_h4(r):
-    key = r["time"] // (4 * 3600)
+def _resample_h4(r, secs=4 * 3600):
+    key = r["time"] // secs
     idx = np.flatnonzero(np.r_[True, key[1:] != key[:-1]])
     ends = np.r_[idx[1:], len(r)]
     r2 = np.zeros(len(idx), dtype=r.dtype)
@@ -50,6 +52,8 @@ def load(sym, tf):
     m = _meta()[sym]
     if tf == "H4":
         r = _resample_h4(np.load(os.path.join(DATA, f"{sym}_H1.npy")))
+    elif tf == "M30":
+        r = _resample_h4(np.load(os.path.join(DATA, f"{sym}_M15.npy")), 1800)
     else:
         r = np.load(os.path.join(DATA, f"{sym}_{tf}.npy"))
     spr = r["spread"].astype(float)
@@ -237,7 +241,7 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     # D1: todo candle abre depois de uma pausa e, em 37 de 72 CFDs, a abertura do historico e irreal
     # (gap medio -0,12 ATR desfeito pelo corpo). Entrada sempre pelo pior entre abertura e fechamento anterior.
     pause = np.r_[False, np.diff(t) > bar * 1.5] if d.get("tf") != "D1" else np.r_[False, np.ones(n - 1, bool)]
-    rollover = (d["hour"] == 0) if d.get("tf") in ("H1", "H4") and "hour" in d else np.zeros(n, bool)
+    rollover = (d["hour"] == 0) if d.get("tf") in INTRADAY_TFS and "hour" in d else np.zeros(n, bool)
     trades = []
     sig_idx = np.flatnonzero(sig)
     k = 0
@@ -334,7 +338,7 @@ def strategies(d, tf):
     s5, s20, s50, s200 = sma(c, 5), sma(c, 20), sma(c, 50), sma(c, 200)
     up200, dn200 = c > s200, c < s200
     xl5, xs5 = c > s5, c < s5
-    intra_opts = (False, True) if tf == "H1" else (False,)
+    intra_opts = (False, True) if tf in SHORT_TFS else (False,)
     out = []
 
     def add(fam, par, sig, stop, tgt=nan, xl=None, xs=None, mb=10 ** 6, intra=False):
@@ -480,9 +484,9 @@ def strategies(d, tf):
         for wd, side in itertools.product(range(5), (1, -1)):
             nxt = lead(d["dow"].astype(float)) == wd
             add("DOW", dict(wd=wd, side=side), mk(nxt) * side, 2.0 * A, mb=1)
-    if tf == "H1":
+    if tf in SHORT_TFS:
         hr = d["hour"]
-        for hh_, k, side in itertools.product(range(24), (1, 4), (1, -1)):
+        for hh_, k, side in itertools.product(range(24) if tf == "H1" else (), (1, 4), (1, -1)):
             nxt = lead(hr.astype(float)) == hh_
             add("HOD", dict(h=hh_, k=k, side=side), mk(nxt) * side, 1.5 * A, mb=k, intra=True)
         # VWAP intradiario (volume de ticks), reinicia a cada dia
@@ -544,7 +548,7 @@ def run_symbol(args):
                           secs=round(time.time() - t0, 1), rows=rows)]
 
 
-def run(procs=3, tfs=("D1", "H4", "H1")):
+def run(procs=3, tfs=("D1", "H4", "H1", "M30", "M15")):
     from multiprocessing import Pool
     syms = sorted(_meta())
     for tf in tfs:
@@ -552,7 +556,8 @@ def run(procs=3, tfs=("D1", "H4", "H1")):
         done = set()
         if os.path.exists(path):
             done = {json.loads(x)["sym"] for x in open(path)}
-        todo = [(s, tf) for s in syms if s not in done and os.path.exists(os.path.join(DATA, f"{s}_{'H1' if tf == 'H4' else tf}.npy"))]
+        base = {"H4": "H1", "M30": "M15"}.get(tf, tf)
+        todo = [(s, tf) for s in syms if s not in done and os.path.exists(os.path.join(DATA, f"{s}_{base}.npy"))]
         print(f"{tf}: {len(todo)} simbolos", flush=True)
         with Pool(procs) as pool, open(path, "a") as f:
             for sym, tf_, res in pool.imap_unordered(run_symbol, todo):
@@ -564,7 +569,8 @@ def run(procs=3, tfs=("D1", "H4", "H1")):
 
 if __name__ == "__main__":
     if sys.argv[1] == "run":
-        run(int(sys.argv[2]) if len(sys.argv) > 2 else 3)
+        run(int(sys.argv[2]) if len(sys.argv) > 2 else 3,
+            *([tuple(sys.argv[3].split(","))] if len(sys.argv) > 3 else []))
     elif sys.argv[1] == "one":
         sym, tf, fam = sys.argv[2:5]
         d = load(sym, tf)

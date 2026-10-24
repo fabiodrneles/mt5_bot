@@ -106,7 +106,7 @@ def monte_carlo(p, risk, margin, per_year, years=2, sims=5000, seed=7):
 def main(out_path):
     meta = R._meta()
     report = dict(tested={}, candidates=[], promising=[], cells={})
-    for tf in ("D1", "H4", "H1"):
+    for tf in ("D1", "H4", "H1", "M30", "M15"):
         recs = load_rows(tf)
         if not recs:
             continue

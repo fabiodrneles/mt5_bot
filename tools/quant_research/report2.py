@@ -21,7 +21,7 @@ def fmt_par(p):
 def family_board():
     """Por familia: em quantas celulas (simbolo x TF) o parametro escolhido no IS lucrou no OOS."""
     board = defaultdict(lambda: dict(cells=0, oos_pos=0, both=0, ts=[]))
-    for tf in ("D1", "H4", "H1"):
+    for tf in ("D1", "H4", "H1", "M30", "M15"):
         for rec in A.load_rows(tf):
             for c in A.stage_a(rec):
                 b = board[c["fam"]]
