@@ -78,6 +78,12 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Parte B (robô): regra escolhida nos 60% iniciais [corpo/candle ≥ 0,83 E hora ≥ 21]: IS +$8,44 (acerto 47%) → OOS −$3,68 (acerto 28%).
 - Venda das 19h45 (candle de 7636,70): entra 20h00 a 7638, stop 7652, alvo 7610. Até o fechamento de sexta não bateu nem stop nem alvo (melhor momento: 18,25 pts a favor = 1,3×); flutuante +$0,02.
 
+### EMA9 v3 — reversão só depois de tendência forte (`check_reversal.py`; família 30 EMA9REV na grade)
+- 72 definições de "tendência forte anterior" fixadas antes (N 10/20/40 candles; movimento ≥ 2–5 ATR; persistência 0/70/85% do lado oposto da MME9; ADX ≥ 25 com DI). Escolha no IS, medida no OOS; cada sinal sozinho, stop na máxima/mínima e alvo 2×.
+- 23/10 US500 M15: a definição escolhida filtra **todos** os 16 sinais, inclusive os 2 vencedores (que também não vieram depois de tendência forte).
+- 15 ativo × timeframe (US500/HK50/JP225 M15; US500/HK50/JP225/GER40/US30/EURUSD/GBPUSD/USDJPY H1; US500/HK50 H4): a definição escolhida no IS dá, no OOS, entre −$63,99 (EURUSD H1, t −3,7) e +$27,61 (USDJPY H1, t +0,95). **Nenhuma com t ≥ 2.** Em 9 dos 15, 0 definições lucram no IS e no OOS.
+- O filtro de tendência sobe o acerto em alguns casos (HK50 H4: 48,5% em 33 trades no OOS; USDJPY H1: 42,3% em 78), mas com amostra pequena e sem significância.
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 

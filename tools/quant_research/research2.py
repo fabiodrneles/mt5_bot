@@ -444,6 +444,25 @@ def strategies(d, tf):
     for R in (1.0, 2.0, 3.0):
         add("EMA9X", dict(R=R), mk(x_up, x_dn), rng.copy(), tgt=R * rng, mb=10 ** 6)
 
+    # Regra do dono v3 (cap. 14): cruzamento da MME9 so como REVERSAO depois de tendencia forte
+    # (setup 9.1): movimento >= k ATR nos 20 candles anteriores, 85% deles do lado oposto da MME9,
+    # opcionalmente ADX >= 25 com o DI da tendencia anterior. Stop na minima/maxima do candle, alvo 2x.
+    nxt_o = np.r_[o[1:], np.nan]
+    move20 = lag(c) - lag(c, 21)
+    below = np.nan_to_num(lag((c < e9).astype(float)))
+    frac_b = np.convolve(below, np.ones(20), "full")[:n] / 20
+    ax9, pdi9, ndi9 = adx(d, 14)
+    for k, use_adx in itertools.product((3.0, 5.0), (False, True)):
+        dn_before = (move20 <= -k * A) & (frac_b >= 0.85)
+        up_before = (move20 >= k * A) & ((1 - frac_b) >= 0.85)
+        if use_adx:
+            dn_before &= (lag(ax9) >= 25) & (lag(ndi9) > lag(pdi9))
+            up_before &= (lag(ax9) >= 25) & (lag(pdi9) > lag(ndi9))
+        sig9 = mk(x_up & dn_before, x_dn & up_before)
+        dist9 = np.where(sig9 > 0, nxt_o - l, np.where(sig9 < 0, h - nxt_o, np.nan))
+        dist9[~(dist9 > 0)] = np.nan
+        add("EMA9REV", dict(k=k, adx=use_adx), sig9, dist9, tgt=2 * dist9, mb=10 ** 6)
+
     # ---------- padroes de candle
     nr7 = rng <= rmin(rng, 7)
     inside = (h < lag(h)) & (l > lag(l))
