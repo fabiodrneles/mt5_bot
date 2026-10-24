@@ -37,3 +37,11 @@ Entregue com os PRs #29 a #34:
 - guia de contribuição.
 
 Para publicar uma versão, o dono cria a tag `vX.Y.Z` igual à versão do `pyproject.toml`; o workflow `Release` faz o resto.
+
+## Fases 4–7 (especificadas em 2026-10-24, após a v3.1.0)
+`specs/ANALYSIS-v3.1.md` compara o projeto com um padrão "acima da média" (R1–R14) e lista as lacunas G1–G22 verificadas no código. As críticas: a trava diária do Modo Quant libera a entrada se der erro (`quant_manager.py:163`), o Kelly arrisca 0,5% com f* ≤ 0, não há reconexão ao MT5 e ninguém confere o SL depois da ordem.
+- Fase 4 `v3.2.0` (capital blindado): specs 007 (travas que falham fechadas, Kelly, limites semanal/sequência/drawdown, kill switch) e 008 (reconexão, retcodes, SL confirmado, spread no Quant).
+- Fase 5 `v3.3.0` (evidência): 009 (walk-forward, DSR, PBO, bootstrap, Monte Carlo, veredito), 010 (simulador único, rolagem tripla do swap, paridade) e 011 (sombra, tracking error, CUSUM com pausa da rota).
+- Fase 6 `v3.4.0` (operação): 012 (notificações), 013 (diário JSONL e relatórios), 014 (keyring, lock com hashes, pip-audit, SBOM, assinatura) e 018 (mutação, propriedade, mypy, orçamento de desempenho).
+- Fase 7 `v4.0.0` (produto): 015 (risco de carteira), 016 (ML sem vazamento) e 017 (configuração no dashboard, aviso de versão, i18n).
+Decisões em aberto: D9–D16 (ANALYSIS-v3.1 §6). Tarefas T18–T44 no `specs/ROADMAP.md`.
