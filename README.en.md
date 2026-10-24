@@ -116,7 +116,6 @@ cd mt5_bot
 # 2. Install dependencies (MetaTrader5, pandas, numpy, pytz, xgboost, pytest)
 pip install -e ".[dev]"
 pip install -r requirements-ml.txt   # scikit-learn, used to train XGBoost
-pip install psutil                   # optional: only for "bot.bat hardware"
 ```
 
 **Set up MetaTrader 5:**
@@ -354,7 +353,7 @@ Quick tools to inspect the bot without opening large files. Each command returns
 | `.\bot.bat positions` | Bot positions and virtual (paper) trades |
 | `.\bot.bat performance` | Net profit and win rate for the last 7 days |
 | `.\bot.bat tail` | Last 15 lines of the newest log (`%APPDATA%\mt5bot\logs`) |
-| `.\bot.bat hardware` | CPU/RAM usage (requires `pip install psutil`) |
+| `.\bot.bat hardware` | CPU/RAM usage |
 | `.\bot.bat backtest HK50 3` | Russian Setup backtest (symbol, months). Read-only. |
 | `.\bot.bat train` | Retrains the XGBoost model |
 | `.\bot.bat ask "question"` | Queries the project memory (RAG) |
@@ -527,7 +526,6 @@ mt5_bot/
 | `AGUARDANDO MERCADO` | Market closed or next candle not open yet | Wait (e.g. HK50 opens Sunday ~22:15 BRT) |
 | `GARAGE LOCK` | Balance below the symbol's minimum on the Maestro | See `MIN_BALANCE_REQUIREMENTS` |
 | `HORÁRIO FECHADO` | Outside the symbol's window on the Maestro | See `SYMBOL_TRADING_HOURS` |
-| `.\bot.bat hardware` fails with `No module named psutil` | Optional dependency | `pip install psutil` |
 | `bot.bat` not recognized in PowerShell | PowerShell does not run scripts from the current folder without a prefix | Use `.\bot.bat quant` |
 
 ---
