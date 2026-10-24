@@ -51,6 +51,19 @@ jobs:
       - name: Run pytest
         run: python -m pytest -q
 
+  package:
+    name: Wheel (build + import)
+    # A lib MetaTrader5 so existe no Windows: o pacote instalado precisa dela.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install build
+      - name: Build, install in a clean venv and import every module
+        run: python tools/check_wheel.py
+
   maestro:
     name: Maestro Go
     runs-on: ubuntu-latest

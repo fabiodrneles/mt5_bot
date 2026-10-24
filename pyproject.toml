@@ -27,13 +27,15 @@ dev = [
     "pytest>=7.0",
     "coverage",
     "ruff>=0.6",
+    "build>=1.0",
 ]
 
 [project.scripts]
 mt5bot = "mt5bot.core.launcher:main"
 
-[tool.setuptools]
-packages = ["mt5bot", "mt5bot.core", "mt5bot.engine", "mt5bot.execution", "mt5bot.data", "mt5bot.risk"]
+[tool.setuptools.packages.find]
+# Descoberta automatica: a lista manual esquecia mt5bot.mentorship (spec 002 FR-1).
+include = ["mt5bot*", "interfaces*"]
 
 [tool.pytest.ini_options]
 # So a suite de verdade: scripts soltos na raiz nao podem derrubar a coleta (spec 001 FR-2).
