@@ -65,5 +65,10 @@ O candle D1 herda a abertura irreal (abertura D1 = 1ª abertura H1 em 1.943/1.94
 ### Família 29 — EMA9X (regra do dono, 2026-10-24)
 Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alvo 2×) **confirmado**: +$0,09. No mesmo dia, 20 sinais e só 2 atingiram o alvo. Em todo o histórico M15 (fev/2025–out/2026): 1.994 trades, acerto 32,9% (empate exige 33,3%), −$19,09 (−$7,65 sem spread); alvo 1×: −$59,26; 3×: −$14,11. Entrou na grade como família 29; os `r2_*.jsonl` antigos foram para `data/old2/` para o pipeline recalcular com ela. **Ao final, atualizar o cap. 14 do guia** (contagem de famílias, tabelas da §14.6 e um parágrafo sobre o caso EMA9X).
 
+### EMA9X v2: stop na máxima/mínima, alvo 2×, filtros de volume, tendência e multi-tempo (`check_ema9_filters.py`)
+- 23/10 US500 M15: o vencedor das 11h45 tinha volume **0,67×** a média e +DI contra a venda; o das 15h00, 1,38× com ADX 24 −DI. Perdedores com mais volume: 03h15 1,79×, 14h45 1,45×, 11h00 1,44×. O volume não separa vencedores de perdedores nesse dia.
+- 135 combinações (volume 0–3×, médias, SMA200, ADX/DMI, multi-tempo M30/H1/H4 só com candles fechados, lados): 10 de 130 lucram no IS e no OOS. O filtro escolhido no IS (vol ≥ 3 + SMA200, compra) fez +$4,49 no IS e −$0,05 no OOS.
+- Multi-tempo M30+H1+H4 alinhado: acerto sobe de ~31,5% para ~32,5% (empate = 33,3%). US500 −$14,33, HK50 −$13,78, JP225 −$19,89 (M15, ~1,7 anos). Perde menos só porque opera menos.
+
 ### Em andamento
 - `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.
