@@ -20,7 +20,8 @@ PAIRS = [("EURUSD", "GBPUSD"), ("AUDUSD", "NZDUSD"), ("USOIL+", "UKOIL+"), ("US5
 
 def align(a, b):
     common, ia, ib = np.intersect1d(a["day"], b["day"], return_indices=True)
-    return {k: a[k][ia] for k in a}, {k: b[k][ib] for k in b}
+    pick = lambda x, ix: {k: (v[ix] if isinstance(v, np.ndarray) else v) for k, v in x.items()}  # noqa: E731
+    return pick(a, ia), pick(b, ib)
 
 
 def leg_usd(sym, d, dr, e, j, lots):

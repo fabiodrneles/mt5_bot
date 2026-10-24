@@ -13,6 +13,8 @@ python fetch2.py                # 2. baixa H1/D1; pula os arquivos que já exist
 python fetch2.py --meta-only    # 2b. OBRIGATÓRIO depois do 2: regrava custos (comissão de ações) em data/meta2.json
 python research2.py run 3       # 3. grade completa; pula os símbolos já gravados em data/r2_<TF>.jsonl
 python pairs2.py                # 4. família de pares
+python seasonal2.py             # 4b. padrões de horário/dia/data (FDR) -> data/s2.json
+python leadlag2.py              # 4c. lead-lag entre ativos (A antecipa B) -> data/ll2.json
 python analyze2.py              # 5. critérios 1–7 do PROTOCOLO2.md -> data/a2.json
 python report2.py               # 6. gera RESULTADOS2.md (versionado) a partir de data/a2.json
 ```
@@ -45,4 +47,17 @@ Os resultados da primeira passada, anteriores às correções, ficaram em `data/
 
 ## Resultados parciais
 
-(preenchido conforme as etapas terminam)
+### Grade de 28 famílias (93 ativos já baixados, 27.148 configurações)
+- **Aprovadas nos 7 critérios: 0.** Passaram 1–3: 13; todas caíram no DSR (filtro de sorte) e/ou na viabilidade com $16. Detalhe em `RESULTADOS2.md`.
+- Mais perto de passar: **LKQCorp D1, comprar na sexta-feira** (t 3,9; 5/5 dobras do walk-forward positivas; risco $0,33; DSR 0,865 < 0,95). Comissão de ações estimada.
+- O "efeito segunda-feira" do AUDJPY/AUDCAD **era artefato** do spread de reabertura (62 pts × 3 normais) e sumiu com o custo real.
+
+### Pares (arbitragem estatística, 15 pares D1)
+- **Todos perdem depois dos custos** (ex.: USOIL/UKOIL −$44 OOS; FR40/EU50 −$33). Família descartada.
+
+### Sazonalidade (48.804 células hora × dia × ativo e dia do mês)
+- 254 passaram o FDR no IS; 64 também no OOS, estabilidade e custo 1,5×.
+- **Quase todos estão na abertura de uma sessão** (hora 16 do servidor = abertura de Nova York nas ações; hora 0 de segunda nos pares AUD). Suspeita forte de artefato do *bid* deprimido por spread largo na abertura, o mesmo já visto no rollover. **Em verificação com ticks reais (bid/ask) antes de qualquer conclusão.**
+
+### Lead-lag entre ativos
+- Em execução.

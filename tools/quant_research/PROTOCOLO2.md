@@ -38,3 +38,8 @@ pela estatística t do lucro por trade **no IS** (mínimo 20 trades). O OOS nunc
 
 Aprovada em 1–7 = **candidata a rota**. Aprovada em 1–4 mas reprovada em 5–7 = "promissora, não
 comprovada". O relatório lista as duas, e também quantas configurações foram testadas no total.
+
+## Notas de implementação (adicionadas durante a execução, antes de qualquer aprovação)
+
+- **Custos (2026-10-24):** o protocolo diz "spread real de cada candle". Na execução apareceram três subestimações, todas corrigidas para o lado conservador antes da análise final: comissão de CFDs de ações (0,1% por lado, estimada), spread do rollover nos candles intradiários e spread da reabertura do fim de semana no D1. Detalhes em `ESTADO_PESQUISA.md`.
+- **Variância do DSR:** o protocolo não fixava o estimador de $V[\widehat{SR}]$. A variância bruta é dominada por configurações degeneradas (por exemplo, Sharpe por trade de −97 em leilões de ações, onde todo trade perde só o custo), que não representam a dispersão das tentativas. Uso o desvio robusto $1{,}4826\cdot\mathrm{MAD}$. **Atenção:** o robusto é **menos rigoroso** que o bruto (variância menor → limiar $SR_0$ menor). Por transparência, o relatório mostra o DSR pelos dois e marca quem só passa pelo robusto.

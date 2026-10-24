@@ -65,12 +65,18 @@ def load(sym, tf):
             at_open = h1[(hr == open_hr) & (h1 > 0)]
             if len(at_open):
                 spr[:] = max(spr[0], float(np.median(at_open)))
+            # Reabertura depois do fim de semana/feriado: spread ainda maior (AUDJPY 62 pts x 3 normal).
+            pause = np.r_[True, np.diff(h1r["time"]) > 3 * 3600]
+            after = h1[pause & (h1 > 0)]
+            gap_days = np.r_[False, np.diff(r["time"] // 86400) > 1]
+            if len(after):
+                spr[gap_days] = np.maximum(spr[gap_days], float(np.median(after)))
     else:
         pos = spr[spr > 0]
         spr[spr <= 0] = np.median(pos) if len(pos) else 0.0
     t = r["time"].astype(np.int64)
     day = t // 86400
-    return dict(t=t, o=r["open"].astype(float), h=r["high"].astype(float), l=r["low"].astype(float),
+    return dict(tf=tf, t=t, o=r["open"].astype(float), h=r["high"].astype(float), l=r["low"].astype(float),
                 c=r["close"].astype(float), v=r["tick_volume"].astype(float), spr=spr * m["point"],
                 day=day, dow=(day + 3) % 7, hour=(t % 86400) // 3600,
                 month=(t.astype("datetime64[s]").astype("datetime64[M]").astype(np.int64)))
@@ -215,8 +221,13 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     o, h, l, c, day, t = d["o"], d["h"], d["l"], d["c"], d["day"], d["t"]
     # Conservador: o spread na abertura de um candle e o maior entre o do candle anterior e o dele
     # (os candles sao de bid e o campo spread do MT5 subestima o pico do rollover).
-    spr = np.maximum(d["spr"], np.r_[d["spr"][:1], d["spr"][:-1]]) * cost
-    spr_close = np.maximum(d["spr"], np.r_[d["spr"][1:], d["spr"][-1:]]) * cost
+    # No D1 o spread de abertura ja vem modelado em load() (hora de abertura e reabertura do fim de semana).
+    if d.get("tf") == "D1":
+        spr = d["spr"] * cost
+        spr_close = spr
+    else:
+        spr = np.maximum(d["spr"], np.r_[d["spr"][:1], d["spr"][:-1]]) * cost
+        spr_close = np.maximum(d["spr"], np.r_[d["spr"][1:], d["spr"][-1:]]) * cost
     n = len(c)
     upu = m["usd_per_unit"]
     comm = m["comm_rt"] * cost

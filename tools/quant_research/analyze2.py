@@ -112,8 +112,12 @@ def main(out_path):
             continue
         all_sr = [r["sr"] for rec in recs for r in rec["rows"] if r["n"] >= 20]
         n_trials = sum(len(rec["rows"]) for rec in recs)
-        sr_var = float(np.var(all_sr)) if all_sr else 0.0
-        report["tested"][tf] = dict(symbols=len(recs), configs=n_trials, sr_std=round(math.sqrt(sr_var), 4))
+        # Variancia dos Sharpes entre tentativas: estimador robusto (MAD). Configuracoes degeneradas
+        # (todo trade perde so o custo, desvio ~0) dao Sharpe de -100 e inflariam a variancia bruta.
+        arr = np.array(all_sr) if all_sr else np.zeros(1)
+        sr_var = float((1.4826 * np.median(abs(arr - np.median(arr)))) ** 2)
+        report["tested"][tf] = dict(symbols=len(recs), configs=n_trials, sr_std=round(math.sqrt(sr_var), 4),
+                                    sr_std_raw=round(float(arr.std()), 4))
         cells = [c for rec in recs for c in stage_a(rec)]
         report["cells"][tf] = dict(total=len(cells), c1=sum(c["c1"] for c in cells),
                                    c12=sum(c["c1"] and c["c2"] for c in cells),
@@ -134,6 +138,7 @@ def main(out_path):
             tr = R.simulate(sym, d, *cfg[2:])
             p = tr[:, 2]
             dsr_full = dsr(p, sr_var, n_trials)
+            dsr_raw = dsr(p, report["tested"][tf]["sr_std_raw"] ** 2, n_trials)
             dsr_cells = dsr(p, sr_var, n_cells)  # informativo: N efetivo ~ celulas (simbolo x familia)
             c6 = dsr_full >= 0.95
             oos = tr[tr[:, 0] >= cut_t]
@@ -146,7 +151,7 @@ def main(out_path):
             same = [r for rec in recs if rec["sym"] != sym and meta.get(rec["sym"], {}).get("group") == grp
                     for r in rec["rows"] if r["fam"] == c["fam"] and r["par"] == c["par"] and r["OOS"]["n"] >= 10]
             gen = f"{sum(1 for r in same if r['OOS']['net'] > 0)}/{len(same)}"
-            c.update(stress=stress, c4=c4, wf=wf, c5=c5, dsr=round(dsr_full, 3), dsr_cells=round(dsr_cells, 3),
+            c.update(stress=stress, c4=c4, wf=wf, c5=c5, dsr=round(dsr_full, 3), dsr_raw=round(dsr_raw, 3), dsr_cells=round(dsr_cells, 3),
                      c6=c6, risk=round(risk, 3), ruin=round(ruin, 3), end_med=round(med_end, 2),
                      end_p5=round(p5_end, 2), c7=c7, gen=gen, group=grp, margin=meta[sym]["margin"])
             ok = c4 and c5 and c6 and c7
