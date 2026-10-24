@@ -41,7 +41,7 @@ Uma estrutura que segue a ordem do manual:
 
 ## C.4 Como citar
 
-> DORNELES, F. *MT5Bot: robô de trading para MetaTrader 5 com orquestrador em Go, cérebro em Python e validação quantitativa*. Versão 3.0.0. 2026. Software e manual técnico. Disponível em: https://github.com/fabiodrneles/mt5_bot.
+> DORNELES, F. *MT5Bot: robô de trading para MetaTrader 5 com orquestrador em Go, cérebro em Python e validação quantitativa*. Versão 3.1.0. 2026. Software e manual técnico. Disponível em: https://github.com/fabiodrneles/mt5_bot.
 
 Cite sempre a **versão** (tag) usada: resultados, parâmetros e código mudam entre versões, e o `CHANGELOG.md` registra o que mudou.
 

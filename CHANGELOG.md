@@ -4,6 +4,10 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-24
+
+Fechamento da Fase 3: pendência do pacote Wine resolvida e guia técnico acadêmico completo.
+
 ### Adicionado
 - **Guia técnico completo** no manual (`docs/manual/`): cap. 0 (fundamentos teóricos de mercado e risco), cap. 12 (os motores do sistema), cap. 13 (validade, limitações, ética e trabalhos futuros) e apêndices de glossário, reprodutibilidade e uso acadêmico; 23 referências novas (78 no total).
 - **Listagens de código** nos capítulos, conferidas pelo CI contra o código-fonte (`tests/test_manual.py`), e **figuras** das interfaces (Maestro, Painel Quant, assistente, dashboard) geradas com dados de demonstração por `tools/manual_screenshots.py`.
