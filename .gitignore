@@ -28,3 +28,4 @@ dist/
 maestro/bin/
 temp/
 *.log
+.coverage
