@@ -1,6 +1,6 @@
 # 2. Maestro: o orquestrador em Go
 
-O Maestro é o programa interativo (`mt5bot.bat` → `maestro/maestro.exe`). Ele **não decide trades**: inicia, supervisiona e exibe os trabalhadores Python. Essa separação mantém o orquestrador fora do caminho crítico da ordem, de modo que uma falha de interface não pode enviar ordem errada.
+O Maestro é o programa interativo (`mt5bot.bat` → `maestro.exe`, compilado a partir do pacote Go em `maestro/main.go` e vizinhos). Ele **não decide trades**: inicia, supervisiona e exibe os trabalhadores Python. Essa separação mantém o orquestrador fora do caminho crítico da ordem, de modo que uma falha de interface não pode enviar ordem errada.
 
 ## 2.1 Arquitetura da interface: The Elm Architecture
 
