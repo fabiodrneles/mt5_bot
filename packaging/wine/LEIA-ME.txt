@@ -24,8 +24,9 @@ Uso
     mt5bot diagnose    diagnostico
 
 O que foi verificado
-- Linux (Ubuntu, Wine): o CI instala este pacote, importa todos os modulos
-  com o Python embutido e roda o Modo Quant e o bot.bat dentro do Wine.
+- Linux (Ubuntu, Wine): o CI instala este pacote e cria o comando mt5bot,
+  mas a execucao do Python dentro do Wine AINDA NAO foi verificada (o teste
+  estoura o tempo; investigacao na issue #47).
 - macOS: NAO verificado automaticamente. Deve funcionar com Wine, mas teste
   em conta DEMO antes de qualquer conta real.
 
