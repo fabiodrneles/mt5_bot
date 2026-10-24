@@ -108,6 +108,17 @@ O MT5Bot é um **projeto de estudo e de portfólio**, não um produto comercial.
 
 ## 📦 Instalação
 
+### Jeito mais fácil: instalador (Windows 10/11)
+
+1. Baixe o **`MT5Bot-Setup-<versão>.exe`** na página de [Releases](https://github.com/fabiodrneles/mt5_bot/releases/latest). Ao lado dele há o arquivo `SHA256SUMS`, para conferir a integridade do download.
+2. Execute. Não é preciso ser administrador, e não é preciso instalar Python, Go nem git: tudo vem embutido.
+3. O instalador ainda **não tem assinatura digital**, então o Windows pode mostrar "O Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**.
+4. Use os atalhos do menu Iniciar: **MT5Bot Quant**, **MT5Bot Maestro**, **MT5Bot Dashboard** e **Diagnóstico**.
+
+Para desinstalar, use "Desinstalar MT5Bot" no menu Iniciar. Seus dados (`%APPDATA%\mt5bot`) só são apagados se você confirmar.
+
+### Para desenvolvedores: pelo código-fonte
+
 ```powershell
 # 1. Baixe o projeto
 git clone https://github.com/fabiodrneles/mt5_bot.git
