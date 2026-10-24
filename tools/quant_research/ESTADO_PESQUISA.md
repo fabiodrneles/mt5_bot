@@ -84,6 +84,10 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - 15 ativo × timeframe (US500/HK50/JP225 M15; US500/HK50/JP225/GER40/US30/EURUSD/GBPUSD/USDJPY H1; US500/HK50 H4): a definição escolhida no IS dá, no OOS, entre −$63,99 (EURUSD H1, t −3,7) e +$27,61 (USDJPY H1, t +0,95). **Nenhuma com t ≥ 2.** Em 9 dos 15, 0 definições lucram no IS e no OOS.
 - O filtro de tendência sobe o acerto em alguns casos (HK50 H4: 48,5% em 33 trades no OOS; USDJPY H1: 42,3% em 78), mas com amostra pequena e sem significância.
 
+### Assinatura de tendência, lateralização por stops e regime (`check_signature.py`)
+- A) k-NN "assinatura": cada sinal comparado aos sinais anteriores **já terminados** (12 indicadores + ER10/ER20/CHOP); entra se a fração de vizinhos vencedores ≥ 35–50%. B) pausa depois de 2/3/4 stops seguidos até o preço sair da região (±0,5 ATR). C) regime: Kaufman ER ≥ 0,3–0,6 ou Choppiness ≤ 38,2–50.
+- US500/HK50/JP225 M15 e US500 H1 (23 variações cada): **0 variações lucram no IS e no OOS em nenhum dos 4.** Escolhidas no IS, no OOS: A de −$10,67 a +$7,08 (JP225, t 1,63, IS negativo); B sempre negativa (t −2,9 a −5,8, só reduz o número de trades); C de −$3,83 a −$1,41.
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
