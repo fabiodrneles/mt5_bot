@@ -30,6 +30,7 @@
 - `arquitetura/fases.md` — Fase 1 Infra / Fase 2 Multi-Setup / Fase 3 Maestro
 - `arquitetura/auditoria-lucro-execucao.md` — Bugs de execucao que impediam lucro (v2.9.1)
 - `arquitetura/pesquisa-estrategias-lucrativas.md` — Rotas quant validadas fora da amostra: HK50 H4 PULLB, US500 D1 RSI2MR (v2.10.0)
+- `arquitetura/pesquisa-ampla-rodada3.md` — Rodada 3: 41 mil configs, calendário, lead-lag, pares → 0 aprovadas; artefatos de dados da corretora (abertura irreal, spread mínimo no candle)
 - `arquitetura/interfaces-telemetria.md` — Painel Quant, Maestro e dashboard web sobre a mesma telemetria (v2.12.0)
 - `arquitetura/sdd-processo.md` — Processo SDD, gates de CI e decisões D1–D8 (v2.13.0) · Fases 4–7 (specs 007–018)
 - `arquitetura/guia-tecnico.md` — Manual acadêmico: estrutura (cap. 0–13, apêndices), arquivo único, lição do Wine (v3.0.0)

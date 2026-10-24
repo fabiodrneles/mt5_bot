@@ -4,6 +4,17 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+### Adicionado
+- **Pesquisa ampla de padrões (rodada 3)** em `tools/quant_research/`: 28 famílias de estratégias, pares cointegrados, sazonalidade (hora × dia × data) e *lead-lag* entre ativos, sobre 337 ativos de margem baixa, com protocolo pré-registrado (`PROTOCOLO2.md`), FDR de Benjamini–Hochberg, *walk-forward*, Deflated Sharpe Ratio e Monte Carlo de ruína. Pipeline retomável (`pipeline2.py`) e estado em `ESTADO_PESQUISA.md`. Resultado: nenhuma estratégia nova aprovada; o US500 D1 RSI2 continua sendo a rota com evidência.
+- Guia técnico, cap. 14: método, matemática dos filtros, seis artefatos de dados da corretora e engenharia da pesquisa.
+- **Diário de sinais** (`bot.bat anotar` / `bot.bat diario`): o operador anota um sinal antes do resultado (hora e preço gravados automaticamente, recusa com o mercado fechado), o robô mede com candles M1 e o spread e compara "bom" × "ruim" contra o empate com teste binomial. Guia no README e no cap. 9 §9.7.
+- **Modo estudo das rotas quant** (`mode = "study"`): mesmo sinal, mesma janela de entrada e mesma saída da rota ao vivo, com ordens virtuais (`quant_study.json`). Nova rota **US100 D1 RSI2MR em estudo** (a regra do US500, sem reotimizar, lucrou no US100 em 10 anos: 55 trades, t 2,10). Ativação real com `[routes.US100] mode = "live"`.
+- Ferramentas de teste da regra da MME9 e variações do dono (`check_ema9*.py`, `signal_mining.py`, `check_reversal.py`, `check_signature.py`, `check_exits.py`, `check_clock.py`, `check_horner.py`) e famílias 29–31 na grade.
+- Specs 007–018 e análise de lacunas (`specs/ANALYSIS-v3.1.md`) para as Fases 4–7.
+
+### Corrigido
+- Simulador de pesquisa: swap com rolagem tripla, spread de rollover e de reabertura, entrada no 1º candle depois de pausa pelo pior preço e nenhuma entrada na hora do rollover (`tests/test_research2.py`).
+
 ## [3.1.0] - 2026-10-24
 
 Fechamento da Fase 3: pendência do pacote Wine resolvida e guia técnico acadêmico completo.

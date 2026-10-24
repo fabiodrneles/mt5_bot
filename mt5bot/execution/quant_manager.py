@@ -77,7 +77,40 @@ def _bar_epoch(ts):
     return int(ts)
 
 
+def entry_window(symbol, setup, last_time, tf_secs):
+    """Pode entrar agora? Devolve (estado de espera ou None, tick, symbol_info).
+
+    Entrada so na abertura do candle seguinte (como no backtest), mesmo que ele abra depois de fim de
+    semana/pausa de sessao: mede o atraso a partir da abertura do candle em formacao, nao do relogio.
+    Usada pelas rotas ao vivo e pelas de estudo (mesma regra de tempo nas duas).
+    """
+    tick = mt5.symbol_info_tick(symbol)
+    info = mt5.symbol_info(symbol)
+    if tick is None or info is None or not tick.ask or not tick.bid:
+        return "🔴 SEM TICK", None, None
+    forming = mt5.copy_rates_from_pos(symbol, TF_CONST.get(tf_secs), 0, 1)
+    if forming is None or len(forming) == 0 or int(forming[-1]["time"]) <= _bar_epoch(last_time):
+        return "⏳ AGUARDANDO MERCADO", None, None
+    delay = int(tick.time) - int(forming[-1]["time"])
+    if delay < 0:
+        return "⏳ AGUARDANDO MERCADO", None, None
+    if delay > tf_secs * MAX_ENTRY_DELAY_FRACTION:
+        _last_signal_candle[symbol] = last_time
+        logging.info(f"[{symbol}] {setup}: sinal de {last_time} expirou (entrada {delay}s apos o fechamento). Ignorado.")
+        return "🔵 SINAL EXPIRADO", None, None
+    return None, tick, info
+
+
+def is_study_route(route) -> bool:
+    """Rota em estudo (mode = "study"): sinais e saidas reais, ordens VIRTUAIS (nada vai ao MT5)."""
+    return str((route or {}).get("mode", "live")).lower() == "study"
+
+
 def quant_cycle(symbol, df, timeframe_name, route):
+    if is_study_route(route):
+        from mt5bot.execution import quant_study
+        return quant_study.study_cycle(symbol, df, timeframe_name, route)
+
     from mt5bot.execution.execution_manager import _reconcile_closed_trades
     _reconcile_closed_trades(symbol, df)
 
@@ -133,24 +166,9 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
         _log_once(f"{symbol}_scan", f"[{symbol}] {setup}: sem sinal no candle {last_time}.")
         return "🔵 SCANNING"
 
-    tick = mt5.symbol_info_tick(symbol)
-    info = mt5.symbol_info(symbol)
-    if tick is None or info is None or not tick.ask or not tick.bid:
-        return "🔴 SEM TICK"
-
-    # Entrada so na abertura do candle seguinte (como no backtest), mesmo que
-    # ele abra depois de fim de semana/pausa de sessao: mede o atraso a partir
-    # da abertura do candle em formacao, nao do relogio.
-    forming = mt5.copy_rates_from_pos(symbol, TF_CONST.get(tf_secs), 0, 1)
-    if forming is None or len(forming) == 0 or int(forming[-1]["time"]) <= _bar_epoch(last_time):
-        return "⏳ AGUARDANDO MERCADO"
-    delay = int(tick.time) - int(forming[-1]["time"])
-    if delay < 0:
-        return "⏳ AGUARDANDO MERCADO"
-    if delay > tf_secs * MAX_ENTRY_DELAY_FRACTION:
-        _last_signal_candle[symbol] = last_time
-        logging.info(f"[{symbol}] {setup}: sinal de {last_time} expirou (entrada {delay}s apos o fechamento). Ignorado.")
-        return "🔵 SINAL EXPIRADO"
+    waiting, tick, info = entry_window(symbol, setup, last_time, tf_secs)
+    if waiting:
+        return waiting
 
     # Daily Max Loss Shield (novas entradas).
     try:

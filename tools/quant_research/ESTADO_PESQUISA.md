@@ -1,0 +1,123 @@
+# Estado da pesquisa ampla (rodada 3) — ponto de retomada
+
+> Atualizado a cada etapa e enviado ao GitHub (branch `research/estrategias-conta-16`).
+> Se o terminal fechar ou a cota da IA acabar, **nada se perde**: cada etapa grava em disco e pula o que já fez.
+
+## Como retomar (qualquer pessoa ou IA)
+
+Com o MT5 aberto e logado, nesta pasta: **`python pipeline2.py`**. Ele roda todas as etapas abaixo em ordem e pula o que já foi feito (log em `data/pipeline2.log`). Etapas avulsas, se preferir:
+
+```
+python universe.py 16 25        # 1. universo (só se data/universe.json não existir)
+python fetch2.py                # 2. baixa H1/D1; pula os arquivos que já existem
+# se o download pausar por falta de disco: feche o MT5, rode  python clean_mt5_cache.py  e reabra o MT5
+python fetch2.py --m15          # 2a. baixa M15 (forex/índices/commodities/cripto); M30 é reamostrado
+python fetch2.py --meta-only    # 2b. regrava custos em data/meta2.json (OBRIGATÓRIO depois de 2/2a)
+python research2.py run 3       # 3. grade (D1, H4, H1, M30, M15); pula ativos já gravados
+python pairs2.py                # 4. pares
+python analyze2.py              # 5. critérios 1–7 -> data/a2.json
+python seasonal2.py             # 5b. horário/dia/data (FDR) -> data/s2.json
+python leadlag2.py              # 5c. lead-lag -> data/ll2.json
+python report2.py               # 6. RESULTADOS2.md (versionado)
+```
+
+Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados; mudanças só como adendo datado e conservador. Nenhum script envia ordens.
+
+## Etapas
+
+| # | Etapa | Estado | Saída |
+|---|---|---|---|
+| 1 | Universo: 465 símbolos negociáveis, **337** com margem ≤ 25% de $16 | ✅ | `data/universe.json` |
+| 2 | Download H1 + D1 + M15 | 🔄 em andamento (pipeline2.py) | `data/*.npy`, `data/meta2.json` |
+| 3 | Grade de 28 famílias × D1/H4/H1 (M30/M15 pendente) | ✅ parcial | `data/r2_D1.jsonl`, `r2_H4.jsonl`, `r2_H1.jsonl` |
+| 4 | Pares (15 pares, D1) | ✅ | `data/r2_pairs.json` |
+| 5 | Critérios 1–7, sazonalidade, lead-lag | ✅ parcial | `data/a2.json` |
+| 6 | Relatório + guia cap. 14 | ✅ parcial | `RESULTADOS2.md` |
+
+## Fatos já confirmados (não precisam ser refeitos)
+
+- O simulador novo (`research2.py`) reproduz a pesquisa anterior: HK50 H4 PULLB 277 trades, +$9,93 (antes +$9,96); US500 D1 RSI2 54 trades, +$13,18 (antes +$13,19). A diferença vem da rolagem tripla do swap, agora correta.
+- Testes: `tests/test_research2.py` (swap triplo, stop antes do alvo, *gap*, ausência de *look-ahead*).
+- **Restrição da conta de $16 (medida no universo):** um ATR diário no lote mínimo custa $4–7 nos pares de forex principais (25–45% da conta). Forex só cabe em H1/H4 ou com stop curto. Índices como HK50 ($0,15 de margem) e JP225 ($0,40) e muitos CFDs de ações têm ATR diário abaixo de $1.
+
+## Correções feitas durante a rodada (antes de qualquer aprovação)
+
+1. **Comissão de CFDs de ações.** O lote mínimo é 0,1–1 ação, então $1/lote seria irreal. Passou a ser estimada em 0,1% do valor por lado (a API não informa e a conta não tem trade de ações). Rota em ações exige confirmar a comissão real antes de ir ao vivo.
+2. **Spread do rollover.** Os candles são *bid* e o campo spread subestima o pico da virada do dia (AUDCAD: 3 pts normalmente, 19 na hora 0, 6 na hora 1). Isso criava falsos lucros em "comprar na hora 1" e "gap fade" no forex H1. Agora a entrada paga o maior spread entre o candle anterior e o de entrada, a recompra de venda paga o spread do fechamento, e o D1 paga o spread típico da hora de abertura do dia. Teste: `test_entry_pays_rollover_spread_of_previous_candle`.
+
+3. **Abertura irreal do pregão (artefato de dados).** No H1 das ações, a cotação de abertura do 1º candle do pregão (hora 16 do servidor) vem ~$1 abaixo do fechamento anterior e o candle "sobe" o mesmo valor (LKQCorp 2023: +1,053 no candle × −1,096 na abertura). Ninguém compra nesse preço. Confirmado com M1 recente: na 1ª hora real o bid sobe em média só $0,018. Correção: o 1º candle depois de qualquer pausa entra pelo pior entre a abertura e o fechamento anterior (`research2.simulate` e `seasonal2`). Teste: `test_first_candle_after_pause_enters_at_worse_of_open_and_previous_close`.
+
+4. **Rollover não precificável.** Depois da correção 3, sobraram 3 "padrões": comprar EURUSD/EURGBP na quinta à 0h. Com **ticks reais**, o spread do EURGBP entre 0h00 e 0h10 de quinta fica em 82–224 pts, enquanto o candle registra ~30, porque o campo spread do candle guarda o **mínimo** da hora. O bid afunda e o ask fica parado: artefato. Regra: nenhuma entrada na hora 0 do servidor em H1/H4 (`research2.simulate`, `seasonal2`). O motor real seguirá a mesma regra. Teste: `test_no_entry_in_rollover_hour`.
+
+Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
+
+## Resultados (D1/H4/H1, 133–136 ativos, após as 6 correções) — documentados no guia, cap. 14
+
+- **Grade (41.213 configurações): 0 aprovadas.** 15 chegaram aos testes 4–7; todas caem no DSR e 10 também na viabilidade com $16. Todas as 32 famílias têm t mediano OOS negativo.
+- **LKQCorp D1 sexta: artefato** (abertura diária irreal, correção 6). Motor **não** construído. Faixa experimental registrada no protocolo; hoje vazia.
+- **Calendário (75.886 células): 0.** Sequência 64 → 3 → 0 → 0 a cada correção de artefato.
+- **Lead-lag (12.420): 0. Pares (15): todos perdem.**
+- Rotas atuais: US500 D1 RSI2 sobrevive (OOS +9,73, t 3,2); HK50 H4 PULLB encolhe (OOS +2,93, t ≈ 0,7).
+- Na simulação, 1.413 configurações levaram $16 a > $50 no OOS, mas com risco de $14–38 por trade: inviáveis.
+
+### Correção 6 (D1)
+O candle D1 herda a abertura irreal (abertura D1 = 1ª abertura H1 em 1.943/1.943 dias do LKQCorp; 37 de 72 CFDs afetados; forex e cripto não). Todo D1 entra pelo pior entre abertura e fechamento anterior.
+
+### Família 29 — EMA9X (regra do dono, 2026-10-24)
+Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alvo 2×) **confirmado**: +$0,09. No mesmo dia, 20 sinais e só 2 atingiram o alvo. Em todo o histórico M15 (fev/2025–out/2026): 1.994 trades, acerto 32,9% (empate exige 33,3%), −$19,09 (−$7,65 sem spread); alvo 1×: −$59,26; 3×: −$14,11. Entrou na grade como família 29; os `r2_*.jsonl` antigos foram para `data/old2/` para o pipeline recalcular com ela. **Ao final, atualizar o cap. 14 do guia** (contagem de famílias, tabelas da §14.6 e um parágrafo sobre o caso EMA9X).
+
+### EMA9X v2: stop na máxima/mínima, alvo 2×, filtros de volume, tendência e multi-tempo (`check_ema9_filters.py`)
+- 23/10 US500 M15: o vencedor das 11h45 tinha volume **0,67×** a média e +DI contra a venda; o das 15h00, 1,38× com ADX 24 −DI. Perdedores com mais volume: 03h15 1,79×, 14h45 1,45×, 11h00 1,44×. O volume não separa vencedores de perdedores nesse dia.
+- 135 combinações (volume 0–3×, médias, SMA200, ADX/DMI, multi-tempo M30/H1/H4 só com candles fechados, lados): 10 de 130 lucram no IS e no OOS. O filtro escolhido no IS (vol ≥ 3 + SMA200, compra) fez +$4,49 no IS e −$0,05 no OOS.
+- Multi-tempo M30+H1+H4 alinhado: acerto sobe de ~31,5% para ~32,5% (empate = 33,3%). US500 −$14,33, HK50 −$13,78, JP225 −$19,89 (M15, ~1,7 anos). Perde menos só porque opera menos.
+
+### Mineração de filtros para a MME9 (`signal_mining.py`, pedido do dono: "um robô que enxergue o que eu vejo")
+- Volume real: **zero** em todos os candles (CFD); só existe volume de ticks. VWAP de sessão calculado com ele.
+- Cada sinal avaliado sozinho (stop na máxima/mínima, alvo 2×): 7.678 sinais no US500 M15, acerto 31,0%, −$98,09.
+- Parte A: entre 19.286 regras (1–2 condições sobre 12 indicadores: volume, VWAP, ADX, DI, IFR, candle, corpo, distância da MME9, tempos maiores, hora, minutos desde a abertura dos EUA e da Europa), **4 selecionam exatamente os 2 vencedores de 23/10. Nos outros dias, as 4 perdem** (de −$3,50 a −$37,50).
+- Parte B (robô): regra escolhida nos 60% iniciais [corpo/candle ≥ 0,83 E hora ≥ 21]: IS +$8,44 (acerto 47%) → OOS −$3,68 (acerto 28%).
+- Venda das 19h45 (candle de 7636,70): entra 20h00 a 7638, stop 7652, alvo 7610. Até o fechamento de sexta não bateu nem stop nem alvo (melhor momento: 18,25 pts a favor = 1,3×); flutuante +$0,02.
+
+### EMA9 v3 — reversão só depois de tendência forte (`check_reversal.py`; família 30 EMA9REV na grade)
+- 72 definições de "tendência forte anterior" fixadas antes (N 10/20/40 candles; movimento ≥ 2–5 ATR; persistência 0/70/85% do lado oposto da MME9; ADX ≥ 25 com DI). Escolha no IS, medida no OOS; cada sinal sozinho, stop na máxima/mínima e alvo 2×.
+- 23/10 US500 M15: a definição escolhida filtra **todos** os 16 sinais, inclusive os 2 vencedores (que também não vieram depois de tendência forte).
+- 15 ativo × timeframe (US500/HK50/JP225 M15; US500/HK50/JP225/GER40/US30/EURUSD/GBPUSD/USDJPY H1; US500/HK50 H4): a definição escolhida no IS dá, no OOS, entre −$63,99 (EURUSD H1, t −3,7) e +$27,61 (USDJPY H1, t +0,95). **Nenhuma com t ≥ 2.** Em 9 dos 15, 0 definições lucram no IS e no OOS.
+- O filtro de tendência sobe o acerto em alguns casos (HK50 H4: 48,5% em 33 trades no OOS; USDJPY H1: 42,3% em 78), mas com amostra pequena e sem significância.
+
+### Assinatura de tendência, lateralização por stops e regime (`check_signature.py`)
+- A) k-NN "assinatura": cada sinal comparado aos sinais anteriores **já terminados** (12 indicadores + ER10/ER20/CHOP); entra se a fração de vizinhos vencedores ≥ 35–50%. B) pausa depois de 2/3/4 stops seguidos até o preço sair da região (±0,5 ATR). C) regime: Kaufman ER ≥ 0,3–0,6 ou Choppiness ≤ 38,2–50.
+- US500/HK50/JP225 M15 e US500 H1 (23 variações cada): **0 variações lucram no IS e no OOS em nenhum dos 4.** Escolhidas no IS, no OOS: A de −$10,67 a +$7,08 (JP225, t 1,63, IS negativo); B sempre negativa (t −2,9 a −5,8, só reduz o número de trades); C de −$3,83 a −$1,41.
+
+### Exemplos do dono (16/10 e 19/10, US500) e saídas "basta algum lucro" (`check_exits.py`)
+- Os 3 sinais citados ganharam, inclusive o "ruim" (19/10 09h00 M15, venda: +$0,14). Tendência anterior medida: o "ruim" teve a **maior** (+5,3/+15,2 ATR em 20/40 candles, ADX 39; H1 +3,9 ATR); o "bom" de 16/10 16h30 quase nenhuma (ADX 13). Só a compra de 19/10 01h00 (−5,9 ATR, ADX 44) bate com "reversão após queda forte".
+- Saídas testadas (mesmo sinal, stop na máxima/mínima): alvo 0,25×–1,5×; 1º fechamento no lucro; tempo de 1/2/4/8 candles. **Todas negativas no IS e no OOS**, em US500/HK50/JP225 M15 e US500 H1. Ex.: US500 M15, 1º fechamento no lucro: acerto 54%, ganho médio $0,042 × perda média $0,077 → −$37,98 no OOS.
+- 55–65% dos sinais **chegam a ficar ≥ 1 centavo no lucro** antes do stop (é o que o gráfico mostra), mas nenhuma regra de saída fixada antes consegue embolsar isso de forma que pague as perdas. Alvos muito pequenos (0,25×) nem cobrem spread + comissão.
+
+### Método do relógio (inclinação da tendência, `check_clock.py`)
+- Dono: tendência forte = inclinação entre 12h e 2h (ou 4h–6h na queda); perto das 3h = fraca. Medida independente do zoom: s = variação da MME9/MME21 em N candles ÷ (N × ATR), lida no relógio com 1 ATR/candle = 45°. Cortes por quantil (50/30/20/10% mais inclinadas), calibrados no IS.
+- Exemplos do dono: 16/10 16h30 ("bom") estava **deitado** (3,0h no M15 e no M30) e ganhou; 19/10 09h00 ("ruim"), 2,7h; 19/10 01h00 compra, 3,8h (queda inclinada).
+- 24 definições × alvos 2× e 1×, em US500 M15/M30/H1, HK50 M15/H1, JP225 M15, GBPUSD H1: **0 definições lucram no IS e no OOS** (1 de 24 no GBPUSD H1 com alvo 2×, compatível com acaso). Com alvo 1×, as 10% mais inclinadas acertam 45–49% (empate ≈ 50% + custo).
+
+### Método de Raghee Horner (onda da MME34 + ângulo no relógio, a favor da tendência; `check_horner.py`; família 31 HORNER)
+- Dono informou a autora: Raghee Horner (*Forex Trading for Maximum Profit*, Wiley, 2005). Implementado a partir da descrição pública: onda = MME34 de máxima/fechamento/mínima; força = ângulo da onda; opera **a favor** (recuo que toca a onda e fecha fora dela; stop no outro lado da onda) e, como variante, o cruzamento da MME9 a favor da onda.
+- 24 variações × alvos 1×/1,5×, em US500 M15/H1/H4, HK50 H1, JP225 M15 e EURUSD/GBPUSD/USDJPY/AUDUSD H1 e H4: **0 variações lucram no IS e no OOS na maioria**; exceções: GBPUSD H1 (3–5 de 20; melhor recuo N20 top 20%: IS +$82, OOS +$29, t 0,79), HK50 H1 e JP225 M15 (1 de 21, acaso). Risco no GBPUSD ≈ $2,3–2,4 por trade no lote mínimo (15% de $16).
+- Entrou na grade como família 31 (HORNER), para passar pelos 7 critérios em todos os ativos.
+- **No cap. 14, citar [Horner 2005]** e incluir a referência em `docs/manual/referencias.md`.
+
+### RSI2 D1 (parâmetros da rota US500, sem reotimizar) em todos os índices, simulador corrigido
+| Índice | Anos | Trades | Acerto | Total | OOS | t | Risco/trade | Margem |
+|---|---|---|---|---|---|---|---|---|
+| **US500** | 10,0 | 54 | 70% | +12,60 | +9,73 | **2,48** | $1,21 | $0,76 |
+| **US100** | 10,0 | 55 | 73% | +51,39 | +48,49 | **2,10** | $5,20 | $2,90 |
+| US30 | 13,7 | 89 | 65% | +49,99 | +71,40 | 1,14 | $7,24 | $3,14 |
+| JP225 | 10,0 | 49 | 69% | +2,72 | +3,03 | 0,81 | $0,64 | $0,40 |
+| GER40, UK100, CN50, CAD60 | — | — | — | positivos, t < 0,3 (CAD60 só 14 trades) | | | | |
+| HK50, EU50, AU200, FR40, ES35, SW20, NET25, CHShares | — | — | — | negativos | | | | |
+- 8 de 16 índices lucram no total. O efeito é **forte nos índices americanos** (US500, US100, US30), em linha com a literatura de reversão de curto prazo em ações dos EUA, e fraco ou ausente nos demais.
+- Viável com $16: só US500 (stop ~$1,21 ≈ 7,5%). US100 vira viável com ~$52 (mesmos 10% por stop); US30 com ~$72. **Plano de crescimento** proposto ao dono: US500 agora; incluir US100 e depois US30 (mesma regra, sem reotimizar) quando o saldo permitir, sempre com `/study` antes.
+
+### Incidente: disco cheio (2026-10-24 18h12)
+O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
+
+### Em andamento
+- `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.

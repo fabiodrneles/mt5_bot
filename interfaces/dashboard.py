@@ -121,7 +121,8 @@ def _route_rows(balance):
     now = telemetry.server_now()
     for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
         tf = route["timeframe"]
-        row = {"symbol": symbol, "tf": tf, "setup": route["setup"], "risk": None, "limit": None, "next_close": "—"}
+        row = {"symbol": symbol, "tf": tf, "setup": route["setup"], "risk": None, "limit": None, "next_close": "—",
+               "study": str(route.get("mode", "live")).lower() == "study"}
         rates = mt5.copy_rates_from_pos(symbol, _TF.get(tf, mt5.TIMEFRAME_H1), 0, 201)
         if rates is not None and len(rates) > 2:
             df = pd.DataFrame(rates[:-1])
@@ -278,7 +279,7 @@ function render(d){{
  $('k-free').textContent=a?'$'+a.margin_free.toFixed(2):'—';$('k-today').innerHTML=money(d.today);$('k-float').innerHTML=money(fl);
  $('routes').innerHTML=d.routes.length?d.routes.map(r=>{{
   const ok=r.risk!=null&&r.risk<=r.limit;
-  const risk=r.risk==null?'<span class="muted">—</span>':ok?`<span class="win">✓ $${{r.risk.toFixed(2)}}</span> <span class="muted">/ ${{L.limit}} $${{r.limit.toFixed(2)}}</span>`
+  const risk=r.study?'<span class="muted">📘 estudo</span>':r.risk==null?'<span class="muted">—</span>':ok?`<span class="win">✓ $${{r.risk.toFixed(2)}}</span> <span class="muted">/ ${{L.limit}} $${{r.limit.toFixed(2)}}</span>`
    :`<span class="warn">🔒 $${{r.risk.toFixed(2)}} &gt; ${{L.limit}} $${{r.limit.toFixed(2)}}</span>`;
   return `<div class="route"><div><span class="sym">${{esc(r.symbol)}}</span><span class="tag">${{esc(r.tf)}} · ${{esc(r.setup)}}</span>
    <div class="meta">${{L.next}}: ${{esc(r.next_close)}}</div></div><div class="risk">${{L.risk}}<br>${{risk}}</div></div>`;}}).join('')
