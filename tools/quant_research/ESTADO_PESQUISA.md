@@ -62,5 +62,8 @@ Os resultados da primeira passada, anteriores às correções, ficaram em `data/
 ### Correção 6 (D1)
 O candle D1 herda a abertura irreal (abertura D1 = 1ª abertura H1 em 1.943/1.943 dias do LKQCorp; 37 de 72 CFDs afetados; forex e cripto não). Todo D1 entra pelo pior entre abertura e fechamento anterior.
 
+### Família 29 — EMA9X (regra do dono, 2026-10-24)
+Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alvo 2×) **confirmado**: +$0,09. No mesmo dia, 20 sinais e só 2 atingiram o alvo. Em todo o histórico M15 (fev/2025–out/2026): 1.994 trades, acerto 32,9% (empate exige 33,3%), −$19,09 (−$7,65 sem spread); alvo 1×: −$59,26; 3×: −$14,11. Entrou na grade como família 29; os `r2_*.jsonl` antigos foram para `data/old2/` para o pipeline recalcular com ela. **Ao final, atualizar o cap. 14 do guia** (contagem de famílias, tabelas da §14.6 e um parágrafo sobre o caso EMA9X).
+
 ### Em andamento
 - `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.

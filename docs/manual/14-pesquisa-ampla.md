@@ -29,7 +29,7 @@ Com US$ 16, um stop de 1 ATR diário num par de forex principal custa um terço 
 - **Timeframes:** H1 (até 30.000 candles), H4 (reamostrado do H1) e D1 (até 4.000 candles).
 - **Volume:** volume de ticks do MT5 (não há volume real em CFDs e forex de balcão). É uma aproximação de atividade, não de fluxo de ordens.
 
-### Biblioteca de regras (28 famílias)
+### Biblioteca de regras (29 famílias)
 
 | Grupo | Famílias | Ideia testada | Referência |
 |---|---|---|---|
