@@ -1,0 +1,55 @@
+name: Windows installer
+
+# Constroi o MT5Bot-Setup-<versao>.exe e faz o smoke test do instalado
+# (spec 002 FR-2, AC-2). Roda em PRs que mexem no empacotamento, sob demanda e
+# chamado pelo workflow de release.
+on:
+  pull_request:
+    paths:
+      - "packaging/**"
+      - ".github/workflows/package-windows.yml"
+      - "pyproject.toml"
+      - "bot.bat"
+      - "mt5bot.bat"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    name: Build + smoke (Setup.exe)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: maestro/go.mod
+          cache-dependency-path: maestro/go.sum
+
+      - name: Inno Setup
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Build installer
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File packaging/windows/build.ps1
+
+      - name: Smoke test (install, run, uninstall)
+        run: |
+          $setup = (Get-ChildItem dist\MT5Bot-Setup-*.exe).FullName
+          powershell -NoProfile -ExecutionPolicy Bypass -File packaging/windows/smoke.ps1 -Setup $setup
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mt5bot-windows-installer
+          path: dist/MT5Bot-Setup-*.exe
+          if-no-files-found: error
