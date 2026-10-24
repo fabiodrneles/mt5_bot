@@ -195,6 +195,9 @@ QUANT_COMMENT_PREFIX = "Q "
 # posicao ao vivo com esta opcao ligada (D5 / spec 005 FR-2). No /study eles
 # rodam normalmente. Ligue no config.toml: allow_unvalidated_live = true
 ALLOW_UNVALIDATED_LIVE = False
+# Conta REAL so opera depois da confirmacao explicita no assistente
+# (bot.bat setup), que grava live_confirmed = true no config.toml (spec 006).
+LIVE_CONFIRMED = False
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {

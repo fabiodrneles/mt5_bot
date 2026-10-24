@@ -40,12 +40,13 @@ Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdir
 Name: "{autoprograms}\MT5Bot\MT5Bot Quant"; Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" quant"; WorkingDir: "{app}"; Comment: "Rotas quant validadas (painel ao vivo)"
 Name: "{autoprograms}\MT5Bot\MT5Bot Maestro"; Filename: "{app}\mt5bot.bat"; WorkingDir: "{app}\maestro"; Comment: "Painel interativo com varios robos"
 Name: "{autoprograms}\MT5Bot\MT5Bot Dashboard"; Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" dashboard"; WorkingDir: "{app}"; Comment: "Painel web ao vivo no navegador"
+Name: "{autoprograms}\MT5Bot\Assistente de configuracao"; Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" setup"; WorkingDir: "{app}"
 Name: "{autoprograms}\MT5Bot\Diagnostico"; Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" diagnose"; WorkingDir: "{app}"
 Name: "{autoprograms}\MT5Bot\Desinstalar MT5Bot"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\MT5Bot Quant"; Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" quant"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" diagnose"; WorkingDir: "{app}"; Description: "Testar a conexao com o MetaTrader 5 agora"; Flags: postinstall nowait skipifsilent unchecked
+Filename: "{cmd}"; Parameters: "/k ""{app}\bot.bat"" setup"; WorkingDir: "{app}"; Description: "Abrir o assistente de configuracao (recomendado)"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 ; Arquivos gerados em tempo de execucao dentro da pasta do programa (cache, indice RAG).

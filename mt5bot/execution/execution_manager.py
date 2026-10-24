@@ -186,6 +186,8 @@ def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
         # com opcao explicita (D5). Posicoes ja abertas seguem geridas acima.
         if not getattr(config, "ALLOW_UNVALIDATED_LIVE", False):
             return _unvalidated_blocked(symbol, timeframe_name)
+        if quant_manager.real_account_unconfirmed():
+            return quant_manager.UNCONFIRMED_STATE
         # Nao temos nada, buscar novos setups
         scan_state = _scan_and_execute(symbol, df, timeframe_name=timeframe_name)
         return scan_state if scan_state else "🔵 SCANNING"

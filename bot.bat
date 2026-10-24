@@ -32,6 +32,7 @@ if "%CMD%"=="" (
     echo   test        - Roda os testes unitarios
     echo   ci          - Roda localmente os mesmos passos do CI ^(lint, testes, Maestro^)
     echo   build       - Compila o Maestro ^(maestro\maestro.exe^)
+    echo   setup       - Assistente: confere MT5, conta e risco; libera conta REAL
     echo   quant       - Liga as rotas quant ^(HK50 H4 PULLB / US500 D1 RSI2MR^)
     echo   dashboard   - Abre o painel web ao vivo no navegador
     echo ==============================================
@@ -103,6 +104,11 @@ if /i "%CMD%"=="backtest" (
             "%PY%" tools\backtest.py --symbol %ARG1% --months %ARG2%
         )
     )
+    goto :fim
+)
+
+if /i "%CMD%"=="setup" (
+    "%PY%" tools\setup_wizard.py
     goto :fim
 )
 

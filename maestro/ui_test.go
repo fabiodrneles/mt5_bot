@@ -165,3 +165,9 @@ func TestCartaoMostraValidadaOuExperimental(t *testing.T) {
 		}
 	}
 }
+
+func TestSeloContaRealNaoConfirmada(t *testing.T) {
+	if got := statusBadge("🔒 CONFIRME A CONTA REAL (bot.bat setup)").Label; got != "LOCK" {
+		t.Fatalf("conta REAL nao confirmada deveria ser LOCK, veio %q", got)
+	}
+}
