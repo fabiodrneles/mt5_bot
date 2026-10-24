@@ -35,6 +35,51 @@ A TUI usa a biblioteca **Bubble Tea**, que implementa *The Elm Architecture* (TE
 | Proteção contra *crash loop* | 3 falhas numa janela de 2 min desligam o robô | `recordFailure` |
 | Reparo manual | `/fix` reinicia os desligados | `Heal` |
 
+A proteção contra *crash loop* é uma função pequena e determinística, testada com relógios simulados em `maestro/main_test.go`:
+
+```go
+// Listagem 2.1 — maestro/worker.go
+func (w *PythonWorker) recordFailure(now time.Time) bool {
+	if w.disabled {
+		return true
+	}
+	if w.crashCount == 0 {
+		w.crashFirst = now
+	}
+	// Janela expirou: reinicia a contagem a partir desta falha.
+	if now.Sub(w.crashFirst) > 2*time.Minute {
+		w.crashFirst = now
+		w.crashCount = 0
+	}
+	w.crashCount++
+	if w.crashCount >= 3 {
+		w.disabled = true
+		return true
+	}
+	return false
+}
+```
+
+O *watchdog* vive no mesmo laço que envia o *heartbeat*: a cada segundo, mede o tempo desde o último `pong` e mata o processo travado.
+
+```go
+// Listagem 2.2 — maestro/worker.go
+		case <-ticker.C:
+			w.mu.Lock()
+			timeSincePong := time.Since(w.lastPong)
+			w.mu.Unlock()
+			if timeSincePong > 15*time.Second {
+				log.Printf("[MAESTRO] [%s] WATCHDOG TIMEOUT (15s sem pong). Matando processo...", w.Symbol)
+				if w.cmd != nil && w.cmd.Process != nil {
+					w.cmd.Process.Kill()
+				}
+				return
+			}
+			w.sendCommand(map[string]interface{}{
+				"ping": true,
+			})
+```
+
 **Fundamentação.** O desenho segue a **árvore de supervisão** do Erlang/OTP [Armstrong 2003]: o trabalhador não tenta se recuperar de estados inesperados; ele morre, e o supervisor o reinicia limpo. A proteção contra *crash loop* aplica a ideia do **disjuntor** (*circuit breaker*) de [Nygard 2018]: se reiniciar não resolve (dado corrompido, ativo inexistente), insistir só gasta CPU e enche o log. Depois de 3 falhas o circuito "abre" e espera intervenção humana. O watchdog cobre a falha mais difícil de detectar, o processo travado que não morre.
 
 **Por que reiniciar é seguro?** Por causa da arquitetura *stateless* (cap. 1 §1.4): o processo novo relê o estado do MT5 e continua de onde o anterior parou.
@@ -53,6 +98,10 @@ A busca relativa ao executável, e não ao diretório de trabalho, permite que o
 Cada resposta do trabalhador traz `telemetry` (cap. 9 §9.4). O `handleResponse` a decodifica num `Telemetry` tipado, guardado sob *mutex*, porque o heartbeat e a renderização rodam em goroutines diferentes. A `View` lê por `Snapshot()`, uma cópia sob lock, e desenha:
 - **Cabeçalho:** selos do modo (LIVE/SIMULADOR), da conexão e da conta REAL/DEMO, com saldo, patrimônio, margem e o P/L flutuante só das posições do robô. Cada ativo é somado uma vez, mesmo com dois timeframes.
 - **Cartão por robô:** estado traduzido em selo (`badges.go:statusBadge`), rota quant (★) ou "experimental", contagem até o fechamento do candle, risco × limite (✓ ou 🔒) e posição com P/L.
+
+![Figura 2.1: tela do Maestro com dois robôs quant](img/maestro.png)
+
+*Figura 2.1: o Maestro com as duas rotas quant. À esquerda, os cartões por robô (selo de estado, rota, risco × limite, posição); à direita, o log de eventos e o resumo de desempenho; embaixo, a linha de comando. Dados de demonstração (conta demo fictícia), gerados por `tools/manual_screenshots.py`.*
 
 O mapeamento dos estados em 6 selos (SCAN, WAIT, POS, LOCK, ERRO, INIT) aplica a heurística de **visibilidade do estado do sistema** de [Nielsen 1994]: o usuário vê, sem ler logs, se cada robô está procurando, posicionado, bloqueado ou com erro, e por quê.
 

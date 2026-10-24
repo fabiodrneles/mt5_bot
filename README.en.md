@@ -66,7 +66,7 @@ The project has two operating modes:
 
 MT5Bot is a **study and portfolio project**, not a commercial product. It is a complete software engineering case study in a domain where mistakes cost real money: a bot that trades real funds at a broker. That forces practice of what usually stays theoretical: verifiable requirements, testing, safety, observability and process.
 
-> 📘 **Full technical manual (Portuguese):** [`docs/manual/`](docs/manual/README.md). It has 11 chapters with formulas, design rationale, critical analysis of limitations and a theoretical framework (50+ references).
+> 📘 **Full technical manual (Portuguese):** [`docs/manual/`](docs/manual/README.md). It has 14 chapters and 3 appendices: market and risk theory, architecture and engines, formulas, design rationale, threats to validity, reproducibility and a theoretical framework (75+ references). Each release also ships it as a single file (`MT5Bot-Guia-Tecnico-<version>.md`).
 
 ### What is studied here
 

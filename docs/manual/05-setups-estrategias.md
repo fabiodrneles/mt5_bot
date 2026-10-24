@@ -17,6 +17,18 @@ Um **setup** é uma regra que, olhando o último candle fechado, diz se há uma 
 - **Venda:** $EMA_{20} < EMA_{50}$, $H_t \ge EMA_{20} > C_t$ e $C_t < SMA_{200}$.
 - **Stop:** 1 × ATR(14); **alvo:** 2 × ATR(14), uma razão risco-retorno de 2:1. Sai **só** por SL ou TP.
 
+A regra inteira cabe em poucas linhas, e é exatamente a mesma que a pesquisa testou (ver "Execução idêntica ao teste", adiante):
+
+```python
+# Listagem 5.1 — mt5bot/engine/quant_setups.py
+    k = params.get("sl_atr", 1.0); r = params.get("tp_r", 2.0)
+    if e20.iloc[last] > e50.iloc[last] and df['low'].iloc[last] <= e20.iloc[last] < cl and cl > s200.iloc[last]:
+        return {"setup": "PULLB", "action": "buy", "sl_dist": k * a, "tp_dist": r * k * a}
+    if e20.iloc[last] < e50.iloc[last] and df['high'].iloc[last] >= e20.iloc[last] > cl and cl < s200.iloc[last]:
+        return {"setup": "PULLB", "action": "sell", "sl_dist": k * a, "tp_dist": r * k * a}
+    return None
+```
+
 **Lógica econômica.** O alinhamento EMA20 > EMA50 > SMA200 define uma tendência em três escalas. O toque na EMA20, com fechamento acima dela, é um recuo **absorvido**: o preço testou o suporte dinâmico e voltou. É a forma clássica de "comprar a correção na tendência" [Murphy 1999; Kaufman 2013]. O alvo de 2 ATR contra um stop de 1 ATR exige taxa de acerto acima de 1/3 (mais os custos) para dar lucro.
 
 **Evidência (cap. 8):**
@@ -31,6 +43,17 @@ Um **setup** é uma regra que, olhando o último candle fechado, diz se há uma 
 
 - **Compra:** $RSI_2 < 5$ e $C_t > SMA_{200}$. **Venda:** $RSI_2 > 95$ e $C_t < SMA_{200}$.
 - **Stop:** 2 × ATR(14). **Saída:** o fechamento cruza a SMA5 a favor, ou após 15 candles.
+
+```python
+# Listagem 5.2 — mt5bot/engine/quant_setups.py
+    lvl = params.get("rsi_level", 5.0); k = params.get("sl_atr", 2.0)
+    if rsi2.iloc[last] < lvl and cl > s200.iloc[last]:
+        return {"setup": "RSI2MR", "action": "buy", "sl_dist": k * a, "tp_dist": None}
+    if not params.get("long_only", False) and rsi2.iloc[last] > 100 - lvl and cl < s200.iloc[last]:
+        return {"setup": "RSI2MR", "action": "sell", "sl_dist": k * a, "tp_dist": None}
+```
+
+`tp_dist = None` indica que a saída não é por alvo fixo, e sim pela regra `exit_rsi2mr` (cruzamento da SMA5) ou pelo limite de candles.
 
 **Lógica econômica.** Em índices de ações há uma tendência de longo prazo positiva, e quedas fortes de curtíssimo prazo tendem a se reverter parcialmente. O IFR com período 2 é um medidor extremo de sobrevenda de 2 a 3 dias. A estratégia foi popularizada por [Connors & Alvarez 2009], e o efeito de reversão de curto prazo em índices é documentado na literatura [Lo & MacKinlay 1990]. A saída na SMA5 captura a "volta à média" sem exigir um alvo fixo.
 

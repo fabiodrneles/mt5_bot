@@ -4,6 +4,14 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+### Adicionado
+- **Guia técnico completo** no manual (`docs/manual/`): cap. 0 (fundamentos teóricos de mercado e risco), cap. 12 (os motores do sistema), cap. 13 (validade, limitações, ética e trabalhos futuros) e apêndices de glossário, reprodutibilidade e uso acadêmico; 23 referências novas (78 no total).
+- **Listagens de código** nos capítulos, conferidas pelo CI contra o código-fonte (`tests/test_manual.py`), e **figuras** das interfaces (Maestro, Painel Quant, assistente, dashboard) geradas com dados de demonstração por `tools/manual_screenshots.py`.
+- `tools/build_manual.py`: o manual em arquivo único com figuras embutidas, publicado em cada release (`MT5Bot-Guia-Tecnico-<versão>.md`).
+
+### Corrigido
+- O dashboard mandava editar `mt5bot/core/config.py`; agora indica `bot.bat config --edit`.
+
 ## [3.0.0] - 2026-10-24
 
 Fase 3 do SDD — "profissional" (épico #36, specs 001/002/003/006).

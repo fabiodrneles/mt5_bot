@@ -43,3 +43,32 @@ def test_code_paths_cited_in_manual_exist():
         paths |= set(re.findall(
             r"`((?:mt5bot|interfaces|tools|maestro|packaging|memoria|specs|tests)/[\w./-]+?)`", text))
     assert paths and [p for p in sorted(paths) if not os.path.exists(os.path.join(ROOT, p.rstrip("/")))] == []
+
+
+def test_code_listings_match_the_source():
+    """Cada 'Listagem N.M — caminho' tem de existir no arquivo, linha a linha e na ordem
+    ('...' marca trechos omitidos)."""
+    stale = []
+    for name, text in _chapters().items():
+        for block in re.findall(r"```\w*\n(.*?)```", text, re.S):
+            lines = block.rstrip("\n").split("\n")
+            m = re.match(r"\s*(?:#|//) Listagem [\d.]+ — (\S+)", lines[0])
+            if not m:
+                continue
+            source = [ln.strip() for ln in io.open(os.path.join(ROOT, m.group(1)), encoding="utf-8").read().splitlines()]
+            pos = 0
+            for line in (ln.strip() for ln in lines[1:]):
+                if not line or line == "...":
+                    continue
+                try:
+                    pos = source.index(line, pos) + 1
+                except ValueError:
+                    stale.append((name, m.group(1), line))
+                    break
+    assert stale == []
+
+
+def test_figures_exist():
+    missing = [(n, p) for n, t in _chapters().items()
+               for p in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", t) if not os.path.exists(os.path.join(MANUAL, p))]
+    assert missing == []

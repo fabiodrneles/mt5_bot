@@ -1,7 +1,7 @@
 name: Release
 
 # Tag v* (criada pelo dono) -> CI completo -> instalador + smoke -> GitHub
-# Release com o Setup.exe e o SHA256SUMS (spec 002 FR-5, AC-3).
+# Release com o Setup.exe, o guia tecnico e o SHA256SUMS (spec 002 FR-5, AC-3).
 # Em PRs que mexem neste arquivo roda como ENSAIO: tudo, menos publicar.
 on:
   push:
@@ -48,6 +48,7 @@ jobs:
             fi
           fi
           python3 tools/release_notes.py "$version" > notes.md
+          python3 tools/build_manual.py "dist/MT5Bot-Guia-Tecnico-$version.md"
           (cd dist && sha256sum MT5Bot-* > SHA256SUMS && sha256sum -c SHA256SUMS)
           ls -la dist
           echo "version=$version" >> "$GITHUB_OUTPUT"

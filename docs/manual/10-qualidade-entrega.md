@@ -70,12 +70,28 @@ Isso responde à pergunta que a cobertura não responde: **o teste detecta o def
 - **Por que Python embutido?** Isolamento: não depende nem conflita com um Python instalado pelo usuário, e a versão é fixa e reproduzível.
 - **Smoke test** num Windows limpo do GitHub, com 15 verificações: tamanho, instalação silenciosa, import de todos os módulos com o Python embutido, Modo Quant, Maestro, `bot.bat`, desinstalação e dados preservados.
 
-## 10.7 Release
+- **Pacote Linux/macOS via Wine** (`packaging/wine/`, decisão D1, **experimental**): a biblioteca `MetaTrader5` só existe para Windows, então o pacote leva o mesmo Python embutido e roda tudo, inclusive o terminal MT5, dentro de um prefixo Wine. O `install.sh` cria o prefixo, copia o programa e cria o comando `mt5bot`. O *smoke* no CI (`packaging/wine/smoke.sh`) roda o pacote num Ubuntu com Wine.
+
+**Lição registrada (issue #47).** O *smoke* do Wine "estourava o tempo" de 10 minutos, o que parecia lentidão. O log mostrava outra coisa: `Unimplemented function ucrtbase.dll.crealf`. O Wine 9 do Ubuntu não implementa uma função da biblioteca C que o numpy usa; o processo abortava e o depurador automático do Wine (`winedbg`) ficava esperando até o *timeout*. Duas lições gerais: (1) um *timeout* é um sintoma, não um diagnóstico, e vale procurar no log o que aconteceu **antes** dele; (2) testes devem **falhar rápido**, e por isso o *smoke* agora desliga o depurador automático e mede cada etapa separadamente (iniciar o Python, importar numpy e pandas, importar todos os módulos).
+
+## 10.7 Ferramentas do próprio manual
+
+O manual é tratado como código: ele tem testes e é gerado de forma reproduzível.
+
+| Ferramenta | O que garante |
+|---|---|
+| `tests/test_manual.py` | Toda citação tem referência e toda referência é citada; todo caminho de código citado existe; cada **listagem** ("Listagem N.M — arquivo") continua idêntica ao código-fonte, linha a linha e na ordem; toda figura existe |
+| `tools/manual_screenshots.py` | Gera as figuras das interfaces com **dados de demonstração** e uma pasta de dados temporária, de modo que nenhum dado real do usuário aparece; usa o Chrome ou o Edge *headless* e, para o Maestro, um teste Go que grava a tela (`maestro/screenshot_test.go`) |
+| `tools/build_manual.py` | Junta tudo num arquivo único com as figuras embutidas, publicado em cada *release* |
+
+O teste das listagens resolve um problema clássico de documentação técnica: trechos de código copiados para o texto envelhecem em silêncio quando o código muda. Aqui, uma listagem desatualizada derruba o CI.
+
+## 10.8 Release
 
 Tag `vX.Y.Z` → CI completo → instalador e *smoke* → checagem de que a tag bate com o `pyproject.toml` → `SHA256SUMS` conferido → GitHub Release com notas extraídas do CHANGELOG (`tools/release_notes.py`). Em PRs que mexem no workflow, ele roda como **ensaio**, sem publicar. Versões em SemVer [Preston-Werner 2013]; changelog no formato *Keep a Changelog*; commits em *Conventional Commits*.
 
 **Reprodutibilidade:** binários não ficam no git (decisão D8). Eles vêm sempre do CI, a partir do código da tag, com checksums: qualquer pessoa pode conferir que o instalador corresponde ao código publicado.
 
-## 10.8 Referencial teórico
+## 10.9 Referencial teórico
 
 [Beck 2002] TDD; [Meszaros 2007] *test doubles*; [Fowler 2007] verificação de estado × comportamento; [DeMillo, Lipton & Sayward 1978; Jia & Harman 2011] teste de mutação; [Humble & Farley 2010] entrega contínua; [Forsgren, Humble & Kim 2018] métricas de entrega; [Preston-Werner 2013] SemVer.

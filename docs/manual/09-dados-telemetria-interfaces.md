@@ -70,7 +70,19 @@ Calculada sobre a curva de resultado acumulado: $DD = \max_t (\max_{s \le t} E_s
 
 **Painel do Modo Quant** (`tools/quant_runner.py`): as 400 velas só são baixadas quando um candle fecha (`CandleCache`); entre fechamentos, cada ciclo reaproveita o cache. As cores ANSI são habilitadas no console do Windows com `os.system("")`, que ativa o processamento de sequências de terminal virtual. `--plain` mantém só o log, para redirecionamento.
 
+![Figura 9.1: painel do Modo Quant no console](img/painel-quant.png)
+
+*Figura 9.1: o painel do Modo Quant (`bot.bat quant`): conta e placar no topo, uma linha por rota com estado, tempo até o próximo candle e risco × limite, posições do robô e os últimos eventos. Dados de demonstração.*
+
 **Dashboard web** (`interfaces/dashboard.py`): sem *frameworks*. O servidor responde HTML estático e um JSON em `/api/live`; o JavaScript da página busca o JSON a cada 5 s e redesenha. A curva de patrimônio é um SVG gerado no navegador, com linha de zero e preenchimento colorido pelo sinal do resultado [Tufte 2001]. Escuta só em `127.0.0.1`: nada sai do computador. Textos em pt/en/es por *cookie*. Todo texto vindo de dados passa por *escape* de HTML, e um teste injeta `<img onerror>` para garantir isso.
+
+![Figura 9.2: dashboard web, página ao vivo](img/dashboard-ao-vivo.png)
+
+*Figura 9.2: página "Ao vivo" do dashboard (`bot.bat dashboard`): indicadores da conta, rotas quant com risco × limite, posições, curva de patrimônio dos trades fechados, desempenho por estratégia e últimos trades. Dados de demonstração.*
+
+![Figura 9.3: dashboard web, página de configuração](img/dashboard-config.png)
+
+*Figura 9.3: página "Configuração": rotas quant e seus parâmetros, as travas de proteção de capital e os setups clássicos por ativo, lidos da configuração efetiva (padrões + `config.toml`).*
 
 **Por que sem *framework* web?** Flask ou FastAPI acrescentariam dependências e superfície de ataque para três rotas de leitura. A biblioteca padrão basta e cabe no princípio 7 da constituição (leve).
 
