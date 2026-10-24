@@ -34,6 +34,12 @@ def get_route(symbol, timeframe_name):
     return None
 
 
+def max_risk_pct(route) -> float:
+    """Perda maxima no SL (% do saldo): limite proprio da rota ou o global."""
+    pct = (route or {}).get("max_risk_pct")
+    return float(pct if pct is not None else getattr(config, "QUANT_MAX_RISK_PCT", 2.0))
+
+
 def is_quant_position(position) -> bool:
     prefix = getattr(config, "QUANT_COMMENT_PREFIX", "Q ")
     return (getattr(position, "magic", None) == getattr(config, "MAGIC", 0)
@@ -64,7 +70,7 @@ def quant_cycle(symbol, df, timeframe_name, route):
     positions = [p for p in (mt5.positions_get(symbol=symbol) or []) if is_quant_position(p)]
     if positions:
         return _manage_quant_position(symbol, positions[0], df, setup, params, tf_secs)
-    return _scan_quant(symbol, df, setup, params, tf_secs)
+    return _scan_quant(symbol, df, setup, params, tf_secs, max_risk_pct(route))
 
 
 def _manage_quant_position(symbol, position, df, setup, params, tf_secs):
@@ -89,7 +95,7 @@ def _manage_quant_position(symbol, position, df, setup, params, tf_secs):
     return f"🟢 IN_POSITION ({setup} {side})"
 
 
-def _scan_quant(symbol, df, setup, params, tf_secs):
+def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
     if df is None or len(df) < 200:
         return "🔴 WAIT_DATA"
 
@@ -149,15 +155,15 @@ def _scan_quant(symbol, df, setup, params, tf_secs):
         logging.warning(f"[{symbol}] {setup}: SL ({sig['sl_dist']:.2f}) menor que o stops level ({min_stop:.2f}). Ignorado.")
         return "🟡 SINAL REJEITADO"
 
-    # Risco: perda no SL com o lote minimo nao pode passar de QUANT_MAX_RISK_PCT do saldo.
+    # Risco: perda no SL com o lote minimo nao pode passar de risk_pct do saldo.
     account = mt5.account_info()
     balance = float(getattr(account, "balance", 0.0) or 0.0)
     loss = mt5.order_calc_profit(order_type, symbol, volume, price, sl)
-    max_loss = balance * getattr(config, "QUANT_MAX_RISK_PCT", 2.0) / 100.0
+    max_loss = balance * risk_pct / 100.0
     if loss is None or abs(loss) > max_loss:
         _last_signal_candle[symbol] = last_time
         logging.warning(f"[{symbol}] {setup} {side}: perda no SL ${abs(loss or 0):.2f} > limite ${max_loss:.2f}"
-                        f" ({getattr(config, 'QUANT_MAX_RISK_PCT', 2.0)}% de ${balance:.2f}). Sinal ignorado para preservar margem.")
+                        f" ({risk_pct}% de ${balance:.2f}). Sinal ignorado para preservar margem.")
         return "🟡 SINAL REJEITADO"
 
     # Margem: precisa sobrar folga para as proximas tentativas.

@@ -48,6 +48,23 @@ sem que uma sequência de perdas consuma a margem das próximas operações.
 - Execução: `bot.bat quant` (ou `python tools\quant_runner.py`), ou no Maestro `/add HK50 H4` e
   `/add US500 D1`. Testes: `tests/test_quant_routes.py`.
 
+## Segunda rodada: teste de sorte (2026-10-23, v2.11.0)
+Ferramentas: `tools/quant_research/portfolio.py` e `robustness.py`.
+
+| Teste | HK50 H4 PULLB | US500 D1 RSI2MR |
+|---|---|---|
+| Estatística t do lucro por trade | 1,65 (fraco) | 2,57 (bom) |
+| Mesma regra com o mesmo parâmetro nos outros índices | **perde em 8 de 9** (H4 e H1) | lucra em 6 de 8 |
+| Contra 300 carteiras de entradas aleatórias a favor da tendência com o mesmo SL/TP no HK50 | vence as 300 (o aleatório tem mediana −$5,96 e p95 +$2,67; o PULLB faz +$9,96) | — |
+| Stop de 0,5 a 3 ATR | — | lucra em todos (PF 1,40–2,40) |
+
+Leitura: o **US500 RSI2** tem a evidência mais forte. É o efeito de Connors, documentado há
+décadas. O **HK50 PULLB** tem um sinal de entrada que agrega valor *no HK50*, mas não é um efeito
+geral: trate-o como experimento ao vivo. Não há estratégia comprovadamente mais lucrativa que
+caiba em $16 com risco ≤ 2%. A maior alavanca é o capital: com saldo maior, o US500 libera
+sozinho. Para liberar já, use `max_risk_pct` na rota (≈12% com $16; o histórico pior DD foi $3,04).
+Os parâmetros do RSI2 não foram encurtados para "caber", porque isso seria otimizar depois de ver o resultado.
+
 ## Expectativa honesta
 Cerca de +$2/ano no HK50 com $16 (~13%/ano), com quedas de até ~$4 no caminho. É lucro de
 centavos por trade (média de +$0,036). Os resultados passados não garantem os futuros. A

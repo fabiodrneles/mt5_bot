@@ -180,6 +180,10 @@ QUANT_ROUTES = {
 # Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
 # ignorado para preservar margem para as proximas tentativas. Com $16 o US500
 # D1 (SL ~$1.6) fica bloqueado; libera sozinho com saldo acima de ~$80.
+# Cada rota pode ter limite proprio com "max_risk_pct" (ex.: liberar o US500
+# com $16 exige ~12%: "US500": {..., "max_risk_pct": 12.0}). E a rota com a
+# MAIOR evidencia estatistica (t=2.57, efeito RSI2 tambem lucra em 6 de 8
+# indices), mas cada stop custa ~10% da conta: decisao do usuario.
 QUANT_MAX_RISK_PCT = 2.0
 # Margem livre minima que deve sobrar depois de abrir a posicao (x margem dela).
 QUANT_MARGIN_RESERVE_MULT = 3.0

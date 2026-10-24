@@ -11,11 +11,11 @@
 **Algorithmic trading bot for MetaTrader 5 in Python and Go, built for small accounts.**
 Strict risk management, out-of-sample validated strategies, and respect for your margin.
 
-![Version](https://img.shields.io/badge/version-2.10.0-FF7300?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.11.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-178%20passing-2EA043?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-183%20passing-2EA043?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)
 
 </div>
@@ -127,16 +127,32 @@ If you have never run the bot, start with **Quant Mode on a demo account** and l
 .\bot.bat quant
 ```
 
-It runs continuously, with one cycle every 5 seconds. Keep the window open and stop it with **Ctrl+C**. Typical output:
+It runs continuously, with one cycle every 5 seconds, and shows a **live panel** (labels are in Portuguese). Keep the window open and stop it with **Ctrl+C**:
 
 ```
-Quant runner conectado: conta 50352457 (REAL) saldo $16.26 | rotas: HK50 H4 PULLB, US500 D1 RSI2MR
-[HK50] PULLB: sem sinal no candle 2026-10-23 16:00:00.
-[HK50 H4] 🔵 SCANNING
-[US500 D1] 🔵 SCANNING
+ MT5Bot · Modo Quant                                            24/10 22:20:00
+──────────────────────────────────────────────────────────────────────────────
+ Conta 50352457 REAL   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
+ Hoje +$0.12   Placar quant: 3 trades (2 no lucro) · +$0.35
+
+ ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
+ HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
+ US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        🔒 $1.62 > limite $0.33
+
+ POSIÇÕES DO ROBÔ
+   HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
+
+ EVENTOS
+   24/10 22:15 [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01 risco=$0.21
+──────────────────────────────────────────────────────────────────────────────
+ Ctrl+C para parar · emergência: .\bot.bat panic · log: logs\quant_runner.log
 ```
 
-For a quick check (one cycle, then exit): `python tools\quant_runner.py --once`.
+- **Risk per trade (RISCO POR TRADE):** ✓ when the trade fits the limit; 🔒 when it is locked to protect margin, showing why.
+- **Next candle (PRÓX. CANDLE):** time left until the candle closes, by the server clock. Shows "mercado fechado" (market closed) on weekends.
+- **Quant scoreboard (Placar quant):** only quant-route trades, with real profit (commission and swap included).
+- `python tools\quant_runner.py --plain` prints log lines only, without the panel (useful for redirecting to a file). `--once` runs one cycle and exits.
+- The panel is lightweight: the 400 candles are only downloaded when a candle closes.
 
 ### Quant Mode strategies
 
@@ -151,6 +167,18 @@ Both came out of a search over **3,150 combinations** (15 symbols × 4 timeframe
 - Entry is **at market, right after the signal candle closes**, just like in the backtest. If more than 10% of the candle's duration has passed, the signal is dropped.
 - It always uses the **minimum lot**, with **SL and TP stored in MT5**: the protection holds even if the PC shuts down.
 - It does not use scoring, XGBoost, trailing or breakeven, because none of that was part of the validation.
+
+**How much to trust each route** (luck tests in `tools/quant_research/robustness.py`):
+
+| | HK50 H4 PULLB | US500 D1 RSI2MR |
+|---|---|---|
+| t-statistic (≥ 2 is strong) | 1.65: weak | **2.57: good** |
+| Does the same rule work on other indices? | No (8 of 9 lose) | **Yes** (6 of 8 profit) |
+| Against 300 random-entry portfolios on HK50 | Beats all 300 | — |
+
+US500 has the strongest evidence: it is Connors' RSI2 effect, documented for decades. HK50 has a signal that adds value *on HK50*, but treat it as a live experiment.
+
+**Want to unlock US500 with a small balance?** Give the route its own limit in `config.py`, e.g. `"US500": {..., "max_risk_pct": 12.0}`. With $16 each stop costs ~$1.63 (10% of the account). The worst historical drawdown was $3.04, with about 6 trades a year. It is your call: the default stays locked.
 
 **Honest expectations:** this is **cents per trade**. On HK50 the historical average is +$0.036 per trade, about 13% a year on $16, with drawdowns of up to ~$4 along the way. There were losing years (2024: −$1.48). Only dozens of live trades will tell whether it holds up.
 
@@ -273,7 +301,7 @@ QUANT_ROUTES = {
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
                                                               "long_only": False, "max_bars": 15}},
 }
-QUANT_MAX_RISK_PCT = 2.0           # max loss at SL, % of balance
+QUANT_MAX_RISK_PCT = 2.0           # max loss at SL, % of balance (a route may set its own "max_risk_pct")
 QUANT_MARGIN_RESERVE_MULT = 3.0    # free margin that must remain (x position margin)
 
 MAX_RISK_PER_TRADE_PERCENT = 1.0   # Maestro: risk per trade

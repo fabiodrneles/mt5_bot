@@ -272,3 +272,15 @@ def test_legacy_path_does_not_manage_quant_positions(market, monkeypatch):
     execution_manager.manage_cycle("HK50", df, timeframe_name="H1")
 
     assert called == []
+
+
+def test_route_risk_override_unlocks_only_that_route(market, monkeypatch):
+    """Limite proprio da rota (ex.: US500 a 12%) nao afrouxa as demais."""
+    market["loss"] = -1.63
+    df = _pullback_df()
+    _open_at_next_bar(market, df)
+    route = dict(config.QUANT_ROUTES["HK50"], max_risk_pct=12.0)
+
+    assert quant_manager.max_risk_pct(route) == 12.0
+    assert quant_manager.max_risk_pct(config.QUANT_ROUTES["HK50"]) == config.QUANT_MAX_RISK_PCT
+    assert quant_manager.quant_cycle("HK50", df, "H4", route).startswith("🟢 EM POSIÇÃO")

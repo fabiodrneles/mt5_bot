@@ -11,11 +11,11 @@
 **Robô de trading algorítmico para MetaTrader 5, em Python e Go, feito para contas pequenas.**
 Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respeita a sua margem.
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.10.0-FF7300?style=flat-square)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.11.0-FF7300?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-Maestro-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-1F6FEB?style=flat-square)
-![Testes](https://img.shields.io/badge/testes-178%20passando-2EA043?style=flat-square)
+![Testes](https://img.shields.io/badge/testes-183%20passando-2EA043?style=flat-square)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-555?style=flat-square)
 
 </div>
@@ -127,16 +127,32 @@ Se nunca rodou o bot, comece com o **Modo Quant em conta demo** e deixe passar a
 bot.bat quant
 ```
 
-Ele roda continuamente, com um ciclo a cada 5 segundos. Deixe a janela aberta e pare com **Ctrl+C**. Saída típica:
+Ele roda continuamente, com um ciclo a cada 5 segundos, e mostra um **painel ao vivo**. Deixe a janela aberta e pare com **Ctrl+C**:
 
 ```
-Quant runner conectado: conta 50352457 (REAL) saldo $16.26 | rotas: HK50 H4 PULLB, US500 D1 RSI2MR
-[HK50] PULLB: sem sinal no candle 2026-10-23 16:00:00.
-[HK50 H4] 🔵 SCANNING
-[US500 D1] 🔵 SCANNING
+ MT5Bot · Modo Quant                                            24/10 22:20:00
+──────────────────────────────────────────────────────────────────────────────
+ Conta 50352457 REAL   Saldo $16.26   Patrimônio $16.38   Margem livre $14.20
+ Hoje +$0.12   Placar quant: 3 trades (2 no lucro) · +$0.35
+
+ ROTA              ESTADO                      PRÓX. CANDLE     RISCO POR TRADE
+ HK50 H4 PULLB     🟢 IN_POSITION (PULLB BUY)   em 1h 05m        ✓ $0.21 (limite $0.33)
+ US500 D1 RSI2MR   🔵 SCANNING                  em 9h 40m        🔒 $1.62 > limite $0.33
+
+ POSIÇÕES DO ROBÔ
+   HK50 BUY 0.01 @ 23050.00  SL 22850.00  TP 23450.00   +$0.12
+
+ EVENTOS
+   24/10 22:15 [HK50] PULLB BUY @ 23050.0 SL=22850.00 TP=23450.0 lote=0.01 risco=$0.21
+──────────────────────────────────────────────────────────────────────────────
+ Ctrl+C para parar · emergência: .\bot.bat panic · log: logs\quant_runner.log
 ```
 
-Para um diagnóstico rápido (um ciclo só, depois sai): `python tools\quant_runner.py --once`.
+- **Risco por trade:** ✓ quando o trade cabe no limite; 🔒 quando está travado para proteger a margem, mostrando o porquê.
+- **Próx. candle:** quanto falta para o candle fechar, pelo relógio do servidor. Indica "mercado fechado" no fim de semana.
+- **Placar quant:** só os trades das rotas quant, com o lucro real (comissão e swap incluídos).
+- `python tools\quant_runner.py --plain` mostra só o log, sem painel (útil para redirecionar para um arquivo). `--once` roda um ciclo e sai.
+- O painel é leve: as 400 velas só são baixadas quando um candle fecha.
 
 ### As estratégias do Modo Quant
 
@@ -151,6 +167,18 @@ As duas saíram de uma pesquisa com **3.150 combinações** (15 ativos × 4 time
 - A entrada é **a mercado, logo após o fechamento** do candle de sinal, como no backtest. Se passar de 10% da duração do candle, o sinal é descartado.
 - Usa sempre o **lote mínimo**, com **SL e TP gravados no MT5**: a proteção continua valendo mesmo que o PC desligue.
 - Não usa scoring, XGBoost, trailing nem breakeven, porque nada disso fez parte da validação.
+
+**O quanto confiar em cada rota** (testes de sorte em `tools/quant_research/robustness.py`):
+
+| | HK50 H4 PULLB | US500 D1 RSI2MR |
+|---|---|---|
+| Estatística t (≥ 2 é forte) | 1,65: fraca | **2,57: boa** |
+| A mesma regra funciona em outros índices? | Não (8 de 9 perdem) | **Sim** (6 de 8 lucram) |
+| Contra 300 carteiras de entradas aleatórias no HK50 | Vence as 300 | — |
+
+O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado há décadas. O HK50 tem um sinal que agrega valor *no HK50*, mas deve ser tratado como experimento ao vivo.
+
+**Quer liberar o US500 com saldo pequeno?** Dê à rota um limite próprio em `config.py`, por exemplo `"US500": {..., "max_risk_pct": 12.0}`. Com $16, cada stop custa ~$1,63 (10% da conta). A pior queda histórica foi de $3,04, com cerca de 6 trades por ano. A decisão é sua: o padrão continua travado.
 
 **Expectativa honesta:** é lucro de **centavos por trade**. No HK50, a média histórica é de +$0,036 por operação, cerca de 13% ao ano sobre $16, com quedas de até ~$4 no caminho. Houve anos negativos (2024: −$1,48). Só dá para tirar conclusão depois de dezenas de trades reais.
 
@@ -273,7 +301,7 @@ QUANT_ROUTES = {
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
                                                               "long_only": False, "max_bars": 15}},
 }
-QUANT_MAX_RISK_PCT = 2.0           # perda maxima no SL, % do saldo
+QUANT_MAX_RISK_PCT = 2.0           # perda maxima no SL, % do saldo (rota pode ter "max_risk_pct" proprio)
 QUANT_MARGIN_RESERVE_MULT = 3.0    # margem livre que precisa sobrar (x margem da posicao)
 
 MAX_RISK_PER_TRADE_PERCENT = 1.0   # Maestro: risco por trade
