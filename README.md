@@ -28,6 +28,7 @@ Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respe
 ## 📑 Sumário
 
 1. [O que é](#-o-que-é)
+1. [Propósito acadêmico](#-propósito-acadêmico)
 2. [Requisitos](#-requisitos)
 3. [Instalação](#-instalação)
 4. [Primeiros passos: escolha um modo](#-primeiros-passos-escolha-um-modo)
@@ -58,6 +59,40 @@ O projeto tem dois modos de operação:
 |---|---|---|
 | **Quant** (`bot.bat quant`) | Contas pequenas que querem **só o que foi validado** | 2 estratégias testadas com custos reais e fora da amostra |
 | **Maestro** (`mt5bot.bat`) | Quem quer explorar a família 9.x, o Ponto Contínuo, o Setup Russo e outros | Painel interativo com vários robôs em paralelo |
+
+---
+
+## 🎓 Propósito acadêmico
+
+O MT5Bot é um **projeto de estudo e de portfólio**, não um produto comercial. Ele serve como estudo de caso completo de engenharia de software aplicado a um domínio onde erros têm custo real: um robô que opera dinheiro de verdade numa corretora. Isso obriga a praticar o que costuma ficar só na teoria, como requisitos verificáveis, testes, segurança, observabilidade e processo.
+
+### O que se estuda aqui
+
+| Área de engenharia de software | Como aparece no projeto | Onde ver |
+|---|---|---|
+| **Engenharia de requisitos (SDD)** | Specs com requisitos funcionais e não funcionais (FR/NFR) e critérios de aceite Dado/Quando/Então; constituição com princípios verificáveis; decisões registradas (estilo ADR) | [`specs/`](specs/) |
+| **Arquitetura de software** | Sistema poliglota: orquestrador em **Go** supervisionando workers em **Python**, com comunicação por JSON via stdin/stdout; arquitetura stateless que reconstrói o estado a partir da corretora | `maestro/`, `interfaces/brain_worker.py` |
+| **Confiabilidade e tolerância a falhas** | Watchdog com heartbeat, proteção contra crash loop, recuperação sem estado, stop gravado no servidor da corretora | `maestro/worker.go`, `mt5bot/execution/` |
+| **Engenharia de segurança (safety)** | Invariantes de capital (só mexe no que tem o MAGIC do robô), defesa em profundidade (limite de risco, reserva de margem, trava diária), botão de pânico, padrões seguros | `mt5bot/execution/quant_manager.py`, `tools/panic.py`, [constituição](specs/constitution.md) |
+| **Testes de software** | Mais de 220 testes automatizados com *test doubles* (MT5 simulado), testes de layout da TUI, teste que importa todos os módulos e **checagem de mutação** dos testes novos | `tests/`, `maestro/*_test.go` |
+| **Integração e entrega contínuas** | GitHub Actions em matriz Windows/Ubuntu × Python 3.10/3.13, lint como gate, verificação do pacote instalado e CI local equivalente | `.github/workflows/`, `tools/ci.ps1`, `tools/check_wheel.py` |
+| **Gerência de configuração** | Um PR por ticket, Conventional Commits, épicos com sub-issues, Keep a Changelog, SemVer, configuração do usuário separada do código (`config.toml`) | [PRs](https://github.com/fabiodrneles/mt5_bot/pulls?q=is%3Apr), [`CHANGELOG.md`](CHANGELOG.md) |
+| **Manutenção e evolução** | Análise de causa raiz (CI vermelho por 2 meses, botão de pânico que não fechava nada, pacote quebrado), refatoração de código legado, redução de dívida técnica | [`specs/ANALYSIS.md`](specs/ANALYSIS.md), PRs #9–#16 |
+| **Observabilidade** | Telemetria única alimentando três interfaces, logs na pasta do usuário, diagnóstico por comando | `mt5bot/core/telemetry.py`, `bot.bat diagnose` |
+| **Interação humano-computador** | TUI com Bubble Tea, painel colorido no console, dashboard web responsivo, estados vazios que ensinam o próximo passo, internacionalização (pt/en/es) | `maestro/ui.go`, `tools/quant_runner.py`, `interfaces/dashboard.py` |
+| **Desempenho sob restrição** | Projeto pensado para um i3 com 4 GB de RAM: cache de candles e de arquivos, biblioteca padrão no lugar de frameworks pesados, RAG lexical (BM25) em vez de embeddings | `tools/quant_runner.py`, `memoria/` |
+| **Método científico aplicado (finanças quantitativas)** | Backtest com custos reais, separação dentro × fora da amostra, teste de significância (estatística t), comparação com 300 carteiras aleatórias, registro honesto de quando uma estratégia **não** generaliza | `tools/quant_research/`, [wiki da pesquisa](memoria/wiki/arquitetura/pesquisa-estrategias-lucrativas.md) |
+| **Engenharia com IA** | Desenvolvimento assistido por IA com memória permanente consultável (RAG) e um mapa do projeto para agentes, com verificação adversarial do que a IA produz | `memoria/`, [`AGENTS.md`](AGENTS.md) |
+
+### Por que isso é importante
+
+- **Teoria com consequência real.** Um teste que falta ou um gate fraco aqui viram dinheiro perdido. Isso torna concreto por que requisitos, testes e CI existem.
+- **Os erros ficam documentados, não escondidos.** A análise registra com evidência os defeitos encontrados (CI vermelho desde agosto, comandos chamando arquivos inexistentes) e mostra como cada um foi corrigido pela causa raiz. Ler essa trajetória ensina mais do que ler um código "perfeito".
+- **Honestidade quantitativa.** O projeto mostra o caminho completo de uma hipótese de mercado até uma estratégia operável, incluindo os resultados negativos. É a defesa contra o *overfitting*, o erro mais comum em finanças quantitativas.
+- **Processo reprodutível.** Qualquer pessoa pode seguir as specs, os épicos e os PRs para entender por que cada decisão foi tomada. Isso serve de material para disciplinas como Engenharia de Software, Sistemas Distribuídos e Finanças Computacionais.
+- **Portfólio verificável.** As afirmações do README são checadas pelo CI e pelos testes, não só descritas.
+
+> Este projeto tem fins educacionais. Nada aqui é recomendação de investimento.
 
 ---
 
