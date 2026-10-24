@@ -1,7 +1,7 @@
 # 001 — CI e qualidade
 
 - **Prioridade:** P0
-- **Status:** In Progress
+- **Status:** Done
 - **Código afetado:** `.github/workflows/ci.yml`, `pyproject.toml`, `test_rvol_wins.py`, `testes/`, novo `tools/ci.ps1`
 - **Resolve:** C1, A7, M1, M4
 

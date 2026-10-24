@@ -4,6 +4,20 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-24
+
+Fase 3 do SDD — "profissional" (épico #36, specs 001/002/003/006).
+
+### Adicionado
+- **Manual técnico acadêmico** em `docs/manual/` (11 capítulos, fórmulas conferidas com o código, justificativas, análise crítica e 55 referências), protegido por `tests/test_manual.py` (#45).
+- **Assistente de primeiro uso** `bot.bat setup`: confere o MT5, a conta (REAL/DEMO) e o risco de cada rota; abre ao fim da instalação (#44).
+- `bot.bat config --edit`: cria e abre um `config.toml` comentado e válido (#43).
+- Cobertura de testes medida no CI com piso de 60% (#42).
+- Pacote **experimental** para Linux/macOS via Wine (`MT5Bot-<versão>-wine.tar.gz`, `install.sh`, comando `mt5bot`) publicado na release (#46). A execução dentro do Wine ainda não foi verificada (#47).
+
+### Alterado (incompatível)
+- **Conta REAL só abre posições após confirmação** no assistente (`live_confirmed = true`); posições abertas continuam geridas e conta DEMO opera direto (#44). Quem atualiza precisa rodar `bot.bat setup` uma vez.
+
 ## [2.14.0] - 2026-10-24
 
 Fase 2 do SDD — "confiável" (épico #22, specs 001/002/005).

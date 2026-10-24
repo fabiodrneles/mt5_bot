@@ -28,9 +28,11 @@ Entregue em 2026-10-24 (épico #22; PRs #29, #30, #31, #32, #33, #34).
 - [x] **T11** Setups não validados fora do modo ao vivo por padrão — 005 FR-2..3, AC-2/3
 - [x] **T12** Guia prático: `CONTRIBUTING.md`, templates, `CODEOWNERS` e `[Unreleased]` no CHANGELOG — 001 FR-8
 
-## Fase 3 — Profissional (P2) → `v3.0.0`
+## Fase 3 — Profissional (P2) → `v3.0.0` ✅
 
-- [ ] **T13** Pacotes Linux e macOS via Wine (experimental) — 002 FR-6
-- [ ] **T14** Assistente de primeiro uso — 006 FR-1..4, AC-1/2
-- [ ] **T15** `bot.bat config --edit` — 003 FR-5
-- [ ] **T16** Cobertura medida com piso — 001 FR-7
+Entregue em 2026-10-24 (épico #36; PRs #42–#46). Extra: manual técnico (T17, #45). Pendente: verificação do pacote Wine no CI (#47).
+
+- [x] **T13** Pacotes Linux e macOS via Wine (experimental) — 002 FR-6
+- [x] **T14** Assistente de primeiro uso — 006 FR-1..4, AC-1/2
+- [x] **T15** `bot.bat config --edit` — 003 FR-5
+- [x] **T16** Cobertura medida com piso — 001 FR-7
