@@ -436,6 +436,14 @@ def strategies(d, tf):
         sm = (e20 < e50) & (h >= e20) & (c < e20) & dn200
         add("PULLB", dict(k=k, R=R), mk(lm, sm), k * A, tgt=R * k * A, mb=200)
 
+    # Regra do dono (cap. 14): candle que fecha cruzando a MME9 -> entra a favor; risco = tamanho do
+    # candle do sinal; alvo = R x risco. E o gatilho do setup 9.1 (Larry Williams).
+    e9 = ema(c, 9)
+    x_dn = (c < o) & (c < e9) & (lag((c > e9).astype(float)) == 1)
+    x_up = (c > o) & (c > e9) & (lag((c < e9).astype(float)) == 1)
+    for R in (1.0, 2.0, 3.0):
+        add("EMA9X", dict(R=R), mk(x_up, x_dn), rng.copy(), tgt=R * rng, mb=10 ** 6)
+
     # ---------- padroes de candle
     nr7 = rng <= rmin(rng, 7)
     inside = (h < lag(h)) & (l > lag(l))

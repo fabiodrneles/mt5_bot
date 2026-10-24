@@ -13,7 +13,7 @@ Spread real de cada candle (mediana do H1 no D1), comissão observada nos deals 
 $1/lote em índices, cripto e ações; zero em forex e petróleo), swap por rolagem com a **rolagem
 tripla** do símbolo. Entrada na abertura do candle seguinte ao sinal; stop antes do alvo no mesmo candle.
 
-## Famílias (28)
+## Famílias (28 + 1)
 Reversão à média: RSI2, RSIn, IBS, quedas seguidas, Double-7, Bollinger, z-score, *gap fade*.
 Tendência/momento: Donchian, cruzamento de médias, TSMOM, MACD, Keltner, Supertrend, ADX+DI, pullback EMA20.
 Padrões de candle: NR7, *inside bar*, engolfo na banda, martelo/estrela.
@@ -55,3 +55,7 @@ O critério 6 continua 0,95 para dinheiro real. Fica criada uma faixa intermedi�
 | DSR < 0,80 ou outro critério reprovado | Descartada |
 
 Motivo: o DSR depende do número efetivo de tentativas N, que não é observável (as configurações de uma família são correlacionadas). Entre N = configurações e N = células o DSR de um mesmo candidato pode ir de 0,86 a 0,99. Casos de fronteira são resolvidos com **dados novos**, não com outro limiar.
+
+## Família 29 (adicionada em 2026-10-24, antes da rodada com M15/M30)
+
+**EMA9X**, regra trazida pelo dono a partir de um trade real (US500 M15, 23/10/2026): candle que fecha cruzando a MME9 entra a favor; risco = tamanho do candle do sinal; alvo de 1×, 2× ou 3× o risco. Entra com os mesmos 7 critérios. Ferramenta de checagem de um dia: `check_ema9.py`.
