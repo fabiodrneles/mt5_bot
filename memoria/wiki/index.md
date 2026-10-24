@@ -31,6 +31,7 @@
 - `arquitetura/auditoria-lucro-execucao.md` — Bugs de execucao que impediam lucro (v2.9.1)
 - `arquitetura/pesquisa-estrategias-lucrativas.md` — Rotas quant validadas fora da amostra: HK50 H4 PULLB, US500 D1 RSI2MR (v2.10.0)
 - `arquitetura/interfaces-telemetria.md` — Painel Quant, Maestro e dashboard web sobre a mesma telemetria (v2.12.0)
+- `arquitetura/sdd-processo.md` — Processo SDD, gates de CI e decisões D1–D8 (v2.13.0)
 - `arquitetura/estado-atual-codigo.md` — O que já existe no strategy.py/indicators.py/config.py
 
 ### Fontes

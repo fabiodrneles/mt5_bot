@@ -1,7 +1,7 @@
 # 004 — Higiene do repositório
 
 - **Prioridade:** P0
-- **Status:** Approved
+- **Status:** Done
 - **Código afetado:** raiz do repositório, `maestro/`, `run.bat`, `.gitignore`
 - **Resolve:** A1, A2, M2, M3
 
