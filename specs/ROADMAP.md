@@ -36,3 +36,48 @@ Entregue em 2026-10-24 (épico #36; PRs #42–#46). Extra: manual técnico (T17,
 - [x] **T14** Assistente de primeiro uso — 006 FR-1..4, AC-1/2
 - [x] **T15** `bot.bat config --edit` — 003 FR-5
 - [x] **T16** Cobertura medida com piso — 001 FR-7
+
+## Fase 4 — Capital blindado (P0) → `v3.2.0`
+
+Base: [ANALYSIS-v3.1](ANALYSIS-v3.1.md). Antes de codar: decidir D9 e D10.
+
+- [ ] **T18** Travas de risco falham fechadas no Modo Quant — 007 FR-1, AC-1
+- [ ] **T19** Kelly recusa $f^* \le 0$ e parâmetros inválidos — 007 FR-2, AC-2/3
+- [ ] **T20** Limites semanal, de perdas seguidas e de *drawdown* + kill switch e `bot.bat resume` — 007 FR-3..5, FR-7, AC-4/5/7
+- [ ] **T21** Saída parcial desativada quando o lote não divide — 007 FR-6, AC-6
+- [ ] **T22** Reconexão automática ao MT5 com espera exponencial — 008 FR-1/2, AC-1
+- [ ] **T23** Novas tentativas por *retcode*, idempotência e *slippage* registrado — 008 FR-3, FR-6, FR-7, AC-2/3/6
+- [ ] **T24** SL confirmado na corretora após cada abertura — 008 FR-4, AC-4
+- [ ] **T25** Filtro de *spread* no Modo Quant — 008 FR-5, AC-5
+
+## Fase 5 — Evidência robusta (P1) → `v3.3.0`
+
+- [ ] **T26** Núcleo `mt5bot/sim` extraído de `research.py`, com `CostModel` e rolagem tripla — 010 FR-1/2/5, AC-1..3
+- [ ] **T27** Ferramentas de backtest migradas para o núcleo e teste de paridade — 010 FR-3/4, AC-4/5
+- [ ] **T28** `validate.py`: *walk-forward*, DSR, PBO, *bootstrap*, Monte Carlo e veredito — 009 FR-1/2/4, AC-1..3
+- [ ] **T29** Revalidação publicada das rotas atuais — 009 FR-3, AC-4
+- [ ] **T30** Sombra, *tracking error* e CUSUM com pausa da rota — 011 FR-1..6, AC-1..4
+
+## Fase 6 — Operação supervisionada (P1) → `v3.4.0`
+
+Antes de codar: decidir D12 e D16.
+
+- [ ] **T31** `notify.py` com fila, limite de taxa, eventos e resumo diário — 012 FR-1..4, FR-6/7, AC-1..5
+- [ ] **T32** Diário JSONL e `bot.bat journal` / `export` — 013 FR-1..3, FR-5/6, AC-1/3/4
+- [ ] **T33** `bot.bat report` em HTML — 013 FR-4, AC-2
+- [ ] **T34** Segredos no cofre do Windows (`keyring`) — 014 FR-1/2, AC-1
+- [ ] **T35** Lock com hashes, `pip-audit`, `govulncheck`, Dependabot, *actions* por SHA — 014 FR-3..5, FR-7, AC-2/3
+- [ ] **T36** SBOM, atestado de proveniência, `SECURITY.md` e assinatura (D16) — 014 FR-6, FR-8/9, AC-4
+- [ ] **T37** Cobertura 75/90, testes de propriedade e `mypy` no núcleo — 018 FR-1/2/4, AC-2/4
+- [ ] **T38** Mutação semanal, *fuzz* Go, orçamento de desempenho e ponta a ponta — 018 FR-3, FR-5..7, AC-1/3
+
+## Fase 7 — Produto completo (P2) → `v4.0.0`
+
+Antes de codar: decidir D11, D13, D14 e D15.
+
+- [ ] **T39** Risco de carteira agregado com correlação — 015 FR-1..3, AC-1..3
+- [ ] **T40** *Pipeline* de novas rotas e volatilidade-alvo opcional — 015 FR-4/5, AC-4
+- [ ] **T41** ML com validação purgada, calibração, *model card* e falha visível — 016 FR-1..6, AC-1..4
+- [ ] **T42** Configuração editável no dashboard com *token* e confirmação de risco — 017 FR-1..3, AC-1..3
+- [ ] **T43** Aviso de nova versão, página de relatórios e modo demonstração — 017 FR-4/5/7, AC-4
+- [ ] **T44** Interface completa em pt/en/es — 017 FR-6, AC-5
