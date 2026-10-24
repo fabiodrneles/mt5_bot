@@ -61,6 +61,24 @@ Dados diários públicos (API de gráficos do Yahoo Finance, tickers `.SA`), aju
 
 **Leitura:** o lucro do 9.x na B3 é real no período, mas **não vem do gatilho do setup**. Ele vem de (a) a **tendência de alta de longo prazo** das ações brasileiras (comprar a favor da tendência tende a ganhar) e (b) a **saída conduzida pela MME9**, que deixa o lucro correr nas tendências longas. Uma entrada qualquer a favor da tendência com a mesma saída teria resultado parecido. Isso ajuda a explicar por que muitos operadores ganham com o 9.x na B3: o que trabalha a favor deles é o mercado e a condução do trade, mais que o padrão do candle.
 
+### Comparação com CDI, Ibovespa e comprar e segurar (`tools/quant_research/compare_b3.py`)
+
+Carteiras de peso igual entre as ações disponíveis em cada dia. No 9.x, cada ação tem uma posição por vez pelas regras do livro, e fora da posição o dinheiro rende o CDI (série SGS 12 do Banco Central). Ibovespa = `^BVSP`. Custo de 0,05% por lado; **sem imposto de renda**.
+
+| Carteira | Desde 2005: ao ano / queda máx. | Desde 2016: ao ano / queda máx. |
+|---|---|---|
+| CDI | 10,61% / 0% | 9,60% / 0% |
+| Ibovespa | 9,88% / −60,0% | 15,39% / −46,8% |
+| Comprar e segurar as 59 ações (peso igual) | 22,75% / −54,1% | 22,00% / −46,3% |
+| **9.1 + semanal**, fora da posição no CDI (investido 22% do tempo) | **9,89% / −7,9%** | **9,14% / −7,9%** |
+| **9.2 + semanal + SMA200**, fora da posição no CDI (investido 8–9% do tempo) | **10,33% / −2,3%** | **10,53% / −2,5%** |
+
+**Leitura:**
+- O 9.x mecânico **não supera o CDI**. Como fica investido só 8% a 22% do tempo, ele é, na prática, "CDI com um pouco de ações", com quedas pequenas.
+- O **comprar e segurar** as 59 ações rende 22% ao ano, mas esse número está **muito inflado pelo viés de sobrevivência**: são as ações que estão no índice hoje, as vencedoras. O Ibovespa, que inclui as que saíram, rendeu perto do CDI desde 2005.
+- Depois do imposto de renda (15% sobre ganhos), o 9.x fica abaixo do CDI. Em fundos e títulos, o imposto também incide, mas há regras próprias (a tabela regressiva do CDI chega a 15% depois de dois anos).
+- Conclusão para a B3: **o 9.x reduz muito o risco, mas não acrescenta retorno acima da renda fixa.** Quem quer só retorno com pouco risco tem o CDI; quem aceita risco tem o índice. Um setup só agrega valor se superar uma dessas duas referências no seu próprio nível de risco.
+
 ## O que ainda não foi testado (e é o próximo passo justo)
 
 - **Ações que saíram do índice ou quebraram** (corrigir o viés de sobrevivência com a série oficial COTAHIST da B3).

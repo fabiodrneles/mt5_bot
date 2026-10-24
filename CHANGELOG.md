@@ -6,7 +6,7 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ### Adicionado
 - **Teste justo do 9.x** (`tools/quant_research/check_9x_fiel.py`, `docs/validacao-9x-fiel.md`): regras do livro no diário, ordem stop, saída conduzida pela MME9, filtros semanal/SMA200 e custos com e sem swap. Ações e índices americanos empatam antes do financiamento; o swap do CFD transforma o empate em prejuízo; forex perde.
-- **9.x em ações da B3** (`tools/quant_research/check_9x_b3.py`, dados públicos ajustados): lucro na compra com saída pela MME9, mas não significativo por mês e não superior a entradas aleatórias com a mesma saída; o ganho vem da tendência da bolsa e da condução do trade.
+- **9.x em ações da B3** (`tools/quant_research/check_9x_b3.py`, dados públicos ajustados): lucro na compra com saída pela MME9, mas não significativo por mês e não superior a entradas aleatórias com a mesma saída; o ganho vem da tendência da bolsa e da condução do trade. Em carteira (`compare_b3.py`), o 9.1 com CDI fora da posição rende 9,9% ao ano desde 2005, contra 10,6% do CDI e 9,9% do Ibovespa.
 - `docs/publicacao/METAS-E-IDEIAS.md`: metas de curto, médio e longo prazo e as observações da pesquisa.
 
 ## [3.2.0] - 2026-10-24
