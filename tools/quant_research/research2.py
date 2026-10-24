@@ -463,6 +463,17 @@ def strategies(d, tf):
         dist9[~(dist9 > 0)] = np.nan
         add("EMA9REV", dict(k=k, adx=use_adx), sig9, dist9, tgt=2 * dist9, mb=10 ** 6)
 
+    # Metodo inspirado em Raghee Horner (cap. 14): onda de MME34 (maxima/fechamento/minima) inclinada como
+    # ponteiro de relogio (12h-2h forte); compra no RECUO que toca a onda e fecha acima dela, stop abaixo da
+    # MME34 da minima; alvo 1,5x. Inclinacao em ATR/candle (independe do zoom): 0,10/0,15/0,20 ~ 2h50/2h40/2h30.
+    wh, wc, wl = ema(h, 34), ema(c, 34), ema(l, 34)
+    for N, smin in itertools.product((10, 20), (0.10, 0.15, 0.20)):
+        sl34 = (wc - lag(wc, N)) / (N * A)
+        sigw = mk((sl34 >= smin) & (l <= wh) & (c > wh), (sl34 <= -smin) & (h >= wl) & (c < wl))
+        distw = np.where(sigw > 0, nxt_o - wl, np.where(sigw < 0, wh - nxt_o, np.nan))
+        distw[~(distw > 0)] = np.nan
+        add("HORNER", dict(N=N, s=smin), sigw, distw, tgt=1.5 * distw, mb=10 ** 6)
+
     # ---------- padroes de candle
     nr7 = rng <= rmin(rng, 7)
     inside = (h < lag(h)) & (l > lag(l))

@@ -98,6 +98,12 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Exemplos do dono: 16/10 16h30 ("bom") estava **deitado** (3,0h no M15 e no M30) e ganhou; 19/10 09h00 ("ruim"), 2,7h; 19/10 01h00 compra, 3,8h (queda inclinada).
 - 24 definições × alvos 2× e 1×, em US500 M15/M30/H1, HK50 M15/H1, JP225 M15, GBPUSD H1: **0 definições lucram no IS e no OOS** (1 de 24 no GBPUSD H1 com alvo 2×, compatível com acaso). Com alvo 1×, as 10% mais inclinadas acertam 45–49% (empate ≈ 50% + custo).
 
+### Método de Raghee Horner (onda da MME34 + ângulo no relógio, a favor da tendência; `check_horner.py`; família 31 HORNER)
+- Dono informou a autora: Raghee Horner (*Forex Trading for Maximum Profit*, Wiley, 2005). Implementado a partir da descrição pública: onda = MME34 de máxima/fechamento/mínima; força = ângulo da onda; opera **a favor** (recuo que toca a onda e fecha fora dela; stop no outro lado da onda) e, como variante, o cruzamento da MME9 a favor da onda.
+- 24 variações × alvos 1×/1,5×, em US500 M15/H1/H4, HK50 H1, JP225 M15 e EURUSD/GBPUSD/USDJPY/AUDUSD H1 e H4: **0 variações lucram no IS e no OOS na maioria**; exceções: GBPUSD H1 (3–5 de 20; melhor recuo N20 top 20%: IS +$82, OOS +$29, t 0,79), HK50 H1 e JP225 M15 (1 de 21, acaso). Risco no GBPUSD ≈ $2,3–2,4 por trade no lote mínimo (15% de $16).
+- Entrou na grade como família 31 (HORNER), para passar pelos 7 critérios em todos os ativos.
+- **No cap. 14, citar [Horner 2005]** e incluir a referência em `docs/manual/referencias.md`.
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 

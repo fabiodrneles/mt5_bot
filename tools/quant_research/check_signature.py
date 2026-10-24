@@ -33,7 +33,7 @@ def outcomes_with_exit(sym, d, sig, dist):
     res, ex = np.full(len(c), np.nan), np.full(len(c), -1)
     for i in np.flatnonzero(sig):
         e = i + 1
-        if e >= len(c) or d["hour"][e] == 0:
+        if e >= len(c) or (d.get("tf") != "D1" and d["hour"][e] == 0):
             continue
         dr = sig[i]
         entry = o[e] if not pause[e] else (max(o[e], c[i]) if dr > 0 else min(o[e], c[i]))
