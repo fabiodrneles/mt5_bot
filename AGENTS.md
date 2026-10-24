@@ -15,6 +15,7 @@ Bot de trading automatizado para **MetaTrader 5** em Python, baseado nos **Setup
 ```
 mt5_bot-main/
 ├── AGENTS.md                # ← VOCÊ ESTÁ AQUI (leia primeiro)
+├── specs/                   # ← SDD: ANALYSIS, constitution, specs por área, ROADMAP (leia antes de mudar código)
 ├── memoria/                 # ← MEMÓRIA PERMANENTE + RAG (leia o README interno)
 │   ├── README.md            #    explica o RAG, como consultar e atualizar
 │   ├── raw/                 #    fontes imutáveis (livros extraídos, spec, aprofundamento)

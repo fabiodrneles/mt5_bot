@@ -1,5 +1,33 @@
 # Changelog
 
+Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versões em [SemVer](https://semver.org/lang/pt-BR/).
+
+## [Unreleased]
+
+## [2.13.0] - 2026-10-24
+
+Fase 1 do SDD — "funcionar de verdade" (épico #2, specs 001/002/003/004).
+
+### Adicionado
+- `specs/`: análise verificada, constituição, 6 specs e roadmap; decisões D1–D8 aprovadas (#1).
+- CI em matriz Windows/Ubuntu × Python 3.10/3.13, Maestro com `go test -race`, teste que importa todos os módulos (#9).
+- Gate de lint com ruff (#10); CI local `tools/ci.ps1` / `bot.bat ci` (#11).
+- Verificação do pacote instalado: `tools/check_wheel.py` + job de CI (#12).
+- `bot.bat build`; `mt5bot.bat` compila o Maestro na primeira execução (#14).
+- Pasta de dados do usuário (`mt5bot/core/paths.py`) e `config.toml` com validação (#16).
+
+### Corrigido
+- CI vermelho desde 2026-08-19: script solto chamava `exit()` na coleta e as dependências do projeto não eram instaladas (#9).
+- Pacote Python sem `mt5bot.mentorship` e com módulos velhos de `build/` (#12).
+- `run.bat` não compilava; `__main__.py` da raiz importava um módulo inexistente (#14).
+- `bot.bat diagnose`/`tail` liam um log que nunca existia (o diagnose sempre dizia "0 erros") (#16).
+- `tools/backtest.py` podia quebrar com `UnboundLocalError`; `indicators.py` definia `calculate_bollinger_bands` duas vezes (#10).
+- `--version` do Maestro mostrava a versão de reserva fora de `maestro/` (#15).
+
+### Alterado
+- Binários, logs e lixo fora do git; documentos soltos em `docs/`, modelos em `models/`, dataset em `data/` (#14).
+- Logs na pasta de dados do usuário (antes dentro do pacote) (#16).
+
 ## [2.12.0] - 2026-10-24
 - **Maestro (TUI) redesenhado:** cabecalho com selos (LIVE/SIMULADOR, MT5, conta REAL/DEMO) e faixa da conta (saldo, patrimonio, margem, flutuante do robo); cartao por robo com estado colorido, rota quant, proximo candle, risco x limite e posicao com P/L; autocompletar de comandos (Tab), Esc limpa a linha (antes fechava o Maestro), ajuda formatada; layout se adapta a terminais estreitos.
 - **Telemetria compartilhada** (`mt5bot/core/telemetry.py`): o brain_worker envia conta/posicoes/rota quant ao Maestro; Modo Quant e dashboard usam a mesma fonte.

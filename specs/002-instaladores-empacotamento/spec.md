@@ -1,7 +1,7 @@
 # 002 — Instaladores e empacotamento
 
 - **Prioridade:** P0 (Windows) / P2 (macOS, Linux)
-- **Status:** Approved
+- **Status:** In Progress
 - **Código afetado:** `pyproject.toml`, novo `packaging/` (Inno Setup, scripts Wine), `.github/workflows/release.yml`, `maestro/worker.go`, `mt5bot/core/launcher.py`
 - **Resolve:** C2, C3, C4, M6
 

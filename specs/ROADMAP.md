@@ -6,14 +6,16 @@ Cada tarefa referencia a spec e os critérios de aceite que ela fecha. Ordem sug
 
 - [x] Responder D1–D8 em [ANALYSIS.md §7](ANALYSIS.md#7-decisões-em-aberto) e mover as specs para `Approved`.
 
-## Fase 1 — Funcionar de verdade (P0) → `v2.13.0`
+## Fase 1 — Funcionar de verdade (P0) → `v2.13.0` ✅
 
-- [ ] **T1** CI verde: dependências do projeto, `testpaths`, matriz Windows/Ubuntu × Python 3.10/3.13, `go test -race` — 001 FR-1..3, FR-5, AC-1/2
-- [ ] **T2** Gate de lint (ruff) e correção dos 53 achados — 001 FR-4, AC-3
-- [ ] **T3** Alvo local `tools/ci.ps1` — 001 FR-6, AC-4
-- [ ] **T4** Empacotamento Python: descoberta de pacotes e teste de importação do wheel — 002 FR-1, AC-1
-- [ ] **T5** `run.bat` funcional, e binários e lixo fora do git — 004 FR-1..5, AC-1..3
-- [ ] **T6** Pasta de dados do usuário e `config.toml` — 003 FR-1..4, AC-1..3
+Entregue em 2026-10-24 (épico #2; PRs #9, #10, #11, #12, #14, #15, #16).
+
+- [x] **T1** CI verde: dependências do projeto, `testpaths`, matriz Windows/Ubuntu × Python 3.10/3.13, `go test -race` — 001 FR-1..3, FR-5, AC-1/2
+- [x] **T2** Gate de lint (ruff) e correção dos 53 achados — 001 FR-4, AC-3
+- [x] **T3** Alvo local `tools/ci.ps1` — 001 FR-6, AC-4
+- [x] **T4** Empacotamento Python: descoberta de pacotes e teste de importação do wheel — 002 FR-1, AC-1
+- [x] **T5** `run.bat` funcional, e binários e lixo fora do git — 004 FR-1..5, AC-1..3
+- [x] **T6** Pasta de dados do usuário e `config.toml` — 003 FR-1..4, AC-1..3
 
 ## Fase 2 — Confiável (P1) → `v2.14.0`
 
