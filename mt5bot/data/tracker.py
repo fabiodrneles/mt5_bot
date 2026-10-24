@@ -134,9 +134,26 @@ def _calculate_pnl_money(symbol, pnl_pips, volume):
     return None
 
 
-def record_exit(ticket, exit_price, result="win"):
+def remove_open_trade(ticket):
+    """Remove um registro 'open' que nunca virou posicao (ordem pendente cancelada).
+
+    Sem isso a ordem cancelada era contada como trade (win/loss falso) e
+    poluia o PnL diario e a taxa de acerto.
+    """
+    trades = _load_trades()
+    kept = [t for t in trades if not (t.get("ticket") == ticket and t["result"] == "open")]
+    if len(kept) != len(trades):
+        _save_trades(kept)
+        logger.info(f"[Tracker] Ordem {ticket} cancelada sem execucao. Registro removido.")
+        return True
+    return False
+
+
+def record_exit(ticket, exit_price, result="win", pnl_money=None):
     """Registra saida total (fecha o trade).
     result: 'win', 'loss', ou 'breakeven'
+    pnl_money: lucro real em dinheiro (deals do MT5, ja com comissao/swap).
+    Quando informado, e a fonte da verdade do resultado.
     """
     trades = _load_trades()
     for trade in reversed(trades):
@@ -161,7 +178,15 @@ def record_exit(ticket, exit_price, result="win"):
                 trade["result"] = "breakeven"
 
             # Calcular P&L em dinheiro (moeda da conta)
-            pnl_money = _calculate_pnl_money(trade["symbol"], pnl_pips, trade["volume"])
+            if pnl_money is None:
+                pnl_money = _calculate_pnl_money(trade["symbol"], pnl_pips, trade["volume"])
+            else:
+                pnl_money = round(float(pnl_money), 2)
+                # Dinheiro real manda: um "empate" que pagou comissao e prejuizo.
+                if pnl_money > 0:
+                    trade["result"] = "win"
+                elif pnl_money < 0:
+                    trade["result"] = "loss"
             trade["pnl_money"] = pnl_money
 
             if pnl_money is not None:

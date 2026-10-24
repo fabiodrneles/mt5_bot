@@ -209,6 +209,20 @@ SYMBOL_MAX_SPREAD_POINTS = {
 }
 ENABLE_BREAKEVEN = True
 BREAKEVEN_ATR_RATIO = 1.0
+# Breakeven "de verdade": o SL vai para entrada + (spread x N) + 1 tick, e nao
+# para o preco exato de entrada. Stop no preco exato devolvia o lucro e ainda
+# pagava comissao/swap — o "empate" virava prejuizo de centavos.
+BREAKEVEN_LOCK_SPREAD_MULT = 1.0
+
+# --- Setups com alvo proprio (reversao a media / horario) ---
+# Saem SOMENTE por TP/SL (+ fim de sessao e Daily Max Loss), exatamente como
+# foram validados no backtest (tools/backtest.py). As regras de EMA9/trailing
+# sao de seguimento de tendencia: num trade de reversao a EMA9 aponta contra a
+# entrada por definicao, e o bot apertava o stop / cancelava a ordem na hora.
+TARGET_EXIT_SETUPS = ["russian_bb", "judas", "GAP"]
+# Setups cuja entrada e o preco atual (close do candle fechado): enviados a
+# mercado. Uma BUY STOP no proprio preco atual e recusada pelo MT5 (10015).
+MARKET_ENTRY_SETUPS = ["russian_bb", "judas"]
 MIN_STOP_SPREAD_MULTIPLIER = 1.5
 
 # --- Trailing Stop dinamico (spec 5.7) ---

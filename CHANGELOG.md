@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.1] - 2026-10-24
+- **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).
+- **Fix (russian_bb/judas):** entrada a mercado com SL+TP; antes a STOP no preco atual era recusada pelo MT5 e esses setups nunca abriam.
+- **Fix (saida):** setups de alvo proprio (russian_bb, judas, GAP) saem so por TP/SL, igual ao backtest; a EMA9/trailing nao corta mais a reversao.
+- **Fix (breakeven):** SL protegido em entrada + spread + 1 tick (o "empate" agora fica no verde).
+- **Fix (historico):** ordens pendentes nao viram mais trades falsos; resultado usa lucro real do MT5 (com comissao/swap).
+- **Fix:** 1 entrada por candle; import do AdaptiveSupervisor; chave `setup`; TP preservado ao mover SL; saida a mercado quando o SL da EMA9 ja ficou para tras.
+
 ## [2.9.0] - 2026-08-18
 - **Motor Vetorizado (Hilpisch):** Implementação de backtesting ultra-rápido baseado em matrizes vetoriais NumPy/Pandas.
 - **Gestão de Risco Dinâmica (Half-Kelly):** O robô agora ajusta o tamanho do lote operação por operação com base na probabilidade de acerto (Win Rate) emitida pelo modelo XGBoost e no Risco/Retorno (RRR) do alvo, maximizando juros compostos com proteção de capital.

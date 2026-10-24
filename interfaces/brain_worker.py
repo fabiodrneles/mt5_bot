@@ -57,8 +57,13 @@ def process_payload(payload_str: str):
             }
             tf = tf_map.get(timeframe_str, mt5.TIMEFRAME_H1)
             
-            # Puxar 200 velas do timeframe configurado
-            rates = mt5.copy_rates_from_pos(symbol, tf, 0, 200)
+            # Puxar 200 velas FECHADAS do timeframe configurado (pos 1 = ignora a
+            # vela em formacao). Com pos 0 os setups/EMA9 eram avaliados a cada
+            # segundo sobre um candle que ainda muda: sinais falsos, ordens
+            # canceladas e stops apertados por ruido intrabar. O modo estudo
+            # mantem a vela atual porque verifica SL/alvo virtuais nela.
+            start_pos = 0 if data.get("action") == "study" else 1
+            rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, 200)
             if rates is None or len(rates) == 0:
                 sys.stdout.write(json.dumps({"error": f"Sem dados históricos (candles) para {symbol}", "symbol": symbol}) + '\n')
                 sys.stdout.flush()

@@ -28,6 +28,7 @@
 - `arquitetura/maestro-golang.md` — Supervisor (fora do caminho da ordem)
 - `arquitetura/cebro-python.md` — Motor multi-setup, hydration, scoring
 - `arquitetura/fases.md` — Fase 1 Infra / Fase 2 Multi-Setup / Fase 3 Maestro
+- `arquitetura/auditoria-lucro-execucao.md` — Bugs de execucao que impediam lucro (v2.9.1)
 - `arquitetura/estado-atual-codigo.md` — O que já existe no strategy.py/indicators.py/config.py
 
 ### Fontes

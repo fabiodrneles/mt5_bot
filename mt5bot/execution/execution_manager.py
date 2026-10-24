@@ -6,6 +6,7 @@ from mt5bot.risk import risk_calculator
 from mt5bot.data import tracker
 from mt5bot.engine.strategy import StrategyScorer
 from mt5bot.engine.indicators import check_mtf_trend, check_rvol_filter
+from mt5bot.mentorship.supervisor import AdaptiveSupervisor
 
 
 def _is_bot_position(position) -> bool:
@@ -48,15 +49,33 @@ def _register_external_position(symbol, position):
 
 def _find_exit_price(position_ticket, symbol):
     """Busca o preco de saida real da posicao no historico de deals do MT5."""
+    return _find_exit_deal(position_ticket, symbol)[0]
+
+
+def _find_exit_deal(position_ticket, symbol):
+    """Retorna (preco_saida, lucro_real, teve_deals) a partir dos deals do MT5.
+
+    lucro_real soma profit + comissao + swap de todos os deals da posicao
+    (inclui parciais): e o que de fato entrou/saiu da conta.
+    teve_deals=False indica que a ordem nunca foi executada (pendente cancelada).
+    """
     try:
         deals = mt5.history_deals_get(position=position_ticket)
         if deals:
+            exit_price = None
             for d in reversed(deals):
                 if getattr(d, "entry", None) == getattr(mt5, "DEAL_ENTRY_OUT", 1):
-                    return float(d.price)
+                    exit_price = float(d.price)
+                    break
+            profit = None
+            if exit_price is not None:
+                profit = sum(float(getattr(d, "profit", 0.0) or 0.0)
+                             + float(getattr(d, "commission", 0.0) or 0.0)
+                             + float(getattr(d, "swap", 0.0) or 0.0) for d in deals)
+            return exit_price, profit, True
     except Exception as e:
         logging.warning(f"[{symbol}] Falha ao ler historico de deals de {position_ticket}: {e}")
-    return None
+    return None, None, False
 
 
 def _reconcile_closed_trades(symbol, df=None):
@@ -73,13 +92,21 @@ def _reconcile_closed_trades(symbol, df=None):
 
     live = mt5.positions_get(symbol=symbol)
     live_tickets = {p.ticket for p in live} if live else set()
+    # Ordens pendentes tambem sao registradas como "open" no tracker: enquanto
+    # aguardam execucao nao existem em positions_get e NAO estao fechadas.
+    pending = mt5.orders_get(symbol=symbol)
+    pending_tickets = {o.ticket for o in pending} if pending else set()
 
     for trade in relevant:
         ticket = trade.get("ticket")
-        if ticket in live_tickets:
+        if ticket in live_tickets or ticket in pending_tickets:
             continue
 
-        exit_price = _find_exit_price(ticket, symbol)
+        exit_price, real_profit, had_deals = _find_exit_deal(ticket, symbol)
+        if not had_deals and trade.get("setup") != getattr(config, "EXTERNAL_POSITION_SETUP_NAME", "MANUAL"):
+            # Nunca virou posicao: ordem pendente cancelada/expirada.
+            tracker.remove_open_trade(ticket)
+            continue
         if exit_price is None and df is not None and len(df):
             exit_price = float(df['close'].iloc[-1])
             logging.warning(f"[{symbol}] Sem deal de saida para {ticket}. Usando ultimo close como referencia.")
@@ -98,7 +125,7 @@ def _reconcile_closed_trades(symbol, df=None):
 
         logging.info(f"[{symbol}] Posicao {ticket} nao esta mais aberta no MT5. Registrando saida "
                      f"({result} @ {exit_price:.5f})...")
-        tracker.record_exit(ticket, exit_price=exit_price, result=result)
+        tracker.record_exit(ticket, exit_price=exit_price, result=result, pnl_money=real_profit)
 
 
 def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
@@ -137,7 +164,7 @@ def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
         open_trades = tracker.get_open_trades()
         for t in open_trades:
             if t.get("ticket") == position.ticket:
-                setup_name = t.get("setup_type", "N/A")
+                setup_name = t.get("setup", "N/A")
                 break
         return f"🟢 IN_POSITION ({setup_name} {side})"
         
@@ -364,7 +391,24 @@ def _manage_position(symbol, position, df):
             logging.info(f"[{symbol}] Fim da sessao institucional. Liquidando posicao a mercado...")
             executor.close_full_position(position.ticket, symbol, position.type)
             return
-    
+
+    # Descobrir qual o setup (FFFD e setups de alvo proprio tem saida diferente)
+    setup_name = "N/A"
+    for t in tracker.get_open_trades():
+        if t.get("ticket") == position.ticket:
+            setup_name = t.get("setup", "N/A")
+            break
+
+    # --- 0.5 SETUPS DE ALVO PROPRIO (russian_bb, judas, GAP) ---
+    # Saem so por TP/SL no MT5, como no backtest que os validou. EMA9/trailing
+    # aqui cortariam o trade de reversao logo apos a entrada.
+    if setup_name in getattr(config, 'TARGET_EXIT_SETUPS', []):
+        return
+
+    info = mt5.symbol_info(symbol)
+    tick_size = (info.trade_tick_size if info else 0.0) or 0.01
+    tick = mt5.symbol_info_tick(symbol)
+
     # --- 1. SAIDA PARCIAL ---
     if getattr(config, 'PARTIAL_EXIT_ENABLED', True):
         deals = mt5.history_deals_get(position=position.ticket)
@@ -400,17 +444,26 @@ def _manage_position(symbol, position, df):
         atr = df['atr'].iloc[-1]
         trigger_distance = atr * getattr(config, 'BREAKEVEN_ATR_RATIO', 1.0)
         
+        # SL protegido = entrada + spread + 1 tick: cobre comissao e garante
+        # que o "empate" saia no verde (centavos), nao no vermelho.
+        spread = (tick.ask - tick.bid) if tick is not None and tick.ask and tick.bid else 0.0
+        lock = spread * getattr(config, 'BREAKEVEN_LOCK_SPREAD_MULT', 1.0) + tick_size
+
         # Verificar se ja esta no breakeven
         if is_buy:
             gain = current_close - position.price_open
-            if gain >= trigger_distance and position.sl < position.price_open:
-                logging.info(f"[{symbol}] Breakeven Ativado! Ajustando SL para {position.price_open}")
-                executor.modify_position_sl(position.ticket, symbol, position.price_open)
+            be_price = position.price_open + lock
+            price_ok = tick is None or be_price < tick.bid
+            if gain >= trigger_distance and position.sl < be_price and price_ok:
+                logging.info(f"[{symbol}] Breakeven Ativado! Ajustando SL para {be_price} (entrada {position.price_open} + trava)")
+                executor.modify_position_sl(position.ticket, symbol, be_price)
         else:
             gain = position.price_open - current_close
-            if gain >= trigger_distance and (position.sl > position.price_open or position.sl == 0.0):
-                logging.info(f"[{symbol}] Breakeven Ativado! Ajustando SL para {position.price_open}")
-                executor.modify_position_sl(position.ticket, symbol, position.price_open)
+            be_price = position.price_open - lock
+            price_ok = tick is None or be_price > tick.ask
+            if gain >= trigger_distance and (position.sl > be_price or position.sl == 0.0) and price_ok:
+                logging.info(f"[{symbol}] Breakeven Ativado! Ajustando SL para {be_price} (entrada {position.price_open} - trava)")
+                executor.modify_position_sl(position.ticket, symbol, be_price)
 
     # --- 2.5 TRAILING STOP DINAMICO (spec 5.7) ---
     # Apos o breakeven, o SL acompanha o mercado. Se o preco perder a media de
@@ -427,33 +480,31 @@ def _manage_position(symbol, position, df):
             # O resultado real sera registrado pelo _reconcile_closed_trades
             # (usa o preco do deal real do MT5) no proximo ciclo.
             executor.close_full_position(position.ticket, symbol, position.type)
+            return
         elif novo_sl is not None:
             logging.info(f"[{symbol}] Trailing {modo}: movendo SL de {position.sl} para {novo_sl}")
             executor.modify_position_sl(position.ticket, symbol, novo_sl)
 
     # --- 3. SAIDA FINAL (EMA9 VIRANDO CONTRA) ---
-    info = mt5.symbol_info(symbol)
-    tick_size = info.trade_tick_size if info else 0.01
     tick_offset = getattr(config, 'TICK_OFFSET', 1)
     offset = tick_size * tick_offset
-
-    # Descobrir qual o setup (para proteger FFFD da saida pela EMA9)
-    open_trades = tracker.get_open_trades()
-    setup_name = "N/A"
-    for t in open_trades:
-        if t.get("ticket") == position.ticket:
-            setup_name = t.get("setup", "N/A")
-            break
 
     if setup_name != "FFFD":
         if is_buy and df['ema9_down'].iloc[-1]:
             new_sl = df['low'].iloc[-1] - offset
-            if position.sl == 0.0 or new_sl > position.sl:
+            if tick is not None and tick.bid and new_sl >= tick.bid:
+                # Preco ja perdeu a minima: SL nesse nivel seria recusado pelo MT5.
+                logging.info(f"[{symbol}] EMA9 Virou Contra (Compra) e o preco ja perdeu a minima. Liquidando a mercado.")
+                executor.close_full_position(position.ticket, symbol, position.type)
+            elif position.sl == 0.0 or new_sl > position.sl:
                 logging.info(f"[{symbol}] EMA9 Virou Contra (Compra). Ajustando SL para a minima do candle: {new_sl}")
                 executor.modify_position_sl(position.ticket, symbol, new_sl)
         elif not is_buy and df['ema9_up'].iloc[-1]:
             new_sl = df['high'].iloc[-1] + offset
-            if position.sl == 0.0 or new_sl < position.sl:
+            if tick is not None and tick.ask and new_sl <= tick.ask:
+                logging.info(f"[{symbol}] EMA9 Virou Contra (Venda) e o preco ja superou a maxima. Liquidando a mercado.")
+                executor.close_full_position(position.ticket, symbol, position.type)
+            elif position.sl == 0.0 or new_sl < position.sl:
                 logging.info(f"[{symbol}] EMA9 Virou Contra (Venda). Ajustando SL para a maxima do candle: {new_sl}")
                 executor.modify_position_sl(position.ticket, symbol, new_sl)
 
@@ -464,7 +515,14 @@ def _manage_pending_order(symbol, order, df):
     """
     virou_contra = False
     is_buy = order.type == mt5.ORDER_TYPE_BUY_STOP
-    
+
+    # Setups de alvo proprio (ex.: GAP) sao contra a EMA9 por natureza.
+    for t in tracker.get_open_trades():
+        if t.get("ticket") == order.ticket:
+            if t.get("setup") in getattr(config, 'TARGET_EXIT_SETUPS', []):
+                return
+            break
+
     if is_buy and df['ema9_down'].iloc[-1]:
         virou_contra = True
     elif not is_buy and df['ema9_up'].iloc[-1]:
@@ -487,6 +545,11 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     # State global (simples) para lembrar o último candle que reportamos para não flodar o console
     if not hasattr(_scan_and_execute, "last_logged_candle"):
         _scan_and_execute.last_logged_candle = {}
+    # Ultimo candle em que uma entrada ja foi tentada: 1 entrada por candle.
+    # Sem isso, um stop/TP dentro da mesma hora fazia o bot reentrar no MESMO
+    # sinal (o scan roda a cada segundo) e repetir o prejuizo.
+    if not hasattr(_scan_and_execute, "last_traded_candle"):
+        _scan_and_execute.last_traded_candle = {}
 
     # 0. Bloqueio de Garagem (Capital Mínimo)
     # Protege contra operacoes fora da margem antes mesmo de escanear o mercado
@@ -531,8 +594,10 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     info = mt5.symbol_info(symbol)
     tick_size = info.trade_tick_size if info else 0.01
     tick_offset = getattr(config, 'TICK_OFFSET', 1)
-    valid_setups, rejection_reason = StrategyScorer.evaluate_all(df, tick_size, tick_offset, symbol=symbol)
     current_candle_time = df['time'].iloc[-1] if 'time' in df.columns else None
+    if current_candle_time is not None and _scan_and_execute.last_traded_candle.get(symbol) == current_candle_time:
+        return "🔵 AGUARDANDO PRÓXIMO CANDLE"
+    valid_setups, rejection_reason = StrategyScorer.evaluate_all(df, tick_size, tick_offset, symbol=symbol)
 
     if not valid_setups:
         # Só imprime o motivo se ainda não imprimiu para este candle exato
@@ -625,6 +690,8 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
     )
     
     if not is_safe:
+        if current_candle_time is not None:
+            _scan_and_execute.last_traded_candle[symbol] = current_candle_time
         logging.warning(f"[{symbol}] Ordem rejeitada pelo Gestor de Risco: {reason}")
         if "Spread Trap" in reason:
             tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Spread Trap", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
@@ -636,13 +703,23 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
         return "🟡 SINAL REJEITADO"
         
     # 4. Enviar Ordem
-    logging.info(f"[{symbol}] Sinal de {side} detectado (Setup {setup_name}). Enviando Ordem STOP.")
-    
-    if side == "BUY":
-        result = executor.place_buy_stop(symbol, entry_price, sl_price, volume=volume)
+    if current_candle_time is not None:
+        _scan_and_execute.last_traded_candle[symbol] = current_candle_time
+
+    # Setups de alvo proprio levam o TP para o MT5 (saida identica ao backtest).
+    order_tp = tp_price if setup_name in getattr(config, 'TARGET_EXIT_SETUPS', []) else None
+
+    if setup_name in getattr(config, 'MARKET_ENTRY_SETUPS', []):
+        logging.info(f"[{symbol}] Sinal de {side} detectado (Setup {setup_name}). Enviando Ordem A MERCADO.")
+        result = executor.place_market_order(symbol, side, sl_price, tp_price=order_tp, volume=volume,
+                                             comment=f"Setup {setup_name}")
     else:
-        result = executor.place_sell_stop(symbol, entry_price, sl_price, volume=volume)
-        
+        logging.info(f"[{symbol}] Sinal de {side} detectado (Setup {setup_name}). Enviando Ordem STOP.")
+        if side == "BUY":
+            result = executor.place_buy_stop(symbol, entry_price, sl_price, volume=volume, tp_price=order_tp)
+        else:
+            result = executor.place_sell_stop(symbol, entry_price, sl_price, volume=volume, tp_price=order_tp)
+
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
         logging.info(f"[{symbol}] Ordem colocada com sucesso. Ticket: {result.order}")
         tracker.record_entry(

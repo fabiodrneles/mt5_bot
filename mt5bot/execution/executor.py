@@ -100,13 +100,8 @@ def get_current_spread(symbol):
     return spread_points
 
 
-def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume=None):
-    """Função auxiliar centralizada para colocar ordens pendentes (BUY/SELL STOP)."""
-    symbol_info = get_symbol_info(symbol)
-    if symbol_info is None:
-        return None
-
-    # FILTRO DE SPREAD:
+def _spread_ok(symbol):
+    """FILTRO DE SPREAD: False se o spread atual excede o limite do simbolo."""
     max_spread = getattr(config, "SYMBOL_MAX_SPREAD_POINTS", {}).get(symbol, config.MAX_SPREAD_POINTS)
     if max_spread is not None:
         current_spread = get_current_spread(symbol)
@@ -115,7 +110,18 @@ def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume
                 f"[SPREAD FILTER REJECTED] Simbolo {symbol}: Spread atual ({current_spread} pts) "
                 f"excede o limite maximo de {max_spread} pontos."
             )
-            return None
+            return False
+    return True
+
+
+def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume=None, tp_price=None):
+    """Função auxiliar centralizada para colocar ordens pendentes (BUY/SELL STOP)."""
+    symbol_info = get_symbol_info(symbol)
+    if symbol_info is None:
+        return None
+
+    if not _spread_ok(symbol):
+        return None
 
     if volume is None:
         volume = config.VOLUME_INITIAL
@@ -135,15 +141,66 @@ def _place_stop_order(symbol, entry_price, sl_price, order_type, comment, volume
         "magic": config.MAGIC,
         "expiration": 0,
     }
+    if tp_price:
+        request["tp"] = _format_price(tp_price, symbol_info)
     return _send_order(request)
 
 
-def place_buy_stop(symbol, entry_price, sl_price, volume=None):
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.1 Buy Stop", volume=volume)
+def place_buy_stop(symbol, entry_price, sl_price, volume=None, tp_price=None):
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_BUY_STOP, "Setup 9.1 Buy Stop", volume=volume, tp_price=tp_price)
 
 
-def place_sell_stop(symbol, entry_price, sl_price, volume=None):
-    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.1 Sell Stop", volume=volume)
+def place_sell_stop(symbol, entry_price, sl_price, volume=None, tp_price=None):
+    return _place_stop_order(symbol, entry_price, sl_price, mt5.ORDER_TYPE_SELL_STOP, "Setup 9.1 Sell Stop", volume=volume, tp_price=tp_price)
+
+
+def place_market_order(symbol, side, sl_price, tp_price=None, volume=None, comment="Market Entry"):
+    """Abre posicao a mercado (BUY no ask / SELL no bid) com SL e TP opcionais.
+
+    Usado pelos setups cuja entrada e o preco atual (russian_bb, judas): uma
+    ordem STOP no proprio preco corrente e recusada pelo MT5 (invalid price).
+    """
+    symbol_info = get_symbol_info(symbol)
+    if symbol_info is None:
+        return None
+
+    if not _spread_ok(symbol):
+        return None
+
+    tick = mt5.symbol_info_tick(symbol)
+    if tick is None:
+        logger.error(f"Sem dados de tick para {symbol}. Impossivel abrir posicao a mercado.")
+        return None
+
+    is_buy = str(side).upper() == "BUY"
+    price = tick.ask if is_buy else tick.bid
+    # SL/TP do lado errado do preco atual seriam recusados (invalid stops):
+    # o mercado ja andou alem do nivel calculado no fechamento do candle.
+    if is_buy and (sl_price >= price or (tp_price and tp_price <= price)):
+        logger.warning(f"[{symbol}] Entrada BUY abortada: preco atual {price} fora de SL={sl_price}/TP={tp_price}.")
+        return None
+    if not is_buy and (sl_price <= price or (tp_price and tp_price >= price)):
+        logger.warning(f"[{symbol}] Entrada SELL abortada: preco atual {price} fora de SL={sl_price}/TP={tp_price}.")
+        return None
+
+    if volume is None:
+        volume = config.VOLUME_INITIAL
+
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": symbol,
+        "volume": _normalize_volume(volume, symbol_info),
+        "type": mt5.ORDER_TYPE_BUY if is_buy else mt5.ORDER_TYPE_SELL,
+        "price": _format_price(price, symbol_info),
+        "sl": _format_price(sl_price, symbol_info),
+        "deviation": 20,
+        "type_filling": _get_filling_type(symbol_info),
+        "comment": comment,
+        "magic": config.MAGIC,
+    }
+    if tp_price:
+        request["tp"] = _format_price(tp_price, symbol_info)
+    return _send_order(request)
 
 
 def place_buy_stop_92(symbol, entry_price, sl_price, volume=None):
@@ -169,6 +226,11 @@ def modify_position_sl(position_ticket, symbol, new_sl):
         "sl": _format_price(new_sl, symbol_info),
         "magic": config.MAGIC,
     }
+    # TRADE_ACTION_SLTP sem "tp" zera o take profit da posicao: preservar o atual.
+    positions = mt5.positions_get(ticket=position_ticket)
+    current_tp = getattr(positions[0], "tp", 0.0) if positions else 0.0
+    if current_tp:
+        request["tp"] = current_tp
     return _send_order(request)
 
 
