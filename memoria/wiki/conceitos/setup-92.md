@@ -4,7 +4,7 @@ Fonte: `raw/estrategias-operacionais.txt` · Status: ✅ implementado e testado 
 
 ## Regras (COMPRA)
 1. **Contexto**: MME9 apontando para cima (tendência de alta ativa).
-2. **Correção**: um candle de correção tem sua **mínima abaixo da mínima do candle anterior** (a mínima do candle anterior não é respeitada — o preço "passa" dela).
+2. **Correção**: um candle de correção **FECHA abaixo da mínima do candle anterior** (livro, p. 11; corrigido no código em 2026-10-24: antes bastava a mínima passar — ver `docs/validacao-setups.md`).
 3. **Entrada**: rompimento da **máxima** do candle de correção.
 4. **Stop**: mínima do candle de correção.
 

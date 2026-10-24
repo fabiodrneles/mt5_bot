@@ -124,13 +124,13 @@ def test_setup_rompimento_falso_buy_trigger():
 
 
 def test_setup_92_buy_trigger():
-    # Regra do livro: EMA9 ascendente + candle fecha com a minima abaixo da
-    # minima anterior (correcao rapida); entrada no rompimento da maxima do
-    # candle de correcao; stop na minima do mesmo candle.
-    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    # Regra do livro (Palex, p. 11): EMA9 ascendente + candle FECHA abaixo da
+    # minima do candle anterior (correcao rapida); entrada no rompimento da
+    # maxima do candle de correcao; stop na minima do mesmo candle.
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 108]
     highs = [c + 0.5 for c in closes]
     lows = [c - 0.5 for c in closes]
-    lows[-1] = lows[-2] - 1.0  # minima atual QUEBRA a minima anterior
+    # anterior: minima 108.5; o ultimo FECHA em 108 (abaixo de 108.5)
     df = _make_df(closes, highs, lows)
     df.loc[df.index[-1], 'ema9_up'] = True
     df.loc[df.index[-2], 'ema9_up'] = True
@@ -147,11 +147,11 @@ def test_setup_92_buy_trigger():
 
 
 def test_setup_92_sell_trigger():
-    # Simetrico: EMA9 descendente + maxima acima da maxima anterior.
-    closes = [110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100]
+    # Simetrico: EMA9 descendente + candle FECHA acima da maxima anterior.
+    closes = [110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 102]
     highs = [c + 0.5 for c in closes]
     lows = [c - 0.5 for c in closes]
-    highs[-1] = highs[-2] + 1.0  # maxima atual supera a maxima anterior
+    # anterior: maxima 101.5; o ultimo FECHA em 102 (acima de 101.5)
     df = _make_df(closes, highs, lows)
     df.loc[df.index[-1], 'ema9_down'] = True
     df.loc[df.index[-2], 'ema9_down'] = True
@@ -181,6 +181,81 @@ def test_setup_92_requires_ema9_aligned():
     setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
     names = [s["setup"] for s in setups]
     assert "9.2" not in names
+
+
+def test_setup_92_needs_the_close_not_just_the_low():
+    # So a minima passou da minima anterior; o fechamento ficou acima: nao e 9.2 (livro).
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+    highs = [c + 0.5 for c in closes]
+    lows = [c - 0.5 for c in closes]
+    lows[-1] = lows[-2] - 1.0
+    df = _make_df(closes, highs, lows)
+    df.loc[df.index[-2:], 'ema9_up'] = True
+    df.loc[df.index[-2:], 'ema9_down'] = False
+    setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
+    assert "9.2" not in [s["setup"] for s in setups]
+
+
+def _force_trend(df, n, up=True):
+    df.loc[df.index[-n:], 'ema9_up'] = up
+    df.loc[df.index[-n:], 'ema9_down'] = not up
+    return df
+
+
+def test_setup_93_buy_after_two_closes_below_reference():
+    # Livro (p. 14): referencia = maior fechamento da perna (110); depois, 2 fechamentos
+    # abaixo dele (109, 109.5: o 2o pode fechar acima do 1o) com a MME9 subindo.
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 110, 109, 109.5]
+    df = _force_trend(_make_df(closes), 4, up=True)
+    setups, _ = StrategyScorer.evaluate_all(df, tick_size=0.01, tick_offset=1)
+    s93 = next(s for s in setups if s["setup"] == "9.3")
+    assert s93["action"] == "buy"
+    assert s93["trigger_price"] == pytest.approx(df['high'].iloc[-1] + 0.01)
+    assert s93["stop_loss"] == pytest.approx(df['low'].iloc[-1])
+
+
+def test_setup_93_needs_two_closes_and_ema9_still_rising():
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 109]  # so 1 fechamento abaixo
+    df = _force_trend(_make_df(closes), 4, up=True)
+    assert "9.3" not in [s["setup"] for s in StrategyScorer.evaluate_all(df, 0.01, 1)[0]]
+    closes = [100, 101, 102, 103, 104, 105, 106, 107, 108, 110, 109, 109.5]
+    df = _force_trend(_make_df(closes), 4, up=True)
+    df.loc[df.index[-2], 'ema9_up'] = False  # a MME9 virou no meio: desconfigura
+    df.loc[df.index[-2], 'ema9_down'] = True
+    assert "9.3" not in [s["setup"] for s in StrategyScorer.evaluate_all(df, 0.01, 1)[0]]
+
+
+def test_setup_93_sell_mirror():
+    closes = [110, 109, 108, 107, 106, 105, 104, 103, 102, 100, 101, 100.5]
+    df = _force_trend(_make_df(closes), 4, up=False)
+    s93 = next(s for s in StrategyScorer.evaluate_all(df, 0.01, 1)[0] if s["setup"] == "9.3")
+    assert s93["action"] == "sell" and s93["stop_loss"] == pytest.approx(df['high'].iloc[-1])
+
+
+def _pc_df(rising=True):
+    """MM21 inclinada; o ultimo candle encosta na media e fecha do lado da tendencia."""
+    n = 60
+    base = [100 + (i * 0.5 if rising else -i * 0.5) for i in range(n)]
+    df = _make_df(base, [b + 0.4 for b in base], [b - 0.4 for b in base])
+    sma = df['sma21'].iloc[-1]
+    i = df.index[-1]
+    if rising:  # minima fura levemente a MM21, fechamento acima dela
+        df.loc[i, ['low', 'close', 'high']] = [sma - 0.2, sma + 0.3, sma + 0.6]
+    else:
+        df.loc[i, ['high', 'close', 'low']] = [sma + 0.2, sma - 0.3, sma - 0.6]
+    return df
+
+
+def test_ponto_continuo_buy_accepts_a_touch_through_the_mm21():
+    df = _pc_df(rising=True)
+    pc = next(s for s in StrategyScorer.evaluate_all(df, 0.01, 1)[0] if s["setup"] == "PC")
+    assert pc["action"] == "buy" and pc["stop_loss"] == pytest.approx(df['low'].iloc[-1])
+
+
+def test_ponto_continuo_sell_with_falling_mm21():
+    df = _pc_df(rising=False)
+    pc = next(s for s in StrategyScorer.evaluate_all(df, 0.01, 1)[0] if s["setup"] == "PC")
+    assert pc["action"] == "sell" and pc["trigger_price"] == pytest.approx(df['low'].iloc[-1] - 0.01)
 
 
 def test_all_book_setups_in_config():

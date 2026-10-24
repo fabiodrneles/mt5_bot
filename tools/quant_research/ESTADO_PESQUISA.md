@@ -28,11 +28,11 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados; m
 | # | Etapa | Estado | Saída |
 |---|---|---|---|
 | 1 | Universo: 465 símbolos negociáveis, **337** com margem ≤ 25% de $16 | ✅ | `data/universe.json` |
-| 2 | Download H1 + D1 + M15 | 🔄 em andamento (pipeline2.py) | `data/*.npy`, `data/meta2.json` |
-| 3 | Grade de 28 famílias × D1/H4/H1 (M30/M15 pendente) | ✅ parcial | `data/r2_D1.jsonl`, `r2_H4.jsonl`, `r2_H1.jsonl` |
+| 2 | Download H1 + D1 + M15 | ✅ | `data/*.npy`, `data/meta2.json` |
+| 3 | Grade de 31 famílias × D1/H4/H1/M30/M15 | ✅ | `data/r2_D1.jsonl`, `r2_H4.jsonl`, `r2_H1.jsonl` |
 | 4 | Pares (15 pares, D1) | ✅ | `data/r2_pairs.json` |
-| 5 | Critérios 1–7, sazonalidade, lead-lag | ✅ parcial | `data/a2.json` |
-| 6 | Relatório + guia cap. 14 | ✅ parcial | `RESULTADOS2.md` |
+| 5 | Critérios 1–7, sazonalidade, lead-lag | ✅ | `data/a2.json` |
+| 6 | Relatório + guia cap. 14 | ✅ | `RESULTADOS2.md` |
 
 ## Fatos já confirmados (não precisam ser refeitos)
 
@@ -50,6 +50,13 @@ Regras: o protocolo (`PROTOCOLO2.md`) foi registrado **antes** dos resultados; m
 4. **Rollover não precificável.** Depois da correção 3, sobraram 3 "padrões": comprar EURUSD/EURGBP na quinta à 0h. Com **ticks reais**, o spread do EURGBP entre 0h00 e 0h10 de quinta fica em 82–224 pts, enquanto o candle registra ~30, porque o campo spread do candle guarda o **mínimo** da hora. O bid afunda e o ask fica parado: artefato. Regra: nenhuma entrada na hora 0 do servidor em H1/H4 (`research2.simulate`, `seasonal2`). O motor real seguirá a mesma regra. Teste: `test_no_entry_in_rollover_hour`.
 
 Os resultados da primeira passada, anteriores às correções, ficaram em `data/old/` e não valem.
+
+## Resultado final (2026-10-24 19h17, pipeline completo)
+
+- **Grade: 128.076 configurações** (D1 30.098, H4 26.706, H1 52.721 em ~335 ativos; M30 9.254 e M15 9.297 em 88 ativos) → **0 aprovadas**, 27 promissoras, todas com DSR < 0,05. 2.000 levaram $16 a > $50 no OOS (733 também no IS), mas com risco de $5–38 por trade.
+- **Calendário: 136.864 células → 20 no FDR → 1 aprovada:** USDJPY, compra na segunda às 01h do servidor por 1 hora (t OOS 2,19; estabilidade 100%). Ticks: spread normal (1 pt) às 01h, então não é artefato de custo; as últimas 4 segundas deram +306, −90, −13 e −83 pts. **Candidato à faixa experimental (estudo, sem dinheiro).**
+- **Lead-lag: 45.918 → 0.** Pares: todos perdem.
+- Números atualizados no guia, cap. 14 §14.6.
 
 ## Resultados (D1/H4/H1, 133–136 ativos, após as 6 correções) — documentados no guia, cap. 14
 
