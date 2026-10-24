@@ -14,7 +14,8 @@ authors = [
 ]
 
 dependencies = [
-    "MetaTrader5>=5.0.45",
+    # A lib oficial do MT5 so publica wheels para Windows (spec 002 / D1).
+    "MetaTrader5>=5.0.45; sys_platform == 'win32'",
     "pandas>=2.0",
     "numpy>=1.24",
     "pytz>=2023.3",
@@ -32,3 +33,7 @@ mt5bot = "mt5bot.core.launcher:main"
 
 [tool.setuptools]
 packages = ["mt5bot", "mt5bot.core", "mt5bot.engine", "mt5bot.execution", "mt5bot.data", "mt5bot.risk"]
+
+[tool.pytest.ini_options]
+# So a suite de verdade: scripts soltos na raiz nao podem derrubar a coleta (spec 001 FR-2).
+testpaths = ["tests"]
