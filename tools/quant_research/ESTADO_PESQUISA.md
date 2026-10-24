@@ -104,6 +104,18 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Entrou na grade como família 31 (HORNER), para passar pelos 7 critérios em todos os ativos.
 - **No cap. 14, citar [Horner 2005]** e incluir a referência em `docs/manual/referencias.md`.
 
+### RSI2 D1 (parâmetros da rota US500, sem reotimizar) em todos os índices, simulador corrigido
+| Índice | Anos | Trades | Acerto | Total | OOS | t | Risco/trade | Margem |
+|---|---|---|---|---|---|---|---|---|
+| **US500** | 10,0 | 54 | 70% | +12,60 | +9,73 | **2,48** | $1,21 | $0,76 |
+| **US100** | 10,0 | 55 | 73% | +51,39 | +48,49 | **2,10** | $5,20 | $2,90 |
+| US30 | 13,7 | 89 | 65% | +49,99 | +71,40 | 1,14 | $7,24 | $3,14 |
+| JP225 | 10,0 | 49 | 69% | +2,72 | +3,03 | 0,81 | $0,64 | $0,40 |
+| GER40, UK100, CN50, CAD60 | — | — | — | positivos, t < 0,3 (CAD60 só 14 trades) | | | | |
+| HK50, EU50, AU200, FR40, ES35, SW20, NET25, CHShares | — | — | — | negativos | | | | |
+- 8 de 16 índices lucram no total. O efeito é **forte nos índices americanos** (US500, US100, US30), em linha com a literatura de reversão de curto prazo em ações dos EUA, e fraco ou ausente nos demais.
+- Viável com $16: só US500 (stop ~$1,21 ≈ 7,5%). US100 vira viável com ~$52 (mesmos 10% por stop); US30 com ~$72. **Plano de crescimento** proposto ao dono: US500 agora; incluir US100 e depois US30 (mesma regra, sem reotimizar) quando o saldo permitir, sempre com `/study` antes.
+
 ### Incidente: disco cheio (2026-10-24 18h12)
 O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
