@@ -74,11 +74,29 @@ func botVersion() string {
 }
 
 func readProjectVersion() string {
-	data, err := os.ReadFile(filepath.Join("..", "pyproject.toml"))
-	if err != nil {
-		return ""
+	return readVersionFrom(versionCandidates())
+}
+
+// versionCandidates: o pyproject.toml fica um nivel acima de maestro/. Procura
+// relativo a pasta atual e tambem a do executavel, para o --version funcionar
+// de qualquer pasta (#13).
+func versionCandidates() []string {
+	paths := []string{filepath.Join("..", "pyproject.toml")}
+	if exe, err := os.Executable(); err == nil {
+		paths = append(paths, filepath.Join(filepath.Dir(exe), "..", "pyproject.toml"))
 	}
-	return parseProjectVersion(string(data))
+	return paths
+}
+
+func readVersionFrom(paths []string) string {
+	for _, p := range paths {
+		if data, err := os.ReadFile(p); err == nil {
+			if v := parseProjectVersion(string(data)); v != "" {
+				return v
+			}
+		}
+	}
+	return ""
 }
 
 func parseProjectVersion(content string) string {

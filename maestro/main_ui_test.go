@@ -269,3 +269,16 @@ func TestLayoutAdaptaAoResize(t *testing.T) {
 		}
 	}
 }
+func TestReadVersionFromPulaCaminhoInexistente(t *testing.T) {
+	dir := t.TempDir()
+	good := filepath.Join(dir, "pyproject.toml")
+	if err := os.WriteFile(good, []byte("version = \"9.9.9\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := readVersionFrom([]string{filepath.Join(dir, "nao-existe.toml"), good}); got != "9.9.9" {
+		t.Fatalf("readVersionFrom=%q, esperado 9.9.9 (#13)", got)
+	}
+	if got := readVersionFrom([]string{filepath.Join(dir, "nao-existe.toml")}); got != "" {
+		t.Fatalf("sem arquivo deveria voltar vazio, veio %q", got)
+	}
+}
