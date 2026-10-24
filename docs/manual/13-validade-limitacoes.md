@@ -48,7 +48,7 @@ Reunidas dos capítulos, por gravidade para quem opera:
 | Vários simuladores | Resultados podem divergir | 12 §12.5 | Consolidar sobre o simulador de referência |
 | Uma única separação IS/OOS | Menos robusta que *walk-forward* | 8 §8.9 | *Walk-forward* ou validação purgada [López de Prado 2018] |
 | *Swap* aproximado por dias de calendário | Erra o dia da rolagem tripla | 8 §8.9 | Ler o dia de rolagem tripla do símbolo |
-| Pacote Linux/macOS via Wine | Depende da versão do Wine; terminal MT5 não testado no CI | 10 §10.6 | Testar com terminal MT5 real no Wine |
+| Pacote Linux/macOS via Wine | Exige Wine ≥ 10; verificado no CI só no Linux e sem o terminal MT5 | 10 §10.6 | Testar com terminal MT5 real no Wine |
 
 ## 13.3 Questões éticas e regulatórias
 

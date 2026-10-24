@@ -10,6 +10,7 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 - `tools/build_manual.py`: o manual em arquivo único com figuras embutidas, publicado em cada release (`MT5Bot-Guia-Tecnico-<versão>.md`).
 
 ### Corrigido
+- **Pacote Linux/macOS (Wine) verificado no CI** (#47): o Wine 9 do Ubuntu não tem `ucrtbase.crealf` (numpy) e o depurador do Wine escondia o crash atrás de um timeout; o CI usa o WineHQ 11, o smoke desliga Mono/Gecko e o depurador e mede cada etapa, e o `install.sh` recusa Wine < 10.
 - O dashboard mandava editar `mt5bot/core/config.py`; agora indica `bot.bat config --edit`.
 
 ## [3.0.0] - 2026-10-24
