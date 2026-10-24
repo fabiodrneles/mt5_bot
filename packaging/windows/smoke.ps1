@@ -17,7 +17,10 @@ function Run([string]$exe, [string[]]$argv, [int]$timeout = 180) {
     $out = Join-Path $env:TEMP ("smoke-" + [guid]::NewGuid() + ".txt")
     $p = Start-Process $exe -ArgumentList $argv -NoNewWindow -PassThru `
         -RedirectStandardOutput $out -RedirectStandardError "$out.err"
+    # Sem guardar o handle agora, o PowerShell devolve ExitCode vazio depois.
+    $null = $p.Handle
     if (-not $p.WaitForExit($timeout * 1000)) { $p.Kill(); throw "tempo esgotado: $exe $argv" }
+    $p.WaitForExit()
     $text = (Get-Content $out, "$out.err" -Raw -ErrorAction SilentlyContinue) -join "`n"
     return @($p.ExitCode, $text)
 }
