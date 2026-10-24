@@ -310,12 +310,14 @@ def page_config(lang=DEFAULT_LANG):
     for sym, r in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
         params = ", ".join(f"{k}={v}" for k, v in (r.get("params") or {}).items())
         own = f' <span class="warn">· {L["cfg_own"]} {e(r["max_risk_pct"])}%</span>' if r.get("max_risk_pct") is not None else ""
+        if f"QUANT_ROUTES.{sym}.max_risk_pct" in getattr(config, "CONFIG_SOURCES", {}):
+            own += ' <span class="pill demo">config.toml</span>'
         routes += (f'<tr><td><b>{e(sym)}</b></td><td>{e(r.get("timeframe"))}</td><td>{e(r.get("setup"))}</td>'
                    f'<td class="muted">{e(params)}{own}</td></tr>')
     classic = "".join(f"<tr><td><b>{e(a)}</b></td><td class='muted'>{e(', '.join(s))}</td></tr>"
                       for a, s in (getattr(config, "ASSET_SETUPS", {}) or {}).items())
     body = f"""
-<p class="muted" style="margin-bottom:1rem">{L["cfg_sub"]}</p>
+<p class="muted" style="margin-bottom:1rem">{L["cfg_sub"]}<br>config.toml: <code>{e(getattr(config, "USER_CONFIG_FILE", ""))}</code></p>
 <div class="grid2">
  <div class="card"><h2>{L["cfg_quant"]}</h2><table><tr><th>{L["h_symbol"]}</th><th>TF</th><th>Setup</th><th></th></tr>{routes}</table></div>
  <div class="card"><h2>{L["cfg_risk"]}</h2><dl>

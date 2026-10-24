@@ -21,8 +21,8 @@ def setup_logger():
 
     # File handler (com protecao contra permissoes)
     try:
-        logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-        os.makedirs(logs_dir, exist_ok=True)
+        from mt5bot.core import paths
+        logs_dir = paths.logs_dir()  # pasta de dados do usuario (spec 003 FR-2)
         log_file = os.path.join(logs_dir, f"bot_{datetime.now().strftime('%Y%m%d')}.log")
 
         file_handler = logging.FileHandler(log_file, encoding="utf-8")

@@ -1,6 +1,24 @@
 import json
+import os
+import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from mt5bot.core import paths  # noqa: E402
+
+def count_recent_errors(hours=24):
+    """Conta linhas ERROR/CRITICAL dos logs modificados nas ultimas `hours` horas."""
+    import glob
+    import time
+    cutoff = time.time() - hours * 3600
+    total = 0
+    for log in glob.glob(os.path.join(paths.logs_dir(), "*.log")):
+        if os.path.getmtime(log) < cutoff:
+            continue
+        with open(log, "r", encoding="utf-8", errors="replace") as f:
+            total += sum(1 for line in f if "ERROR" in line or "CRITICAL" in line)
+    return total
+
 
 def run_diagnose():
     print("="*40)
@@ -22,18 +40,9 @@ def run_diagnose():
     except Exception as e:
         print(f"MT5: Erro ({e})")
         
-    # 2. Ler ultimas 24h de logs buscando ERROR
-    log_file = Path("logs/bot.log")
-    errors = 0
-    if log_file.exists():
-        cutoff = datetime.now() - timedelta(hours=24)
-        cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M")
-        with open(log_file, "r", encoding="utf-8") as f:
-            for line in f:
-                if "ERROR" in line and cutoff_str <= line[:16]:
-                    errors += 1
-    
-    print(f"Erros nas ultimas 24h (bot.log): {errors}")
+    # 2. Erros nas ultimas 24h em todos os logs da pasta de dados
+    errors = count_recent_errors()
+    print(f"Erros nas ultimas 24h (logs em {paths.logs_dir()}): {errors}")
     
     # 3. Ler o estado atual
     state_file = Path("data/mt5bot_state.json")

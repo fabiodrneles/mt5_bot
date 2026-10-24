@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -28,7 +29,14 @@ def run_show_config():
     risco = getattr(config, 'MAX_RISK_PER_TRADE_PERCENT', 1.0)
     risco_abs = getattr(config, 'ABSOLUTE_MAX_TRADE_RISK_PERCENT', 1.5)
     risco_max = getattr(config, 'MAX_DAILY_LOSS_PERCENT', 2.0)
-    print(f"Risco por Trade: {risco}% (teto {risco_abs}%) | Max Perda Diaria: {risco_max}%")
+    src = getattr(config, "CONFIG_SOURCES", {})
+    tag = lambda key: " [config.toml]" if key in src else ""
+    print(f"Config do usuario: {getattr(config, 'USER_CONFIG_FILE', '?')}"
+          + ("" if os.path.exists(getattr(config, "USER_CONFIG_FILE", "")) else " (nao existe; usando padroes)"))
+    for erro in getattr(config, "USER_CONFIG_ERRORS", []):
+        print(f"  ! {erro}")
+    print(f"Risco por Trade: {risco}%{tag('MAX_RISK_PER_TRADE_PERCENT')} (teto {risco_abs}%)"
+          f" | Max Perda Diaria: {risco_max}%{tag('MAX_DAILY_LOSS_PERCENT')}")
 
     # Filtro ML
     ml = getattr(config, 'ML_FILTER_ENABLED', False)
@@ -50,9 +58,10 @@ def run_show_config():
         if rota.get('max_risk_pct') is not None:
             pct = float(rota['max_risk_pct'])
             em_usd = f" = ${saldo * pct / 100:.2f}" if saldo else ""
-            print(f"         limite proprio: {pct}% do saldo{em_usd}")
+            print(f"         limite proprio: {pct}% do saldo{em_usd}{tag(f'QUANT_ROUTES.{simbolo}.max_risk_pct')}")
     limite = f" = ${saldo * max_pct / 100:.2f} com saldo ${saldo:.2f}" if saldo else ""
-    print(f"  Perda max. no SL (padrao): {max_pct}% do saldo{limite} | Reserva de margem: {reserva}x")
+    print(f"  Perda max. no SL (padrao): {max_pct}% do saldo{limite}{tag('QUANT_MAX_RISK_PCT')}"
+          f" | Reserva de margem: {reserva}x{tag('QUANT_MARGIN_RESERVE_MULT')}")
 
     # Setups classicos (Maestro)
     print("-"*50)

@@ -9,19 +9,10 @@ from datetime import datetime, timezone
 
 from mt5bot.core import logger
 
-_TRADES_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot')
-if not os.path.isabs(_TRADES_FILE):
-    _TRADES_FILE = os.path.join(os.path.expanduser('~'), '.mt5bot', 'virtual_trades.json')
-    _REJECTIONS_FILE = os.path.join(os.path.expanduser('~'), '.mt5bot', 'virtual_rejections.json')
-else:
-    _REJECTIONS_FILE = os.path.join(_TRADES_FILE, 'virtual_rejections.json')
-    _TRADES_FILE = os.path.join(_TRADES_FILE, 'virtual_trades.json')
+from mt5bot.core import paths  # noqa: E402
 
-try:
-    os.makedirs(os.path.dirname(_TRADES_FILE), exist_ok=True)
-except Exception:
-    _TRADES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "virtual_trades.json")
-    _REJECTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "virtual_rejections.json")
+_TRADES_FILE = paths.data_file("virtual_trades.json")
+_REJECTIONS_FILE = paths.data_file("virtual_rejections.json")
 
 
 def _load_trades():

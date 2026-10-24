@@ -52,8 +52,8 @@ def _setup_logging(plain):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
-    os.makedirs(os.path.join(_ROOT, "logs"), exist_ok=True)
-    handlers = [logging.FileHandler(os.path.join(_ROOT, "logs", "quant_runner.log"), encoding="utf-8"),
+    from mt5bot.core import paths
+    handlers = [logging.FileHandler(os.path.join(paths.logs_dir(), "quant_runner.log"), encoding="utf-8"),
                 _EventHandler()]
     if plain:
         handlers.append(logging.StreamHandler(sys.stdout))
@@ -205,7 +205,7 @@ def render_panel(snap, now=None):
         out.append(f"   {GREY}{t}{RESET}  {color}{msg[:62]}{RESET}")
     key = lambda k: f"{_bg(238)}{WHITE}{BOLD} {k} {RESET}"
     # Sem barra invertida dentro de {} da f-string: SyntaxError no Python < 3.12.
-    panic_key, log_path = key(".\\bot.bat panic"), "logs\\quant_runner.log"
+    panic_key, log_path = key(".\\bot.bat panic"), "%APPDATA%\\mt5bot\\logs"
     out += ["", f"{GREY}{'─' * WIDTH}{RESET}",
             f" {key('Ctrl+C')} {GREY}parar{RESET}   {panic_key} {GREY}emergência{RESET}   {GREY}log: {log_path}{RESET}"]
     return "\n".join(out)

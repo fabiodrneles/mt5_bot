@@ -1,5 +1,6 @@
 import json
 import os
+from mt5bot.core import paths
 import time
 from datetime import datetime
 import pandas as pd
@@ -8,8 +9,8 @@ import MetaTrader5 as mt5
 from mt5bot.core import logger, config
 from mt5bot.engine.indicators import add_all_indicators
 
-_REJECTIONS_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot', 'virtual_rejections.json')
-_ENRICHED_FILE = os.path.join(os.path.expanduser(os.getenv('APPDATA') or os.path.join('~')), 'mt5bot', 'virtual_rejections_enriched.json')
+_REJECTIONS_FILE = paths.data_file('virtual_rejections.json')
+_ENRICHED_FILE = paths.data_file('virtual_rejections_enriched.json')
 
 def load_rejections(filepath):
     if not os.path.exists(filepath):
