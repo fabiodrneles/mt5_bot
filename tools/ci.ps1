@@ -23,6 +23,7 @@ function Step([string]$name, [scriptblock]$cmd) {
 
 Step "Lint (ruff)" { python -m ruff check . }
 Step "Testes Python (pytest)" { python -m pytest -q }
+Step "Pacote (wheel + import)" { python tools/check_wheel.py }
 
 Push-Location (Join-Path $root "maestro")
 try {
