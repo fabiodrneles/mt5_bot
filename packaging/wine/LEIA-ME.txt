@@ -1,0 +1,35 @@
+MT5Bot para Linux e macOS (EXPERIMENTAL, via Wine)
+==================================================
+
+A biblioteca oficial MetaTrader5 do Python so existe para Windows. Neste
+pacote, o MT5Bot roda inteiro dentro de um prefixo Wine, junto com o
+terminal MetaTrader 5. A plataforma principal continua sendo o Windows.
+
+Requisitos
+- Wine instalado:
+    Ubuntu/Debian: sudo apt install wine64   (ou: sudo apt install wine)
+    Fedora:        sudo dnf install wine
+    macOS:         brew install --cask wine-stable
+
+Instalacao
+    tar -xzf MT5Bot-<versao>-wine.tar.gz
+    bash install.sh              # tambem baixa e abre o instalador do MT5
+    bash install.sh --no-mt5     # so o MT5Bot
+
+Uso
+    mt5bot setup       assistente: confere o MT5, a conta e o risco
+    mt5bot quant       liga o Modo Quant
+    mt5bot dashboard   painel web (abra http://localhost:5555 no navegador)
+    mt5bot maestro     painel interativo (a interface pode variar no Wine)
+    mt5bot diagnose    diagnostico
+
+O que foi verificado
+- Linux (Ubuntu, Wine): o CI instala este pacote e cria o comando mt5bot,
+  mas a execucao do Python dentro do Wine AINDA NAO foi verificada (o teste
+  estoura o tempo; investigacao na issue #47).
+- macOS: NAO verificado automaticamente. Deve funcionar com Wine, mas teste
+  em conta DEMO antes de qualquer conta real.
+
+Variaveis opcionais
+    MT5BOT_WINEPREFIX   prefixo Wine (padrao: ~/.mt5bot-wine)
+    MT5BOT_BIN_DIR      onde criar o comando mt5bot (padrao: ~/.local/bin)

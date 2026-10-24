@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Smoke test do pacote Linux/macOS (Wine) — spec 002 FR-6.
+# Extrai o .tar.gz, roda o install.sh e executa o MT5Bot de verdade dentro do Wine.
+set -uo pipefail
+
+TAR="$(ls dist/MT5Bot-*-wine.tar.gz | head -1)"
+WORK="$(mktemp -d)"
+fail() { echo "FALHOU: $*"; exit 1; }
+ok() { echo "ok  $*"; }
+
+tar -xzf "$TAR" -C "$WORK" || fail "extrair $TAR"
+ok "pacote extraido: $(du -sh "$TAR" | cut -f1)"
+
+export MT5BOT_WINEPREFIX="$WORK/prefix" MT5BOT_BIN_DIR="$WORK/bin"
+bash "$WORK/install.sh" --no-mt5 > "$WORK/install.log" 2>&1 || { cat "$WORK/install.log"; fail "install.sh"; }
+ok "install.sh --no-mt5"
+
+export WINEPREFIX="$WORK/prefix" WINEDEBUG=-all
+APP="$WORK/prefix/drive_c/MT5Bot"
+[ -f "$APP/python/python.exe" ] && [ -f "$APP/maestro/maestro.exe" ] && [ -x "$WORK/bin/mt5bot" ] || fail "arquivos instalados"
+ok "MT5Bot copiado para o prefixo e comando mt5bot criado"
+
+IMPORT_ALL="import importlib,pkgutil,mt5bot,interfaces,xgboost,pandas,MetaTrader5; n=[m.name for p in (mt5bot,interfaces) for m in pkgutil.walk_packages(p.__path__,p.__name__+'.')]; [importlib.import_module(x) for x in n]; print(len(n),'modulos ok')"
+out="$(cd "$APP" && timeout 600 wine python/python.exe -c "$IMPORT_ALL" 2>&1)"
+echo "$out" | grep -q "modulos ok" || { echo "$out" | tail -20; fail "Python embutido no Wine importa todos os modulos"; }
+ok "Python embutido no Wine: $(echo "$out" | grep 'modulos ok' | tr -d '\r')"
+
+out="$(cd "$APP" && timeout 600 wine python/python.exe 'C:\MT5Bot\tools\quant_runner.py' --once --plain 2>&1)"
+echo "$out" | grep -Eq "Traceback|ImportError|ModuleNotFoundError" && { echo "$out" | tail -20; fail "Modo Quant sem erro de importacao"; }
+echo "$out" | grep -Eq "Falha ao conectar no MT5|Quant runner conectado" || { echo "$out" | tail -20; fail "Modo Quant responde"; }
+ok "Modo Quant roda no Wine (sem terminal MT5: explica e sai)"
+
+out="$(timeout 600 "$WORK/bin/mt5bot" config 2>&1)"
+echo "$out" | grep -q "ROTAS QUANT" || { echo "$out" | tail -20; fail "mt5bot config"; }
+ok "comando mt5bot -> bot.bat no Wine"
+
+out="$(cd "$APP" && timeout 120 wine maestro/maestro.exe --version 2>&1)"
+echo "$out" | grep -q "MT5Bot v" || { echo "$out"; fail "Maestro no Wine"; }
+ok "Maestro no Wine: $(echo "$out" | tr -d '\r')"
+
+echo "Smoke Wine: tudo verde."

@@ -51,5 +51,33 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mt5bot-windows-installer
-          path: dist/MT5Bot-Setup-*.exe
+          path: |
+            dist/MT5Bot-Setup-*.exe
+            dist/MT5Bot-*-wine.tar.gz
           if-no-files-found: error
+
+  wine:
+    name: Smoke Linux (Wine, experimental)
+    needs: installer
+    runs-on: ubuntu-latest
+    # Experimental e ainda nao verificado: o import no Wine estoura o tempo (issue #47).
+    # Roda e reporta, mas nao bloqueia o merge/release ate a investigacao.
+    continue-on-error: true
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mt5bot-windows-installer
+          path: dist
+
+      - name: Install Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends wine64 wine xvfb
+
+      - name: Smoke test (install.sh, Python, Quant, bot.bat, Maestro)
+        run: xvfb-run -a bash packaging/wine/smoke.sh
+

@@ -7,7 +7,8 @@
   2. Instala as dependencias de runtime dentro dele (wheels win_amd64).
   3. Compila o Maestro (Go).
   4. Copia so os arquivos versionados no git (nada de lixo local).
-  5. Compila o instalador com o Inno Setup (ISCC).
+  5. Gera o pacote Linux/macOS via Wine (MT5Bot-<versao>-wine.tar.gz).
+  6. Compila o instalador com o Inno Setup (ISCC).
 
   Uso:  powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
   Saida: dist\MT5Bot-Setup-<versao>.exe
@@ -66,7 +67,14 @@ foreach ($f in $files) {
     Copy-Item $f $dest
 }
 
-# 5) Inno Setup -------------------------------------------------------------------------
+# 5) Pacote Linux/macOS (Wine, experimental) ------------------------------------------
+New-Item -ItemType Directory -Force $OutDir | Out-Null
+$wineTar = Join-Path (Resolve-Path $OutDir) "MT5Bot-$version-wine.tar.gz"
+tar -czf $wineTar -C (Split-Path $stage) MT5Bot -C (Join-Path $root "packaging\wine") install.sh LEIA-ME.txt
+if ($LASTEXITCODE -ne 0) { throw "tar falhou" }
+Write-Host "OK: $wineTar" -ForegroundColor Green
+
+# 6) Inno Setup -------------------------------------------------------------------------
 $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") |
     Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $iscc) { throw "Inno Setup 6 nao encontrado (instale: choco install innosetup)" }
