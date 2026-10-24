@@ -4,6 +4,10 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-24
+
+Pesquisa ampla de padrões (128 mil configurações, seis artefatos de dados da corretora), diário de sinais, rotas quant em modo estudo (US100 D1 e USDJPY H1), setups clássicos conferidos com o livro e guia técnico com o cap. 14.
+
 ### Adicionado
 - **Pesquisa ampla de padrões (rodada 3)** em `tools/quant_research/`: 28 famílias de estratégias, pares cointegrados, sazonalidade (hora × dia × data) e *lead-lag* entre ativos, sobre 337 ativos de margem baixa, com protocolo pré-registrado (`PROTOCOLO2.md`), FDR de Benjamini–Hochberg, *walk-forward*, Deflated Sharpe Ratio e Monte Carlo de ruína. Pipeline retomável (`pipeline2.py`) e estado em `ESTADO_PESQUISA.md`. Resultado: nenhuma estratégia nova aprovada; o US500 D1 RSI2 continua sendo a rota com evidência.
 - Guia técnico, cap. 14: método, matemática dos filtros, seis artefatos de dados da corretora e engenharia da pesquisa.

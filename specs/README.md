@@ -48,6 +48,6 @@ Convenções: MUST/SHOULD/MAY (RFC 2119). Prioridades: **P0** (bloqueia uso real
 | 017 | [Experiência de produto](017-experiencia-produto/spec.md) | P2 | Draft |
 | 018 | [Engenharia de qualidade avançada](018-engenharia-qualidade/spec.md) | P1 | Draft |
 
-Estado atual (2026-10-24): Fases 1, 2 e 3 concluídas (v2.13.0, v2.14.0, v3.0.0); pacote Wine verificado e guia técnico completo em v3.1.0. Fases 4–7 especificadas (specs 007–018, [ANALYSIS-v3.1](ANALYSIS-v3.1.md)); aguardam as decisões D9–D16.
+Estado atual (2026-10-24): Fases 1, 2 e 3 concluídas (v2.13.0, v2.14.0, v3.0.0); pacote Wine verificado e guia técnico completo em v3.1.0. v3.2.0: pesquisa ampla (guia cap. 14), diário de sinais e rotas em estudo. Fases 4–7 especificadas (specs 007–018, [ANALYSIS-v3.1](ANALYSIS-v3.1.md)); aguardam as decisões D9–D16.
 
 Status possíveis: `Draft` → `Approved` → `In Progress` → `Done`.
