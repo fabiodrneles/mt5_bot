@@ -25,3 +25,12 @@ Regras do simulador (`research2.simulate`): entrada paga o maior spread entre o 
 
 ## Diagnóstico de "bom demais"
 Decompor o corpo ($C_t - O_t$) e o gap ($O_t - C_{t-1}$): se um desfaz o outro, a abertura é falsa. Testar se o efeito aparece em todos os dias ou horários (artefato) ou só em um (candidato). Confirmar com M1 e ticks bid/ask.
+
+## Regra da MME9 do dono (guia cap. 14 §14.8)
+Cinco versões testadas (alvo 2×; stop na máxima/mínima + volume/tendência/multi-tempo; "máquina do tempo" com 19.286 regras; reversão após tendência forte, k-NN e regime; "algum lucro" e ângulo do relógio/Raghee Horner). Nenhuma lucra fora da amostra. 55–65% dos sinais passam pelo lucro antes do stop, mas nenhuma saída fixada antes embolsa isso. Sinais citados pelo dono: o "ruim" teve a maior tendência medida e também ganhou. Ferramentas `check_*.py` em `tools/quant_research/`.
+
+## RSI2 nos índices e rota US100 em estudo (§14.9)
+Mesma regra do US500, sem reotimizar: US500 t 2,48; US100 t 2,10 (+$51 em 10 anos, risco $5,20); US30 t 1,14; demais fracos ou negativos. `config.QUANT_ROUTES["US100"]` com `mode = "study"` (`mt5bot/execution/quant_study.py`): ordens virtuais em `quant_study.json`; ativa com `[routes.US100] mode = "live"`. Plano: US100 com ~$52, US30 com ~$72.
+
+## Diário de sinais (guia cap. 9 §9.7)
+`bot.bat anotar ATIVO TF compra|venda bom|ruim "motivo" [--alvo R]` grava hora e preço na hora (recusa mercado fechado); `bot.bat diario` mede com M1 e spread e calcula a cauda binomial contra o empate 1/(1+R). Conclusão só com ≥ 30 sinais "bom" encerrados. Arquivo: `%APPDATA%\mt5bot\diario_sinais.csv`.

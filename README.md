@@ -43,9 +43,10 @@ Faz gestão de risco rígida, usa estratégias validadas fora da amostra e respe
 13. [Backtest e pesquisa de estratégias](#-backtest-e-pesquisa-de-estratégias)
 14. [Machine Learning (XGBoost)](#-machine-learning-xgboost)
 15. [Notificações no Telegram](#-notificações-no-telegram)
-16. [Arquitetura](#️-arquitetura)
-17. [Solução de problemas](#-solução-de-problemas)
-18. [Desenvolvimento](#-desenvolvimento)
+16. [Diário de sinais: teste o seu olho](#-diário-de-sinais-teste-o-seu-olho)
+17. [Arquitetura](#️-arquitetura)
+18. [Solução de problemas](#-solução-de-problemas)
+19. [Desenvolvimento](#-desenvolvimento)
 
 ---
 
@@ -230,6 +231,10 @@ O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado h�
 
 **Quer liberar o US500 com saldo pequeno?** Dê à rota um limite próprio em `config.py`, por exemplo `"US500": {..., "max_risk_pct": 12.0}`. Com $16, cada stop custa ~$1,63 (10% da conta). A pior queda histórica foi de $3,04, com cerca de 6 trades por ano. Nesta instalação o US500 já vem **liberado com 12%**. Para voltar a travá-lo, apague o `"max_risk_pct"` da rota.
 
+**Revisão de outubro de 2026 (pesquisa ampla, guia cap. 14).** Com o simulador corrigido (spread do rollover, abertura de pregão e swap triplo), o **US500 RSI2 se manteve**: +$9,73 fora da amostra, t 2,48 em 10 anos. O **HK50 PULLB encolheu** para cerca de +$3 fora da amostra (t ≈ 0,7), porque parte do lucro antigo vinha de custos subestimados. A mesma regra RSI2, **sem mudar nenhum parâmetro**, também lucrou no **US100** (55 trades, t 2,10) e no US30, ou seja, o efeito é consistente nos índices americanos.
+
+**Rota US100 em estudo (📘).** O US100 RSI2 está configurado em **modo estudo**: o robô calcula os sinais, as entradas e as saídas exatamente como faria ao vivo, mas **não envia nenhuma ordem**. As operações virtuais ficam em `%APPDATA%\mt5bot\quant_study.json`. Motivo: cada stop do US100 custa ~$5,20 no lote mínimo (um terço de $16). Com saldo de ~$52 (10% por stop), dá para operar de verdade com `[routes.US100]` e `mode = "live"` no `config.toml`.
+
 **Expectativa honesta:** é lucro de **centavos por trade**. No HK50, a média histórica é de +$0,036 por operação, cerca de 13% ao ano sobre $16, com quedas de até ~$4 no caminho. Houve anos negativos (2024: −$1,48). Só dá para tirar conclusão depois de dezenas de trades reais.
 
 ### Travas de margem do Modo Quant
@@ -362,7 +367,7 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | Comando | O que faz |
 |---|---|
 | `bot.bat setup` | **Assistente:** confere o MT5, a conta (REAL/DEMO) e o risco de cada rota; libera a conta REAL |
-| `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1) |
+| `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1 ao vivo; US100 D1 em estudo, sem ordens) |
 | `bot.bat dashboard` | **Abre o dashboard web ao vivo** no navegador |
 | `bot.bat diagnose` | Conexão com o MT5, saldo, margem e erros do `bot.log` nas últimas 24h |
 | `bot.bat market` | Preço, spread, valor do tick e margem dos ativos configurados |
@@ -378,6 +383,8 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | `bot.bat ci` | Roda localmente os mesmos passos do CI (lint, testes, pacote e Maestro) |
 | `bot.bat build` | Compila o Maestro (`maestro\maestro.exe`) |
 | `bot.bat panic` | 🚨 **Fecha a mercado todas as posições do robô** (as manuais ficam) |
+| `bot.bat anotar ...` | **Diário de sinais:** anota um sinal *antes* do resultado (veja a seção própria) |
+| `bot.bat diario` | Mede os sinais anotados e diz se o seu olho tem vantagem estatística |
 
 Para ver o log do Modo Quant: `Get-Content $env:APPDATA\mt5bot\logs\quant_runner.log -Tail 20`
 
@@ -432,6 +439,8 @@ MAGIC = 20260731                   # identifica as ordens do robo no MT5
 | `%APPDATA%\mt5bot\trades.json` | Histórico de trades (entradas, saídas, lucro real com comissão e swap) |
 | `%APPDATA%\mt5bot\virtual_rejections.json` | Sinais rejeitados (risco, spread, IA), usados pelo Otimizador |
 | `%APPDATA%\mt5bot\config.toml` | Sua configuração (opcional), sobre os padrões do `config.py` |
+| `%APPDATA%\mt5bot\diario_sinais.csv` | Diário de sinais (abre no Excel; separador `;`) |
+| `%APPDATA%\mt5bot\quant_study.json` | Operações virtuais das rotas em estudo (ex.: US100) |
 | `%APPDATA%\mt5bot\logs\quant_runner.log` | Log do Modo Quant |
 | `%APPDATA%\mt5bot\logs\bot_AAAAMMDD.log` | Logs do Maestro/Cérebro |
 
@@ -466,6 +475,17 @@ python analyze.py r_all.json                                            # robust
 python deep.py                                                          # ano a ano + spread 1,5x
 ```
 
+**Pesquisa ampla (rodada 3):** 337 ativos de margem baixa, 31 famílias de estratégias, sazonalidade de horário/dia/data, *lead-lag* entre ativos e pares, com protocolo pré-registrado, FDR, *walk-forward*, Deflated Sharpe e Monte Carlo de ruína. Roda sozinha e retoma de onde parou:
+
+```powershell
+cd tools\quant_research
+python pipeline2.py              # tudo; veja ESTADO_PESQUISA.md e RESULTADOS2.md
+python check_ema9_filters.py US500 M15 2026-10-23   # testa a regra da MME9 num dia e no histórico
+python check_horner.py GBPUSD H1                    # onda MME34 + ângulo do relógio (Raghee Horner)
+```
+
+Se o download parar por falta de disco: feche o MT5, rode `python clean_mt5_cache.py` e reabra. Método e resultados: guia técnico, cap. 14.
+
 Antes de mudar uma rota, exija: lucro **nos dois períodos**, a maioria das variações da família positiva, queda máxima que caiba no seu saldo e resultado que se mantém com spread 1,5×.
 
 ---
@@ -489,6 +509,50 @@ setx TELEGRAM_BOT_TOKEN "123456789:ABC..."
 setx TELEGRAM_CHAT_ID "123456789"
 # feche e reabra o terminal
 ```
+
+---
+
+## 📓 Diário de sinais: teste o seu olho
+
+Viu um sinal no gráfico e acha que ele vai pagar? **Anote antes de saber o resultado.** O robô mede depois e, com o tempo, diz se o seu critério tem vantagem real ou se é sorte. É assim que uma leitura de gráfico vira (ou não) uma estratégia automática.
+
+### Como anotar (passo a passo)
+
+1. **Com o mercado aberto e o MT5 ligado**, assim que o candle do sinal **fechar**, abra o terminal na pasta do MT5Bot.
+2. Rode, trocando pelos seus dados:
+   ```powershell
+   bot.bat anotar US500 M15 venda bom "tendência forte (relógio 1h), volume alto, cruzou a MME9"
+   ```
+   Formato: `bot.bat anotar ATIVO TEMPO_GRÁFICO compra|venda bom|ruim "por que"`.
+   - **ATIVO:** o nome igual ao do MT5 (`US500`, `HK50`, `EURUSD`...).
+   - **TEMPO GRÁFICO:** `M1`, `M5`, `M15`, `M30`, `H1`, `H4` ou `D1`.
+   - **bom ou ruim:** a sua aposta. Anote **também os sinais que você acha ruins**: é a comparação entre os dois grupos que mostra se o seu olho separa os bons dos ruins.
+   - **Por que:** o que você viu (tendência, ângulo, volume, horário, VWAP). Isso vira a regra do robô depois.
+   - Opcional: `--alvo 1` para alvo de 1× o risco (o padrão é 2×).
+   - Sem argumentos (`bot.bat anotar`), ele pergunta tudo.
+3. O robô grava **sozinho** a hora exata e o preço de entrada do momento (ask na compra, bid na venda). O stop é a **mínima** do último candle fechado (compra) ou a **máxima** (venda), e o alvo é 2× essa distância.
+4. Veja os resultados quando quiser:
+   ```powershell
+   bot.bat diario
+   ```
+   Ele confere cada anotação com os candles de 1 minuto do MT5: bateu o alvo, bateu o stop ou ainda está aberta. Depois de 5 dias sem decisão, a anotação expira pelo preço do momento.
+
+### Regras para o teste valer
+
+- **Nunca anote depois de ver o resultado.** O sistema grava a hora, e anotar com o preço já andando estraga a medição. Com o mercado fechado, ele recusa a anotação.
+- **Anote todos os sinais que você notou**, não só os que "parecem bons". Escolher só os melhores depois é o viés que o diário existe para evitar.
+- **Não apague anotações ruins.** O arquivo `%APPDATA%\mt5bot\diario_sinais.csv` pode ser aberto no Excel, mas não edite os resultados.
+- **Tenha paciência:** com menos de 30 sinais "bom" encerrados, a sorte explica quase qualquer resultado. O `bot.bat diario` avisa quando há amostra suficiente.
+
+### Como ler o resultado
+
+```
+Sinais 'bom': 34 encerrados, acerto 47% (empate exige 33%), resultado $+0.85, chance de ser sorte 3%
+Sinais 'ruim': 21 encerrados, acerto 24% (empate exige 33%), resultado $-0.40, chance de ser sorte 84%
+```
+
+- **Empate exige:** o acerto mínimo para não perder, dado o alvo (alvo 2× → 33%; alvo 1× → 50%).
+- **Chance de ser sorte:** a probabilidade de acertar tanto por acaso (teste binomial). **Abaixo de 5%** com resultado positivo, o seu olho mostra vantagem, e o próximo passo é transformar o seu "por que" em regra de robô e testá-la no histórico com `tools/quant_research`.
 
 ---
 

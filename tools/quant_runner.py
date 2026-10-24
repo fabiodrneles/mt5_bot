@@ -28,7 +28,7 @@ import pandas as pd
 
 from mt5bot.core import config, telemetry
 from mt5bot.data import tracker
-from mt5bot.execution import execution_manager
+from mt5bot.execution import execution_manager, quant_manager
 
 TF_MAP = {"M15": mt5.TIMEFRAME_M15, "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4, "D1": mt5.TIMEFRAME_D1}
 TF_SECS = telemetry.TF_SECONDS
@@ -106,7 +106,8 @@ def collect_snapshot(states, cache_info):
                                "state": states.get(symbol, "…"),
                                "next_close": telemetry.next_close_text(forming, TF_SECS[route["timeframe"]],
                                                                        int(getattr(tick, "time", 0) or 0), now),
-                               "risk": risk, "limit": limit})
+                               "risk": risk, "limit": limit,
+                               "study": quant_manager.is_study_route(route)})
         snap["positions"] += [p for p in telemetry.bot_positions(symbol) if p["setup"] == route["setup"]]
     return snap
 
@@ -178,7 +179,9 @@ def render_panel(snap, now=None):
     for i, r in enumerate(snap["routes"]):
         color = ROUTE_COLORS[i % len(ROUTE_COLORS)]
         name = f"{color}{BOLD}{r['symbol']}{RESET} {GREY}{r['tf']} {r['setup']}{RESET}"
-        if r["risk"] is None:
+        if r.get("study"):
+            risk = f"{GREY}📘 estudo (sem dinheiro){RESET}"
+        elif r["risk"] is None:
             risk = f"{GREY}—{RESET}"
         elif r["risk"] <= r["limit"]:
             risk = f"{GREEN}✓ ${r['risk']:.2f}{RESET} {GREY}/ ${r['limit']:.2f}{RESET}"

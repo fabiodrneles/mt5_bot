@@ -22,6 +22,7 @@
 - **[Gatev, Goetzmann & Rouwenhorst 2006]** GATEV, E.; GOETZMANN, W. N.; ROUWENHORST, K. G. Pairs Trading: Performance of a Relative-Value Arbitrage Rule. *The Review of Financial Studies*, v. 19, n. 3, p. 797–827, 2006.
 - **[Granville 1963]** GRANVILLE, J. E. *Granville's New Key to Stock Market Profits*. Englewood Cliffs: Prentice-Hall, 1963.
 - **[Harris 2003]** HARRIS, L. *Trading and Exchanges: Market Microstructure for Practitioners*. New York: Oxford University Press, 2003.
+- **[Horner 2005]** HORNER, R. *Forex Trading for Maximum Profit: The Best Kept Secrets of the World's Biggest Market*. Hoboken: Wiley, 2005.
 - **[Jegadeesh & Titman 1993]** JEGADEESH, N.; TITMAN, S. Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency. *The Journal of Finance*, v. 48, n. 1, p. 65–91, 1993.
 - **[Kahneman & Tversky 1979]** KAHNEMAN, D.; TVERSKY, A. Prospect Theory: An Analysis of Decision under Risk. *Econometrica*, v. 47, n. 2, p. 263–291, 1979.
 - **[Kaufman 2013]** KAUFMAN, P. J. *Trading Systems and Methods*. 5. ed. Hoboken: Wiley, 2013.
@@ -47,6 +48,7 @@
 - **[Efron & Tibshirani 1993]** EFRON, B.; TIBSHIRANI, R. J. *An Introduction to the Bootstrap*. New York: Chapman & Hall, 1993.
 - **[Engle & Granger 1987]** ENGLE, R. F.; GRANGER, C. W. J. Co-Integration and Error Correction: Representation, Estimation, and Testing. *Econometrica*, v. 55, n. 2, p. 251–276, 1987.
 - **[Feller 1968]** FELLER, W. *An Introduction to Probability Theory and Its Applications*. v. 1. 3. ed. New York: Wiley, 1968.
+- **[Fischhoff 1975]** FISCHHOFF, B. Hindsight ≠ Foresight: The Effect of Outcome Knowledge on Judgment Under Uncertainty. *Journal of Experimental Psychology: Human Perception and Performance*, v. 1, n. 3, p. 288–299, 1975.
 - **[Friedman 2001]** FRIEDMAN, J. H. Greedy Function Approximation: A Gradient Boosting Machine. *The Annals of Statistics*, v. 29, n. 5, p. 1189–1232, 2001.
 - **[Grinsztajn et al. 2022]** GRINSZTAJN, L.; OYALLON, E.; VAROQUAUX, G. Why Do Tree-Based Models Still Outperform Deep Learning on Typical Tabular Data? In: *Advances in Neural Information Processing Systems 35 (Datasets and Benchmarks Track)*. 2022.
 - **[Harvey, Liu & Zhu 2016]** HARVEY, C. R.; LIU, Y.; ZHU, H. … and the Cross-Section of Expected Returns. *The Review of Financial Studies*, v. 29, n. 1, p. 5–68, 2016.

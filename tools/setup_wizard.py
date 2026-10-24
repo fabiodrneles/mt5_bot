@@ -41,7 +41,8 @@ def check_environment():
     report["account"] = acc
     balance = (acc or {}).get("balance", 0.0)
     for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
-        row = {"symbol": symbol, "tf": route["timeframe"], "setup": route["setup"], "risk": None, "limit": None}
+        row = {"symbol": symbol, "tf": route["timeframe"], "setup": route["setup"], "risk": None, "limit": None,
+               "study": str(route.get("mode", "live")).lower() == "study"}
         if not mt5.symbol_select(symbol, True):
             report["problems"].append(
                 f"O ativo {symbol} nao esta disponivel na sua corretora/Observacao do Mercado.")
@@ -65,7 +66,9 @@ def render(report):
         out.append("Rotas validadas e o risco de cada trade no seu saldo:")
     for r in report["routes"]:
         name = f"{r['symbol']} {r['tf']} {r['setup']}"
-        if r["risk"] is None:
+        if r.get("study"):
+            out.append(f"  - {name}: ESTUDO -> simula as entradas e saidas sem enviar ordens (nao usa dinheiro)")
+        elif r["risk"] is None:
             out.append(f"  - {name}: sem dados agora")
         elif r["risk"] <= r["limit"]:
             out.append(f"  - {name}: perde ate ${r['risk']:.2f} por trade (limite ${r['limit']:.2f}) -> OPERA")

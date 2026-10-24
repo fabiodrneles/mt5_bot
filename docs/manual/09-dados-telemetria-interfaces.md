@@ -93,6 +93,37 @@ Calculada sobre a curva de resultado acumulado: $DD = \max_t (\max_{s \le t} E_s
 - **Estados vazios que ensinam:** sem robôs, o Maestro mostra os comandos para começar; sem trades, o dashboard explica quando a curva aparece.
 - **Dados honestos:** valores em US$ a partir do lucro real dos *deals*, e não em pips, que não somam entre ativos diferentes [Tufte 2001].
 
-## 9.7 Referencial teórico
+## 9.7 Diário de sinais: medir a leitura humana sem viés de retrospectiva
 
-[Nielsen 1994] heurísticas de usabilidade; [Tufte 2001] exibição de informação quantitativa; [Kleppmann 2017] armazenamento e fontes da verdade.
+O diário (`bot.bat anotar` e `bot.bat diario`) nasceu de uma pergunta do dono durante a pesquisa do cap. 14: *"o meu olho vê as operações que pagam; por que o robô não vê?"*. A resposta honesta exige medir o olho humano com o mesmo rigor das estratégias. O obstáculo é o **viés de retrospectiva** [Fischhoff 1975]: depois de ver o resultado, o sinal vencedor parece óbvio e os perdedores desaparecem da memória.
+
+**Desenho.** O operador anota o sinal **antes** do resultado. O sistema grava, sem intervenção, a hora e o preço executável do momento (ask na compra, bid na venda). Anotar um sinal passado é impossível, e a anotação é recusada com o mercado fechado (cotação com mais de 10 minutos). Stop e alvo seguem a regra do dono: stop na mínima (compra) ou máxima (venda) do último candle fechado, alvo de $R$ vezes o risco ($R = 2$ por padrão). Cada anotação traz também a avaliação ("bom" ou "ruim") e o motivo em texto livre.
+
+**Medição.** `bot.bat diario` percorre os candles de 1 minuto posteriores à anotação. O stop e o alvo da venda são executados no ask (bid + spread), e no mesmo candle o stop vem primeiro. O resultado em US$ vem de `order_calc_profit` no lote mínimo. Sem decisão em 5 dias, a anotação expira pelo preço do momento.
+
+**Estatística.** Com alvo $R$, o acerto de empate sem custos é $p_0 = 1/(1+R)$. Para $k$ acertos em $n$ sinais "bom", a chance de um resultado igual ou melhor só por sorte é a cauda binomial
+
+$$P(X \ge k) = \sum_{i=k}^{n} \binom{n}{i} p_0^{\,i} (1-p_0)^{n-i}.$$
+
+O relatório só sugere transformar o critério em robô quando $P < 5\%$, o resultado é positivo e $n \ge 30$. Os sinais "ruim" servem de grupo de controle: um olho com vantagem separa os dois grupos.
+
+```python
+# Listagem 9.1 — mt5bot/data/signal_journal.py
+def binom_tail(k, n, p):
+...
+return sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k, n + 1))
+```
+
+**Engenharia.** A lógica é pura (`mt5bot/data/signal_journal.py`) e testada sem MT5 (`tests/test_signal_journal.py`): regra do stop, execução da venda no ask, stop antes do alvo, gravação atômica do CSV (arquivo temporário + `os.replace`) e a cauda binomial. O acesso ao MT5 fica numa casca fina (`tools/signal_journal.py`), no mesmo padrão "núcleo funcional, casca imperativa" do cap. 12.
+
+**Uso correto (para o operador):**
+
+1. Com o mercado aberto, logo após o fechamento do candle do sinal: `bot.bat anotar US500 M15 venda bom "tendência às 1h no relógio, volume alto"`.
+2. Anote também os sinais que parecem ruins, e não apague anotações.
+3. Consulte com `bot.bat diario`. Antes de 30 sinais "bom" encerrados, não conclua nada.
+
+O passo a passo completo está no README, na seção "Diário de sinais".
+
+## 9.8 Referencial teórico
+
+[Fischhoff 1975] viés de retrospectiva; [Nielsen 1994] heurísticas de usabilidade; [Tufte 2001] exibição de informação quantitativa; [Kleppmann 2017] armazenamento e fontes da verdade.

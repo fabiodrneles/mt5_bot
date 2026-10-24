@@ -179,6 +179,12 @@ QUANT_ROUTES = {
     "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
                                                               "long_only": False, "max_bars": 15},
               "max_risk_pct": 12.0},
+    # Em ESTUDO (cap. 14 do guia): a mesma regra RSI2 da US500, sem reotimizar, lucrou no US100 em 10 anos
+    # (55 trades, t 2,10), mas cada stop custa ~$5 no lote minimo. Roda com ordens VIRTUAIS ate o saldo
+    # comportar (~$52 para 10% por stop). Para operar de verdade: [routes.US100] mode = "live" no config.toml.
+    "US100": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
+                                                              "long_only": False, "max_bars": 15},
+              "max_risk_pct": 12.0, "mode": "study"},
 }
 # Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
 # ignorado para preservar margem para as proximas tentativas. Com $16 o US500

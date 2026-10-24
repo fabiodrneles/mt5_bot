@@ -29,7 +29,7 @@ Com US$ 16, um stop de 1 ATR diário num par de forex principal custa um terço 
 - **Timeframes:** H1 (até 30.000 candles), H4 (reamostrado do H1) e D1 (até 4.000 candles).
 - **Volume:** volume de ticks do MT5 (não há volume real em CFDs e forex de balcão). É uma aproximação de atividade, não de fluxo de ordens.
 
-### Biblioteca de regras (29 famílias)
+### Biblioteca de regras (28 famílias + 3 propostas pelo dono)
 
 | Grupo | Famílias | Ideia testada | Referência |
 |---|---|---|---|
@@ -39,6 +39,7 @@ Com US$ 16, um stop de 1 ATR diário num par de forex principal custa um terço 
 | Volume e fluxo | Pico de volume (capitulação), rompimento com volume, OBV + IFR2, VWAP intradiário, faixa de abertura (ORB) | Atividade anormal antecede movimento | [Granville 1963] |
 | Calendário | Virada do mês, dia da semana, hora do dia | Sazonalidades | [French 1980; Ariel 1987] |
 | Estatística entre ativos | Pares cointegrados (z-score do spread log); *lead-lag* (A antecipa B) | Relações de equilíbrio e difusão de informação | [Engle & Granger 1987; Gatev, Goetzmann & Rouwenhorst 2006] |
+| Propostas pelo dono (seção 14.8) | EMA9X (cruzamento da MME9, risco = candle), EMA9REV (reversão após tendência forte), HORNER (onda da MME34 com ângulo) | Leitura visual de gráfico transformada em regra | [Horner 2005] |
 
 Cada família tem de 2 a 12 variações de parâmetro. As regras de reversão rápida também rodam na versão intradiária (`_I`, fecha no fim do dia) no H1. A implementação é `tools/quant_research/research2.py` (grade), `pairs2.py` (pares), `seasonal2.py` (horário e data) e `leadlag2.py` (cruzamentos).
 
@@ -93,7 +94,7 @@ if pause[e]:
 entry = max(o[e], c[e - 1]) if dr > 0 else min(o[e], c[e - 1])
 ```
 
-O simulador reproduz a pesquisa anterior antes das correções (HK50 H4 PULLB: 277 trades e +US$ 9,93 contra +US$ 9,96 publicados; US500 D1 RSI2: 54 trades e +US$ 13,18 contra +US$ 13,19), o que valida a reimplementação. Os testes em `tests/test_research2.py` fixam as regras: rolagem tripla, stop antes do alvo, saída no *gap*, spread do rollover, entrada depois de pausa, nenhuma entrada na hora do rollover e **ausência de *look-ahead***. Este último altera o futuro de uma série sintética e exige que os sinais do passado não mudem, em todas as 28 famílias.
+O simulador reproduz a pesquisa anterior antes das correções (HK50 H4 PULLB: 277 trades e +US$ 9,93 contra +US$ 9,96 publicados; US500 D1 RSI2: 54 trades e +US$ 13,18 contra +US$ 13,19), o que valida a reimplementação. Os testes em `tests/test_research2.py` fixam as regras: rolagem tripla, stop antes do alvo, saída no *gap*, spread do rollover, entrada depois de pausa, nenhuma entrada na hora do rollover e **ausência de *look-ahead***. Este último altera o futuro de uma série sintética e exige que os sinais do passado não mudem, em todas as famílias.
 
 ## 14.4 Artefatos de dados: quando o lucro é um defeito
 
@@ -168,7 +169,7 @@ Os sobreviventes do FDR no IS ainda precisam de t ≥ 2 e lucro no OOS, lucro em
 
 > Números da execução de 2026-10-24 com 133–136 ativos em D1/H4/H1, depois das seis correções da seção 14.4. O relatório completo e atualizável é `tools/quant_research/RESULTADOS2.md` (gerado por `report2.py`). A extensão para M15 e M30 está em execução e, quando terminar, atualiza esse relatório.
 
-### Funil da grade de 28 famílias
+### Funil da grade (28 famílias da biblioteca; as 3 do dono entram na rodada com M15/M30)
 
 | TF | Ativos | Configurações | Células (ativo × família) | 1: OOS forte | 1+2: IS também | 1–3: família robusta | 1–7 |
 |---|---|---|---|---|---|---|---|
@@ -237,7 +238,45 @@ Antes da correção A6, o candidato "LKQCorp D1, comprar na sexta" passou nos cr
 
 Ao preparar o motor experimental, a checagem de artefatos encontrou A6: o "efeito sexta" era a abertura irreal do candle diário, presente em todos os dias da semana. **O motor não foi construído.** Hoje nenhuma estratégia está na faixa experimental. É o desfecho correto: a faixa existe para casos estatísticos de fronteira, não para defeitos de dados.
 
-## 14.8 Discussão
+## 14.8 Estudo de caso: a regra da MME9 trazida pelo dono
+
+Durante a pesquisa, o dono apresentou um trade real como contraexemplo: *US500 M15, 23/10/2026, o candle de venda fecha abaixo da MME9 e a operação paga 2 vezes o risco*. Ele questionou como tantos cálculos não tinham visto isso. O caso foi tratado como hipótese e testado em cinco versões sucessivas, cada uma incorporando um refinamento proposto por ele. É o gatilho do setup 9.1 de Larry Williams (cap. 5). As ferramentas ficaram em `tools/quant_research/` e reproduzem cada número abaixo.
+
+| Versão | Refinamento do dono | Ferramenta | Resultado (US500 M15, sinais avaliados um a um) |
+|---|---|---|---|
+| 1 | Candle fecha cruzando a MME9; alvo 2× o tamanho do candle | `check_ema9.py` | O trade citado existe e pagou +US$ 0,09. No mesmo dia houve 20 sinais e só 2 atingiram o alvo. No histórico (1.994 trades): acerto 32,9% contra 33,3% de empate, −US$ 19,09, e −US$ 7,65 mesmo sem spread |
+| 2 | Stop na máxima/mínima do candle; filtros de volume, tendência e tempos maiores (M30, H1, H4 fechados) | `check_ema9_filters.py` | 135 combinações; 10 de 130 lucram no IS e no OOS. A escolhida no IS (+US$ 4,49) dá −US$ 0,05 no OOS. Multi-tempo alinhado: acerto 32,9%, ainda abaixo do empate |
+| 3 | "Máquina do tempo": achar a combinação que seleciona só os vencedores | `signal_mining.py` | Entre 19.286 regras, 4 selecionam exatamente os 2 vencedores do dia; nos outros dias, as 4 perdem (−US$ 3,50 a −US$ 37,50). A regra aprendida nos 60% iniciais: IS +US$ 8,44 → OOS −US$ 3,68 |
+| 4 | Só reversão depois de tendência forte; lateralização percebida pela sequência de stops; "assinatura" dos vencedores | `check_reversal.py`, `check_signature.py` | 72 definições de tendência forte em 15 ativo × timeframe: nenhuma com t ≥ 2 no OOS. k-NN sobre sinais passados, pausa após stops e filtros de regime (Kaufman, Choppiness): 0 variações lucram no IS e no OOS |
+| 5 | Basta "algum lucro"; força pelo ângulo do relógio (Raghee Horner) | `check_exits.py`, `check_clock.py`, `check_horner.py` | 55–65% dos sinais chegam a ficar ≥ 1 centavo no lucro antes do stop, mas nenhuma regra de saída fixada antes embolsa isso: "1º fechamento no lucro" acerta 54%, ganha US$ 0,042 e perde US$ 0,077. Onda da MME34 com ângulo e entrada a favor [Horner 2005]: 0 variações robustas, exceto GBPUSD H1 (5 de 20 lucram nos dois períodos; t ≤ 0,8) |
+
+Três observações têm valor didático:
+
+1. **Os próprios exemplos contradizem o critério.** Nos três sinais citados como "bom" e "ruim", o "ruim" foi o que teve a maior tendência anterior medida (ADX 39; +15 ATR em 40 candles) e também ganhou. O "bom" de 16/10 estava deitado no relógio (3h). O critério visual existe, mas não coincide com as medidas objetivas testadas.
+2. **Com N regras e poucos casos, a separação perfeita é garantida.** Com 16 sinais num dia e 19 mil regras, sempre há uma combinação que isola os 2 vencedores. É combinatória, não previsão. O teste é escolher a regra sem ver o período seguinte (Parte B), e ele dá zero.
+3. **O olho vê o que o gráfico mostra depois.** A maioria dos sinais passa pelo lucro antes do stop. Isso é verdade, mas não é executável sem saber, de antemão, onde sair.
+
+A resposta de engenharia não foi descartar a intuição do operador. Foi criar um instrumento para medi-la sem viés: o **diário de sinais** (cap. 9 §9.7). Se o olho tiver vantagem, ela aparece em sinais anotados antes do resultado, e o motivo escrito em cada anotação vira a especificação da regra a ser testada aqui. As famílias 29 (EMA9X), 30 (EMA9REV) e 31 (HORNER) também entraram na grade completa, para passar pelos sete critérios em todos os ativos.
+
+## 14.9 RSI2 nos índices e a rota US100 em estudo
+
+A regra RSI2 da rota US500, **sem mudar nenhum parâmetro**, foi aplicada a todos os índices de margem baixa com o simulador corrigido:
+
+| Índice | Trades (≈10 anos) | Acerto | Resultado | t | Risco por trade |
+|---|---|---|---|---|---|
+| US500 | 54 | 70% | +US$ 12,60 | 2,48 | US$ 1,21 |
+| US100 | 55 | 73% | +US$ 51,39 | 2,10 | US$ 5,20 |
+| US30 | 89 | 65% | +US$ 49,99 | 1,14 | US$ 7,24 |
+| JP225 | 49 | 69% | +US$ 2,72 | 0,81 | US$ 0,64 |
+| Europa, Ásia e Austrália (12 índices) | — | — | 4 positivos, 8 negativos | ≤ 0,3 | — |
+
+O efeito é consistente **nos índices americanos** e fraco nos demais. Aplicar a mesma regra a outros mercados, sem reotimizar, é um teste de generalidade e não uma busca: ele não aumenta o número de tentativas no sentido da seção 14.5.
+
+Com US$ 16, o US100 não cabe: um stop custa cerca de um terço da conta. A solução de engenharia foi o **modo estudo** das rotas quant (`mode = "study"` em `config.QUANT_ROUTES`). A rota usa o mesmo sinal, a mesma janela de entrada (`quant_manager.entry_window`, compartilhada com as rotas ao vivo) e a mesma regra de saída, mas a posição é virtual e nada é enviado ao MT5 (`mt5bot/execution/quant_study.py`, testes em `tests/test_quant_study.py`). As operações ficam em `quant_study.json`. Quando o saldo comportar (≈ US$ 52 para 10% por stop), basta `mode = "live"` no `config.toml`, depois de comparar o estudo ao vivo com o histórico (spec 011).
+
+O plano de crescimento resultante é escalonado: US500 agora; US100 com ≈ US$ 52; US30 com ≈ US$ 72. Ele não aumenta o risco por trade. A mesma vantagem por contrato passa a valer em mais mercados à medida que a conta permite.
+
+## 14.10 Discussão
 
 **Por que nada sobreviveu?** Três forças se somam:
 
@@ -253,7 +292,7 @@ com $p$ a probabilidade de ganho e $b$ a razão ganho/perda. Ele **multiplica** 
 
 **O valor de um resultado negativo.** Para o projeto, a pesquisa evitou quatro motores que perderiam dinheiro (A3–A6), revelou um defeito sistemático nos dados da corretora e confirmou a única rota com evidência robusta. Para quem estuda, ela é um caso documentado de por que *backtests* de varejo costumam falhar ao vivo: a maioria dos "lucros" de pesquisa amadora está nos dados, não no mercado.
 
-## 14.9 Engenharia de software da pesquisa
+## 14.11 Engenharia de software da pesquisa
 
 A pesquisa foi tratada como software de produção, porque decide onde vai o dinheiro.
 
@@ -280,7 +319,7 @@ universe.py ─▶ fetch2.py ─▶ research2.py ─▶ analyze2.py ─▶ repor
             auditoria de suspeitos: candles M1 e ticks bid/ask (só leitura)
 ```
 
-## 14.10 Ameaças à validade específicas
+## 14.12 Ameaças à validade específicas
 
 - **Comissão de ações estimada** (A1). Um custo real maior só reforçaria o resultado negativo; um menor poderia reabrir alguns casos de ações, que exigem confirmação numa operação de teste.
 - **Correções conservadoras podem esconder efeitos reais.** A regra "pior entre abertura e fechamento anterior" anula *gaps* verdadeiros nos índices. Estratégias de *gap* ficam subestimadas por construção.
@@ -289,7 +328,7 @@ universe.py ─▶ fetch2.py ─▶ research2.py ─▶ analyze2.py ─▶ repor
 - **Volume de ticks** não é volume real. As famílias de volume testam atividade de cotação, não fluxo de ordens.
 - **$N$ efetivo do DSR** não é observável. A pesquisa usa o $N$ mais conservador e mostra a sensibilidade (seção 14.5).
 
-## 14.11 Referencial teórico
+## 14.13 Referencial teórico
 
-[Fama 1970; Lo 2004] eficiência e adaptação dos mercados; [Sullivan, Timmermann & White 1999; White 2000; Harvey, Liu & Zhu 2016] *data snooping* e múltiplos testes em finanças; [Benjamini & Hochberg 1995] FDR; [Bailey & López de Prado 2014] Deflated Sharpe Ratio; [López de Prado 2018] *walk-forward*; [Efron & Tibshirani 1993] *bootstrap*; [Page 1954] CUSUM; [Nosek et al. 2018] pré-registro; [Kelly 1956; Thorp 2006] dimensionamento; [Connors & Alvarez 2009; De Bondt & Thaler 1985; Moskowitz, Ooi & Pedersen 2012; Brock, Lakonishok & LeBaron 1992; Nison 1991; Granville 1963; French 1980; Ariel 1987; Engle & Granger 1987; Gatev, Goetzmann & Rouwenhorst 2006] as famílias testadas.
+[Fama 1970; Lo 2004] eficiência e adaptação dos mercados; [Sullivan, Timmermann & White 1999; White 2000; Harvey, Liu & Zhu 2016] *data snooping* e múltiplos testes em finanças; [Benjamini & Hochberg 1995] FDR; [Bailey & López de Prado 2014] Deflated Sharpe Ratio; [López de Prado 2018] *walk-forward*; [Efron & Tibshirani 1993] *bootstrap*; [Page 1954] CUSUM; [Nosek et al. 2018] pré-registro; [Kelly 1956; Thorp 2006] dimensionamento; [Horner 2005] onda da MME34 e ângulo da tendência; [Connors & Alvarez 2009; De Bondt & Thaler 1985; Moskowitz, Ooi & Pedersen 2012; Brock, Lakonishok & LeBaron 1992; Nison 1991; Granville 1963; French 1980; Ariel 1987; Engle & Granger 1987; Gatev, Goetzmann & Rouwenhorst 2006] as famílias testadas.
 

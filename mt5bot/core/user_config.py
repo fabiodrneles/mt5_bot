@@ -9,6 +9,9 @@ Exemplo (<pasta de dados>/config.toml):
     max_risk_pct = 12.0               # limite proprio da rota
     enabled = true                    # false desliga a rota
 
+    [routes.US100]
+    mode = "live"                     # "study" = ordens virtuais; "live" = opera de verdade
+
 Valores invalidos (tipo errado ou fora da faixa) sao recusados com mensagem que
 cita o arquivo e a chave; o padrao de config.py e mantido. Nunca derruba o robo.
 """
@@ -35,13 +38,17 @@ GLOBAL_KEYS = {
 ROUTE_KEYS = {
     "max_risk_pct": (float, 0.1, 50.0),
     "enabled": (bool, None, None),
+    "mode": (str, None, None),  # "study" (ordens virtuais) ou "live"
 }
+ROUTE_MODES = ("study", "live")
 
 
 def _check(value, kind, lo, hi):
     """Valor convertido ou None. bool nao e aceito como numero (True == 1)."""
     if kind is bool:
         return value if isinstance(value, bool) else None
+    if kind is str:
+        return value.lower() if isinstance(value, str) and value.lower() in ROUTE_MODES else None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     value = float(value)
@@ -49,6 +56,8 @@ def _check(value, kind, lo, hi):
 
 
 def _fmt_range(kind, lo, hi):
+    if kind is str:
+        return " ou ".join(f'"{m}"' for m in ROUTE_MODES)
     return "true/false" if kind is bool else f"numero entre {lo:g} e {hi:g}"
 
 
