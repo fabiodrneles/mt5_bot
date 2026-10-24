@@ -40,3 +40,7 @@ Mesma regra do US500, sem reotimizar: US500 t 2,48; US100 t 2,10 (+$51 em 10 ano
 
 ## Teste justo do 9.x (diário, ordem stop, saída pela MME9) — `docs/validacao-9x-fiel.md`
 166 ativos (165 CFDs de ações com abertura irreal excluídos). Ações/índices EUA, OOS, sem swap: 9.1 −0,027/−0,001 R, 9.2 −0,002 R, 9.4 −0,016 R (t ≈ 0) → **empate**; com spread normal, −0,002 a +0,027 R. Com swap do CFD → prejuízo (−0,08 a −0,20 R). 9.3 perde em tudo; forex perde forte. Filtros semanal/SMA200 não ajudam. Não testado: ações da B3 (sem swap), seleção discricionária, saídas parciais. Mensagem: o 9.x mecânico empata antes do financiamento; a vantagem de quem lucra tende a vir do mercado à vista e da seleção.
+
+## 9.x na B3 (`check_9x_b3.py`, dados Yahoo ajustados, 59 ações, ~20 anos, sem swap)
+Compra + saída MME9: 9.1 semanal +0,086 R (IS) / +0,095 R (OOS); 9.2 semanal+SMA200 +0,29/+0,14 R. Porém t por mês 0,35–0,49 (não significativo), 15/27 anos positivos, e entradas ALEATÓRIAS em dias de tendência com a mesma saída rendem +0,16 R → o lucro vem da tendência de alta da bolsa e da saída pela MME9, não do gatilho. Viés de sobrevivência (só membros atuais do Ibovespa).
+Comparação em carteira (`compare_b3.py`, desde 2005, sem IR): CDI 10,6% a.a.; Ibovespa 9,9% (DD −60%); comprar e segurar as 59 ações 22,8% (inflado por sobrevivência); 9.1 semanal com CDI fora da posição 9,9% (DD −7,9%, investido 22%); 9.2 10,3% (DD −2,3%). O 9.x não supera o CDI.

@@ -40,9 +40,48 @@ Com o **spread normal do pregão** (a ordem stop costuma ser acionada fora da ab
 3. **Mecanicamente, o 9.x não mostrou vantagem estatística** em centenas de ativos americanos. No período antigo (IS) ele perde e no recente (OOS) empata. Se há vantagem na operação de quem lucra com o 9.x, ela tende a vir do que **não está nas regras mecânicas**: escolha dos ativos (tendência, setor, congruência lida pelo olho), gestão (saídas parciais, aumento de posição) e o mercado brasileiro em si.
 4. **O 9.3 perde em todos os mercados**, e o **forex é o pior ambiente** para a família no diário: o spread pesa demais em relação ao movimento.
 
+## Ações da B3 (o mercado do Palex): `tools/quant_research/check_9x_b3.py`
+
+Dados diários públicos (API de gráficos do Yahoo Finance, tickers `.SA`), ajustados por desdobramentos e proventos. São 59 ações líquidas do Ibovespa com cerca de 20 anos de histórico (11 tickers renomeados ou fora da fonte ficaram de fora). Custo de ação à vista: 0,05% por lado, sem swap e sem corretagem; imposto de renda não incluído. **Viés de sobrevivência:** só entram as ações que estão no índice hoje, o que favorece o resultado.
+
+**Só compra, saída pela MME9:**
+
+| Setup | Filtro | IS | OOS |
+|---|---|---|---|
+| 9.1 | congruência semanal | +0,086 R (t 2,04) | +0,095 R (t 2,44) |
+| 9.2 | semanal + SMA200 | +0,294 R (t 2,49) | +0,135 R (t 2,09) |
+| 9.3 | semanal + SMA200 | −0,028 R | +0,194 R (t 4,95) |
+| 9.4 | semanal | +0,101 R (t 1,86) | +0,057 R (t 0,97) |
+
+À primeira vista, o 9.x **dá lucro** na B3, ao contrário dos CFDs. Três verificações qualificam esse resultado:
+
+1. **Ano a ano:** o 9.1 com congruência semanal fica positivo em 15 de 27 anos. Boa parte do lucro vem de poucos anos fortes (2003, 2005, 2009, 2019).
+2. **Trades correlacionados:** dezenas de ações dão sinal juntas quando o mercado se move. Com o resultado agregado **por mês**, o t cai para **0,35** (9.1) e **0,49** (9.2): deixa de ser estatisticamente significativo.
+3. **Comparação com entradas aleatórias** (mesmas ações e quantidade de trades, qualquer dia com MME9 subindo e semanal a favor, mesma ordem stop, mesmo stop e mesma saída pela MME9; 30 sorteios): o aleatório rende **+0,16 R em média** (de +0,02 a +0,46). O 9.1 (+0,09 R) supera só 33% dos sorteios; o 9.2 (+0,23 R), 73%.
+
+**Leitura:** o lucro do 9.x na B3 é real no período, mas **não vem do gatilho do setup**. Ele vem de (a) a **tendência de alta de longo prazo** das ações brasileiras (comprar a favor da tendência tende a ganhar) e (b) a **saída conduzida pela MME9**, que deixa o lucro correr nas tendências longas. Uma entrada qualquer a favor da tendência com a mesma saída teria resultado parecido. Isso ajuda a explicar por que muitos operadores ganham com o 9.x na B3: o que trabalha a favor deles é o mercado e a condução do trade, mais que o padrão do candle.
+
+### Comparação com CDI, Ibovespa e comprar e segurar (`tools/quant_research/compare_b3.py`)
+
+Carteiras de peso igual entre as ações disponíveis em cada dia. No 9.x, cada ação tem uma posição por vez pelas regras do livro, e fora da posição o dinheiro rende o CDI (série SGS 12 do Banco Central). Ibovespa = `^BVSP`. Custo de 0,05% por lado; **sem imposto de renda**.
+
+| Carteira | Desde 2005: ao ano / queda máx. | Desde 2016: ao ano / queda máx. |
+|---|---|---|
+| CDI | 10,61% / 0% | 9,60% / 0% |
+| Ibovespa | 9,88% / −60,0% | 15,39% / −46,8% |
+| Comprar e segurar as 59 ações (peso igual) | 22,75% / −54,1% | 22,00% / −46,3% |
+| **9.1 + semanal**, fora da posição no CDI (investido 22% do tempo) | **9,89% / −7,9%** | **9,14% / −7,9%** |
+| **9.2 + semanal + SMA200**, fora da posição no CDI (investido 8–9% do tempo) | **10,33% / −2,3%** | **10,53% / −2,5%** |
+
+**Leitura:**
+- O 9.x mecânico **não supera o CDI**. Como fica investido só 8% a 22% do tempo, ele é, na prática, "CDI com um pouco de ações", com quedas pequenas.
+- O **comprar e segurar** as 59 ações rende 22% ao ano, mas esse número está **muito inflado pelo viés de sobrevivência**: são as ações que estão no índice hoje, as vencedoras. O Ibovespa, que inclui as que saíram, rendeu perto do CDI desde 2005.
+- Depois do imposto de renda (15% sobre ganhos), o 9.x fica abaixo do CDI. Em fundos e títulos, o imposto também incide, mas há regras próprias (a tabela regressiva do CDI chega a 15% depois de dois anos).
+- Conclusão para a B3: **o 9.x reduz muito o risco, mas não acrescenta retorno acima da renda fixa.** Quem quer só retorno com pouco risco tem o CDI; quem aceita risco tem o índice. Um setup só agrega valor se superar uma dessas duas referências no seu próprio nível de risco.
+
 ## O que ainda não foi testado (e é o próximo passo justo)
 
-- **Ações da B3**, o mercado do Palex: a corretora do projeto não oferece B3. Seria preciso outra fonte de dados diários (por exemplo, cotações históricas públicas da B3) e o custo real de corretagem e emolumentos, sem swap.
+- **Ações que saíram do índice ou quebraram** (corrigir o viés de sobrevivência com a série oficial COTAHIST da B3).
 - **A seleção discricionária**: o diário de sinais (`bot.bat anotar`) existe para medir exatamente isso, anotando os sinais 9.x que o operador escolheria e comparando com os que ele descartaria.
 - **Gestão com saída parcial** (por exemplo, 50% no alvo de 1× e o resto pela MME9).
 
