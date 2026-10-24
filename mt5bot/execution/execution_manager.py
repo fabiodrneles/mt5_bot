@@ -4,6 +4,7 @@ from mt5bot.core import config
 from mt5bot.execution import executor
 from mt5bot.risk import risk_calculator
 from mt5bot.data import tracker
+from mt5bot.data import paper_tracker  # rejeicoes (tracker nao tem record_rejection)
 from mt5bot.engine.strategy import StrategyScorer
 from mt5bot.engine.indicators import check_mtf_trend, check_rvol_filter
 from mt5bot.mentorship.supervisor import AdaptiveSupervisor
@@ -680,7 +681,7 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
                 logging.warning(f"[{symbol}] Setup {setup_name} de {side} VETADO pela IA (Win Prob: {prob_win:.2f}): {ml_reason}")
                 _scan_and_execute.last_logged_candle[symbol] = current_candle_time
-            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "ML Veto", timeframe=timeframe_name, ml_context=ml_context)
+            paper_tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "ML Veto", timeframe=timeframe_name, ml_context=ml_context)
             return "🔴 ML VETO"
         elif prob_win < 1.0:
             if current_candle_time and _scan_and_execute.last_logged_candle.get(symbol) != current_candle_time:
@@ -701,9 +702,9 @@ def _scan_and_execute(symbol, df, timeframe_name="H1"):
             _scan_and_execute.last_traded_candle[symbol] = current_candle_time
         logging.warning(f"[{symbol}] Ordem rejeitada pelo Gestor de Risco: {reason}")
         if "Spread Trap" in reason:
-            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Spread Trap", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
+            paper_tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Spread Trap", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
         elif "Risco do Stop Loss" in reason:
-            tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Max Risk Exceeded", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
+            paper_tracker.record_rejection(symbol, setup_name, side, entry_price, sl_price, "Max Risk Exceeded", timeframe=timeframe_name, ml_context=best_setup.get('ml_context'))
         
         if "GARAGE LOCK" in reason:
             return "🔒 GARAGE LOCK"

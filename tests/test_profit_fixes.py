@@ -201,3 +201,44 @@ def test_modify_sl_preserves_existing_tp(monkeypatch):
 
     assert sent["tp"] == 110.0
     assert sent["sl"] == 99.5
+
+
+# --- Rejeicoes no modo real ---------------------------------------------------
+# tracker nao tem record_rejection: o modo real quebrava (AttributeError) toda
+# vez que o gestor de risco ou a IA rejeitava um sinal.
+
+def _rejections_file(monkeypatch, tmp_path):
+    from mt5bot.data import paper_tracker
+    path = tmp_path / "rejections.json"
+    monkeypatch.setattr(paper_tracker, "_REJECTIONS_FILE", str(path))
+    return path
+
+
+def test_risk_rejection_is_recorded_without_crashing(monkeypatch, tmp_path):
+    setup = {"setup": "9.1", "action": "buy", "trigger_price": 101.01, "stop_loss": 99.0, "score": 10}
+    market, stop = _scan_env(monkeypatch, setup)
+    monkeypatch.setattr(risk_calculator, "calculate_position_size",
+                        lambda **k: (0.0, 5.0, False, "Risco do Stop Loss excede o limite"))
+    path = _rejections_file(monkeypatch, tmp_path)
+
+    state = execution_manager._scan_and_execute("HK50", _df())
+
+    assert state == "🟡 SINAL REJEITADO"
+    stop.assert_not_called()
+    import json
+    assert json.loads(path.read_text(encoding="utf-8"))[0]["reason"] == "Max Risk Exceeded"
+
+
+def test_ml_veto_is_recorded_without_crashing(monkeypatch, tmp_path):
+    from mt5bot.mentorship.ml_xgboost import MLSupervisor
+    setup = {"setup": "9.1", "action": "buy", "trigger_price": 101.01, "stop_loss": 99.0,
+             "score": 10, "ml_context": {"trend": {}}}
+    market, stop = _scan_env(monkeypatch, setup)
+    monkeypatch.setattr(MLSupervisor, "predict_trade", staticmethod(lambda *a, **k: (False, 0.2, "baixa prob")))
+    path = _rejections_file(monkeypatch, tmp_path)
+
+    state = execution_manager._scan_and_execute("HK50", _df())
+
+    assert state == "🔴 ML VETO"
+    import json
+    assert json.loads(path.read_text(encoding="utf-8"))[0]["reason"] == "ML Veto"

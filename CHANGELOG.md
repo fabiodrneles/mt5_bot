@@ -7,6 +7,7 @@
 - **Protecao de margem:** entrada so se a perda no SL (lote minimo) for <= 2% do saldo e sobrar margem livre >= 3x a da posicao.
 - **Isolamento:** rotas quant so mexem em posicoes com MAGIC + comentario `Q`; posicao manual (conta hedging) fica intacta e o caminho antigo nao gerencia posicoes quant.
 - **Novo:** `bot.bat quant` / `tools/quant_runner.py` (executor headless); brain_worker passa a puxar 400 velas.
+- **Fix:** modo real quebrava (AttributeError) ao rejeitar sinal por risco/spread/IA: `tracker.record_rejection` nao existia; rejeicoes agora vao para `paper_tracker.record_rejection` (dataset do Otimizador).
 
 ## [2.9.1] - 2026-10-24
 - **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).
