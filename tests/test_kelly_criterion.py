@@ -1,4 +1,3 @@
-import pytest
 from mt5bot.risk.risk_calculator import calculate_dynamic_kelly_risk
 from mt5bot.core import config
 

@@ -5,7 +5,6 @@ e o out-of-sample (40% final), que o otimizador nunca viu.
 """
 import json, sys, itertools
 import numpy as np
-from datetime import datetime, timezone
 
 META = json.load(open("data/meta.json"))
 

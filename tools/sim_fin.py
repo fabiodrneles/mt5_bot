@@ -1,6 +1,5 @@
 import MetaTrader5 as mt5
 import pandas as pd
-import numpy as np
 
 def calculate_indicators(df):
     window = 20

@@ -2,7 +2,6 @@
 Testes unitários para o módulo executor.py.
 """
 import sys
-import pytest
 
 # Garantir mock do MetaTrader5
 if 'MetaTrader5' in sys.modules:

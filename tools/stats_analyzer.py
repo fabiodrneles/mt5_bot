@@ -57,7 +57,6 @@ def deflated_sharpe_ratio(actual_sharpe: float, n_trials: int, variance_of_sharp
     Abordagem simplificada inspirada em López-Prado.
     """
     # Quanto mais testes você rodou para achar esse Sharpe, maior o desconto.
-    euler_mascheroni = 0.5772156649
     expected_max_sr = np.sqrt(2 * np.log(n_trials)) if n_trials > 1 else 0
     
     adjusted_sharpe = actual_sharpe - expected_max_sr

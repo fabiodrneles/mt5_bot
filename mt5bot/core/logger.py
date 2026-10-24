@@ -41,8 +41,6 @@ import threading
 import urllib.request
 import urllib.error
 import json
-import os
-from mt5bot.core import config
 
 def send_telegram_alert_async(message: str, level: str):
     """Envia alerta via Telegram em background sem travar o bot (Fire and Forget)."""

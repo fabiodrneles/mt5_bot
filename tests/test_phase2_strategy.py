@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 from mt5bot.core import config
 from mt5bot.engine import indicators

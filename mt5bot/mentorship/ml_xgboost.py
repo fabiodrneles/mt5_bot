@@ -66,7 +66,6 @@ class MLSupervisor:
 
         try:
             import xgboost as xgb
-            import pandas as pd
         except ImportError:
             return True, 1.0, "xgboost nao instalado"
 

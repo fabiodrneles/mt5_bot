@@ -1,6 +1,5 @@
 import MetaTrader5 as mt5
 import pandas as pd
-import numpy as np
 
 def calculate_indicators(df):
     # Bollinger Bands
@@ -109,17 +108,17 @@ def main():
     print("RESULTADO DO BACKTEST HK50 (5000 Candles M5 - Aprox 1 mes)")
     print("="*50)
     
-    print(f"\n1. Setup Russo (Bollinger Bands Mean Reversion):")
+    print("\n1. Setup Russo (Bollinger Bands Mean Reversion):")
     bb_total = bb_wins + bb_losses
     print(f"   WINS: {bb_wins} | LOSSES: {bb_losses}")
     print(f"   Win Rate: {(bb_wins/bb_total*100) if bb_total > 0 else 0:.1f}%")
     
-    print(f"\n2. Setup Oscilador (RSI Reversao 30/70):")
+    print("\n2. Setup Oscilador (RSI Reversao 30/70):")
     rsi_total = rsi_wins + rsi_losses
     print(f"   WINS: {rsi_wins} | LOSSES: {rsi_losses}")
     print(f"   Win Rate: {(rsi_wins/rsi_total*100) if rsi_total > 0 else 0:.1f}%")
     
-    print(f"\n3. Setup Tendencia (Rompimento MME9 - O nosso atual):")
+    print("\n3. Setup Tendencia (Rompimento MME9 - O nosso atual):")
     ema_total = ema_wins + ema_losses
     print(f"   WINS: {ema_wins} | LOSSES: {ema_losses}")
     print(f"   Win Rate: {(ema_wins/ema_total*100) if ema_total > 0 else 0:.1f}%")

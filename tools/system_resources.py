@@ -1,5 +1,4 @@
 import psutil
-import os
 
 def run_system_resources():
     print("="*60)

@@ -4,7 +4,6 @@ import threading
 import urllib.error
 import urllib.request
 
-import MetaTrader5 as mt5
 import pytest
 
 from interfaces import dashboard

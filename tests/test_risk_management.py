@@ -1,4 +1,3 @@
-import pytest
 from mt5bot.core import config
 from mt5bot.risk import risk_calculator
 from mt5bot.execution import executor

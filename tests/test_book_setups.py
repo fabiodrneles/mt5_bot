@@ -278,7 +278,6 @@ def test_vwap_disabled_permissive(monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_swing_levels_high_low():
-    n = 30
     closes = list(range(90, 120))  # 30 candles
     highs = [c + 3 for c in closes]
     lows = [c - 2 for c in closes]

@@ -1,7 +1,6 @@
 import os
 import glob
 import pandas as pd
-import numpy as np
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
@@ -10,9 +9,9 @@ from sklearn.metrics import accuracy_score, classification_report
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def train_for_dataset(csv_path):
-    print(f"\n======================================")
+    print("\n======================================")
     print(f"Iniciando treinamento para: {os.path.basename(csv_path)}")
-    print(f"======================================")
+    print("======================================")
     
     # Extrair o símbolo do nome do arquivo (ex: dataset_live_experience_HK50.csv -> HK50)
     filename = os.path.basename(csv_path)
@@ -84,7 +83,7 @@ def main():
         csv_files.extend(glob.glob(pattern))
         
     if not csv_files:
-        print(f"Nenhum arquivo CSV encontrado para treinamento.")
+        print("Nenhum arquivo CSV encontrado para treinamento.")
         return
         
     for f in csv_files:

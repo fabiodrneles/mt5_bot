@@ -1,6 +1,4 @@
 import os
-import json
-import time
 from types import SimpleNamespace
 from mt5bot.data import persistence
 

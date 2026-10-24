@@ -1,9 +1,7 @@
 import argparse
 import sys
 import pandas as pd
-import numpy as np
 import MetaTrader5 as mt5
-from datetime import datetime
 from pathlib import Path
 
 # Adiciona o caminho principal para os imports do mt5bot funcionarem
@@ -84,7 +82,6 @@ def generate_dataset(df, symbol):
             continue
         
         row = sub_df.iloc[-1]
-        setup_name = best_setup['setup']
         
         # Forward Tracking: 50 candles no futuro
         result = -1 
