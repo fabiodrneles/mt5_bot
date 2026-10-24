@@ -161,6 +161,30 @@ RUSSIAN_BB_PARAMS = {
     "EURUSD": {"min_width": 0.0008, "rsi_oversold": 35.0, "rsi_overbought": 75.0},
 }
 
+# --- Rotas Quant (v2.10.0): setups validados fora da amostra ---
+# Pesquisa em 15 ativos x 4 timeframes x 4 familias (3.150 configs) com spread
+# real por candle, comissao e swap; parametros escolhidos so nos 60% iniciais
+# e conferidos nos 40% finais (memoria/wiki/arquitetura/pesquisa-estrategias-lucrativas.md).
+# Quando o worker roda (ativo, timeframe) listado aqui, o caminho quant executa
+# EXATAMENTE a regra testada: lote minimo fixo, entrada a mercado no fechamento
+# do candle, SL/TP no MT5. Nao passa por scoring/RVOL/XGBoost/EMA9/trailing/
+# breakeven/janela de horario (nada disso fez parte da validacao) e so mexe em
+# posicoes com o MAGIC do bot (conta hedging: a posicao manual fica intacta).
+#   HK50 H4 PULLB : 277 trades/4.8 anos, PF 1.24, +$9.96, DD $4.30, pior -$0.75
+#   US500 D1 RSI2MR: 54 trades/9.5 anos, PF 2.40, +$13.19, DD $3.04, pior -$1.41
+QUANT_ROUTES = {
+    "HK50":  {"timeframe": "H4", "setup": "PULLB",  "params": {"sl_atr": 1.0, "tp_r": 2.0}},
+    "US500": {"timeframe": "D1", "setup": "RSI2MR", "params": {"rsi_level": 5.0, "sl_atr": 2.0,
+                                                              "long_only": False, "max_bars": 15}},
+}
+# Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
+# ignorado para preservar margem para as proximas tentativas. Com $16 o US500
+# D1 (SL ~$1.6) fica bloqueado; libera sozinho com saldo acima de ~$80.
+QUANT_MAX_RISK_PCT = 2.0
+# Margem livre minima que deve sobrar depois de abrir a posicao (x margem dela).
+QUANT_MARGIN_RESERVE_MULT = 3.0
+QUANT_COMMENT_PREFIX = "Q "
+
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {
     "rrr": 30.0,

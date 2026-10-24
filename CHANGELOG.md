@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.10.0] - 2026-10-23
+- **Feature (rotas quant):** novo caminho de execucao para setups validados fora da amostra (`config.QUANT_ROUTES`):
+  **HK50 H4 PULLB** (pullback na EMA20, SL 1 ATR / TP 2 ATR — 277 trades, PF 1.24) e **US500 D1 RSI2MR** (IFR2 Connors, saida na SMA5 — 54 trades, PF 2.40).
+  Pesquisa de 3.150 configs com spread real, comissao e swap (`tools/quant_research/`, wiki `pesquisa-estrategias-lucrativas.md`).
+- **Protecao de margem:** entrada so se a perda no SL (lote minimo) for <= 2% do saldo e sobrar margem livre >= 3x a da posicao.
+- **Isolamento:** rotas quant so mexem em posicoes com MAGIC + comentario `Q`; posicao manual (conta hedging) fica intacta e o caminho antigo nao gerencia posicoes quant.
+- **Novo:** `bot.bat quant` / `tools/quant_runner.py` (executor headless); brain_worker passa a puxar 400 velas.
+
 ## [2.9.1] - 2026-10-24
 - **Fix (lucro):** setups/gestao agora usam apenas candles FECHADOS (antes avaliavam a vela em formacao a cada segundo).
 - **Fix (russian_bb/judas):** entrada a mercado com SL+TP; antes a STOP no preco atual era recusada pelo MT5 e esses setups nunca abriam.

@@ -63,7 +63,9 @@ def process_payload(payload_str: str):
             # canceladas e stops apertados por ruido intrabar. O modo estudo
             # mantem a vela atual porque verifica SL/alvo virtuais nela.
             start_pos = 0 if data.get("action") == "study" else 1
-            rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, 200)
+            # 400 velas: SMA200/EMA50 das rotas quant precisam de aquecimento
+            # (com 200 a SMA200 tem um unico valor valido).
+            rates = mt5.copy_rates_from_pos(symbol, tf, start_pos, 400)
             if rates is None or len(rates) == 0:
                 sys.stdout.write(json.dumps({"error": f"Sem dados históricos (candles) para {symbol}", "symbol": symbol}) + '\n')
                 sys.stdout.flush()

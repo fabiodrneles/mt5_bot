@@ -24,6 +24,7 @@ if "%CMD%"=="" (
     echo   train       - Roda o script de treinamento de IA localmente
     echo   backtest    - Roda backtest (ex: bot backtest HK50 1)
     echo   test        - Roda os testes unitarios
+    echo   quant       - Liga as rotas quant (HK50 H4 PULLB / US500 D1 RSI2MR)
     echo ==============================================
     exit /b 0
 )
@@ -93,6 +94,11 @@ if /i "%CMD%"=="backtest" (
             python tools\backtest.py --symbol %ARG1% --months %ARG2%
         )
     )
+    exit /b %ERRORLEVEL%
+)
+
+if /i "%CMD%"=="quant" (
+    python tools\quant_runner.py
     exit /b %ERRORLEVEL%
 )
 

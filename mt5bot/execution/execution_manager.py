@@ -140,11 +140,18 @@ def manage_cycle(symbol, df, timeframe_name="H1", is_study_mode=False):
     if is_study_mode:
         return _manage_study_cycle(symbol, df, timeframe_name)
 
+    # Rotas quant (setups validados fora da amostra) tem caminho proprio.
+    from mt5bot.execution import quant_manager
+    route = quant_manager.get_route(symbol, timeframe_name)
+    if route:
+        return quant_manager.quant_cycle(symbol, df, timeframe_name, route)
+
     # 1. Sincronizar historico: se o usario fechou algo manualmente, registrar saida.
     _reconcile_closed_trades(symbol, df)
 
-    # 2. Obter estado atual no MT5
-    positions = mt5.positions_get(symbol=symbol)
+    # 2. Obter estado atual no MT5 (posicoes quant sao geridas so pela rota quant)
+    positions = [p for p in (mt5.positions_get(symbol=symbol) or [])
+                 if not quant_manager.is_quant_position(p)]
     orders = mt5.orders_get(symbol=symbol)
 
     if positions:
