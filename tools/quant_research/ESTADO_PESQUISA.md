@@ -79,7 +79,7 @@ Trade citado pelo dono (US500 M15, 23/10 11h45, venda no cruzamento da MME9, alv
 - Venda das 19h45 (candle de 7636,70): entra 20h00 a 7638, stop 7652, alvo 7610. Até o fechamento de sexta não bateu nem stop nem alvo (melhor momento: 18,25 pts a favor = 1,3×); flutuante +$0,02.
 
 ### Incidente: disco cheio (2026-10-24 18h12)
-O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>ases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
+O cache de histórico do MT5 (`%APPDATA%\MetaQuotes\Terminal\<id>\bases\HantecMarketsMU-MT5\history`) chegou a 22 GB, porque o terminal guarda o M1 de cada símbolo pedido (~50–300 MB cada), e o disco C: ficou com 0 MB. Com autorização do dono: o MT5 foi fechado, o cache de 466 símbolos foi apagado (mantidos HK50 e US500) e os temporários do Windows com mais de 2 dias também (4,7 GB). Resultado: 26 GB livres. Prevenção: `fetch2.py` pausa com menos de 4 GB livres; `clean_mt5_cache.py` (com o MT5 fechado) apaga só o cache de símbolos já extraídos e que não são rotas ao vivo. M15 reduzido para 40 mil candles.
 
 ### Em andamento
 - `pipeline2.py`: download H1/D1 restante, M15 (→ M30) e nova rodada completa. Ao terminar, atualizar os números do cap. 14 (§14.6) com `RESULTADOS2.md`.
