@@ -81,7 +81,28 @@ def exit_rsi2mr(df: pd.DataFrame, is_buy: bool, params: dict) -> bool:
     return bool(c.iloc[-1] > s5) if is_buy else bool(c.iloc[-1] < s5)
 
 
-SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr}
+def signal_hour_of_week(df: pd.DataFrame, params: dict) -> Optional[dict]:
+    """HOUR (calendario): entra na abertura do candle H1 de um dia da semana e hora fixos e sai no
+    fechamento dele (max_bars = 1). Unico sobrevivente da varredura de calendario do cap. 14
+    (USDJPY, segunda as 01h do servidor, compra): roda em ESTUDO, nao e rota validada.
+
+    O sinal e o candle fechado imediatamente ANTERIOR ao horario de entrada (horario do servidor, o
+    mesmo da pesquisa). SL protetor = sl_atr x ATR14 (a pesquisa saia so por tempo).
+    """
+    if len(df) < 20:
+        return None
+    t = pd.Timestamp(df['time'].iloc[-1])
+    nxt = t + pd.Timedelta(hours=1)
+    if nxt.dayofweek != params.get("weekday", 0) or nxt.hour != params.get("hour", 1):
+        return None
+    a = float(_atr(df).iloc[-1])
+    if not np.isfinite(a) or a <= 0:
+        return None
+    action = params.get("side", "buy")
+    return {"setup": "HOUR", "action": action, "sl_dist": params.get("sl_atr", 3.0) * a, "tp_dist": None}
+
+
+SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week}
 EXITS = {"RSI2MR": exit_rsi2mr}
 
 

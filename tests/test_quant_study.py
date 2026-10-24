@@ -68,3 +68,38 @@ def test_config_toml_switches_route_mode(tmp_path):
     errors = user_config.apply(ns, str(path))
     assert errors and "routes.US100.mode" in errors[0]
     assert quant_manager.is_study_route(ns["QUANT_ROUTES"]["US100"])  # valor invalido: mantem o estudo
+
+
+def _hourly_df(last_open, n=300):
+    """Candles H1 terminando no candle que abre em `last_open` (horario do servidor)."""
+    import numpy as np
+    import pandas as pd
+    t = pd.date_range(end=last_open, periods=n, freq="h")
+    close = 150.0 + np.sin(np.arange(n) / 5.0)
+    return pd.DataFrame({"time": t, "open": close, "high": close + 0.2, "low": close - 0.2, "close": close})
+
+
+def test_hour_setup_fires_only_on_the_bar_before_monday_01h():
+    from mt5bot.engine import quant_setups
+    params = config.QUANT_ROUTES["USDJPY"]["params"]
+    # 2026-10-19 e segunda: o candle de sinal e o das 00h (entrada na abertura das 01h)
+    sig = quant_setups.evaluate("HOUR", _hourly_df("2026-10-19 00:00"), params)
+    assert sig["action"] == "buy" and sig["tp_dist"] is None and sig["sl_dist"] > 0
+    assert quant_setups.evaluate("HOUR", _hourly_df("2026-10-19 01:00"), params) is None
+    assert quant_setups.evaluate("HOUR", _hourly_df("2026-10-20 00:00"), params) is None  # terca
+
+
+def test_usdjpy_hour_route_is_study_and_exits_after_one_bar(study, monkeypatch):
+    route = config.QUANT_ROUTES["USDJPY"]
+    assert quant_manager.is_study_route(route) and route["params"]["max_bars"] == 1
+    df = _hourly_df("2026-10-19 00:00")
+    px = float(df["close"].iloc[-1])
+    monkeypatch.setattr(mt5, "symbol_info_tick", lambda s: _Obj(bid=px, ask=px + 0.01, time=study["tick_time"]))
+    _open_at_next_bar(study, df, tf=3600)
+    state = quant_manager.quant_cycle("USDJPY", df, "H1", route)
+    assert state.startswith("📘 ESTUDO: ENTRADA VIRTUAL") and study["sent"] == []
+    # fecha o candle das 01h: sai pelo tempo (1 candle)
+    df2 = _hourly_df("2026-10-19 01:00")
+    state = quant_manager.quant_cycle("USDJPY", df2, "H1", route)
+    assert state == "📘 ESTUDO: SAÍDA VIRTUAL (tempo)"
+    assert study["sent"] == []

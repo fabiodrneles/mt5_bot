@@ -68,11 +68,11 @@ Os motores de decisão (M3, M4, M5, `trailing.py`) são **funções puras**: rec
 
 ### Estratégias intercambiáveis
 
-`quant_setups.SIGNALS` é um dicionário de nome → função com a mesma assinatura. Acrescentar uma rota é escrever uma função e registrá-la, sem mexer no motor de execução. É o padrão *Strategy* [Gamma et al. 1994] na sua forma mais simples, sem hierarquia de classes.
+`quant_setups.SIGNALS` é um dicionário de nome → função com a mesma assinatura. Acrescentar uma rota é escrever uma função e registrá-la, sem mexer no motor de execução. Foi assim que entrou o `HOUR` na v3.2.0 (cap. 14 §14.6): uma função e uma linha no dicionário. O mesmo motor executa a rota ao vivo ou em estudo, conforme o campo `mode` da rota. É o padrão *Strategy* [Gamma et al. 1994] na sua forma mais simples, sem hierarquia de classes.
 
 ```python
 # Listagem 12.1 — mt5bot/engine/quant_setups.py
-SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr}
+SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week}
 EXITS = {"RSI2MR": exit_rsi2mr}
 
 
