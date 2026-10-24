@@ -23,7 +23,7 @@ def close_position(pos):
         "position": pos.ticket,
         "price": price,
         "deviation": 50,
-        "magic": getattr(config, 'MAGIC_NUMBER', 999),
+        "magic": config.MAGIC,
         "comment": "PANIC_CLOSE",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_IOC,
@@ -44,7 +44,7 @@ def run_panic():
             print("Erro critico: Nao foi possivel conectar ao MT5 para fechar ordens!")
             return
             
-        magic = getattr(config, 'MAGIC_NUMBER', 999)
+        magic = config.MAGIC
         positions = mt5.positions_get()
         
         if positions is None or len(positions) == 0:
@@ -65,7 +65,7 @@ def run_panic():
                         print(f" -> FALHA (codigo: {res.retcode if res else 'Unknown'})")
                         
         print("\nDesligamento de emergencia concluido!")
-        print("NOTA: Certifique-se de parar o processo main.py no seu terminal.")
+        print("NOTA: pare tambem o bot (Ctrl+C no bot.bat quant / /quit no Maestro), senao ele pode reabrir posicoes.")
         mt5.shutdown()
         
     except Exception as e:
