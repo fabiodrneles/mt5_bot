@@ -1,15 +1,12 @@
 import argparse
 import sys
-from datetime import datetime
 import pandas as pd
 import MetaTrader5 as mt5
-import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from mt5bot.engine.indicators import add_all_indicators
 from mt5bot.mentorship.ml_xgboost import MLSupervisor
-from mt5bot.core import config
 
 def calc_indicators(df):
     df = add_all_indicators(df)
@@ -49,6 +46,9 @@ def run_simulation(df, initial_balance, symbol):
     losses = 0
     ml_rejections = 0
     in_trade = False
+    # Lote do trade aberto; antes so era definido no caminho da IA e o
+    # fechamento podia quebrar com UnboundLocalError.
+    current_trade_lot = 0.01
     side = 0
     entry_price = 0.0
     sl = 0.0
@@ -85,7 +85,6 @@ def run_simulation(df, initial_balance, symbol):
             
             if is_win or is_loss:
                 # Tenta pegar valor exato via MT5
-                profit_points = exit_price - entry_price if side == mt5.ORDER_TYPE_BUY else entry_price - exit_price
                 profit = mt5.order_calc_profit(side, symbol, current_trade_lot, entry_price, exit_price)
                 if profit is None:
                     # Fallback matematico generico se broker offline
@@ -211,7 +210,6 @@ def run_simulation(df, initial_balance, symbol):
                     tick_value = info.trade_tick_value if info else 1.0
                     volume_step = info.volume_step if info else 0.01
                     
-                    tick_cost = tick_value / tick_size
                     ticks_to_sl = risco_pts / tick_size
                     money_lost_per_lot = ticks_to_sl * tick_value
                     
@@ -239,7 +237,7 @@ def main():
     
     args = parser.parse_args()
     
-    print(f"Iniciando simulacao MT5Bot...")
+    print("Iniciando simulacao MT5Bot...")
     print(f"Ativo: {args.symbol} | Meses: {args.months} | Lote: {args.lot} | Saldo: ${args.balance:.2f}")
     
     if not mt5.initialize():
@@ -252,17 +250,7 @@ def main():
         mt5.shutdown()
         sys.exit(1)
         
-    trade_tick_size = info.trade_tick_size
-    trade_tick_value = info.trade_tick_value
-    
-    # Fallback se tick_size for 0
-    if trade_tick_size == 0:
-        trade_tick_size = info.point
         
-    try:
-        pip_value = (trade_tick_value / trade_tick_size) * args.lot
-    except ZeroDivisionError:
-        pip_value = 0.0
         
     # Calculando quantidade de candles aproximados
     # M5 = 12 por hora * 24h = 288 por dia * 30 dias = ~8640 candles por mes util
@@ -309,9 +297,9 @@ def main():
     print("          RESULTADO DO BACKTEST")
     print("="*40)
     print(f"Periodo:         {start_date.date()} a {end_date.date()}")
-    print(f"Estrategia:      Setup Russo Original (BB + RSI + EMAs Anti-Trend) + IA (XGBoost)")
+    print("Estrategia:      Setup Russo Original (BB + RSI + EMAs Anti-Trend) + IA (XGBoost)")
     print(f"Ativo:           {args.symbol}")
-    print(f"Lote:            Dinamico (Half-Kelly)")
+    print("Lote:            Dinamico (Half-Kelly)")
     print(f"Operacoes:       {total_trades}")
     print(f"Vitorias:        {wins} ({win_rate:.1f}%)")
     print(f"Derrotas:        {losses} ({100 - win_rate:.1f}%)")

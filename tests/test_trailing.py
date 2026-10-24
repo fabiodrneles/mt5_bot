@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 
 from mt5bot.engine.trailing import aplicar_trailing, calcular_sl_trailing
 

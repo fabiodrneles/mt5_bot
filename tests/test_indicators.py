@@ -1,7 +1,6 @@
 """
 Testes unitários para o módulo indicators.py.
 """
-import pytest
 from mt5bot import legacy_indicators as indicators
 
 

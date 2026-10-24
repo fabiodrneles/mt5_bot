@@ -1,6 +1,5 @@
 
 import os
-import re
 
 directories = ["mt5bot", "interfaces", "tests"]
 modules = ["config", "executor", "indicators", "logger", "persistence", "risk_calculator", "tracker", "dashboard", "_preview_dashboard", "strategy", "scoring", "trailing", "execution_manager", "paper_tracker", "shutdown_manager"]

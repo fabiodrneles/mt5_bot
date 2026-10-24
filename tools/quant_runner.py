@@ -164,7 +164,7 @@ def _section(title):
 
 def render_panel(snap, now=None):
     now = now or datetime.now().strftime("%d/%m %H:%M:%S")
-    left = f"  ◆ MT5BOT  ·  MODO QUANT"
+    left = "  ◆ MT5BOT  ·  MODO QUANT"
     bar = f"{_bg(208)}{_fg(16)}{BOLD}{left}{' ' * (WIDTH - len(left) - len(now) - 2)}{now}  {RESET}"
     badge = f"{_bg(160)}{WHITE}{BOLD} REAL {RESET}" if snap["real"] else f"{_bg(28)}{WHITE}{BOLD} DEMO {RESET}"
     lbl = lambda s: f"{GREY}{s}{RESET}"

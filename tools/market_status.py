@@ -31,7 +31,6 @@ def run_market_status():
                 price = (info.bid + info.ask) / 2
                 spread = info.spread
                 tick_value = info.trade_tick_value
-                tick_size = info.trade_tick_size
                 # Calculo de margem basico
                 margin = mt5.order_calc_margin(mt5.ORDER_TYPE_BUY, symbol, 0.01, price)
                 if margin is None:

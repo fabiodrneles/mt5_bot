@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from mt5bot.core import config
 from mt5bot.engine.scoring import (
     aplicar_scoring,
     build_context,

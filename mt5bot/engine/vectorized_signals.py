@@ -13,8 +13,6 @@ def generate_vectorized_signals(df: pd.DataFrame) -> pd.DataFrame:
     shift_low1 = df['low'].shift(1)
     shift_high1 = df['high'].shift(1)
     shift_close1 = df['close'].shift(1)
-    shift_close2 = df['close'].shift(2)
-    shift_close3 = df['close'].shift(3)
     
     # ----------------------------------------------------
     # SETUP 9.1 (Reversão de Tendência Curta da EMA9)

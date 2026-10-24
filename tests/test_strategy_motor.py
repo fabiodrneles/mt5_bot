@@ -1,11 +1,7 @@
 import pytest
 import pandas as pd
-import numpy as np
-import sys
-import os
 
 # Nao inserimos no path para nao conflitar com modulos raiz. Vamos importar como modulo.
-from mt5bot.engine.indicators import add_all_indicators
 from mt5bot.engine.strategy import StrategyScorer
 
 TICK_SIZE = 0.05

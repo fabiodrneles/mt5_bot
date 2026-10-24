@@ -12,7 +12,6 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from mt5bot.engine.indicators import add_all_indicators
-from mt5bot.engine.strategy import StrategyScorer
 
 # Configuracao de log para escrever no stderr (para não sujar o stdout que é usado para IPC)
 logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(levelname)s - %(message)s')

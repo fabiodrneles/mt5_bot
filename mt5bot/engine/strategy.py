@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import datetime
-import pytz
 from mt5bot.core import config
 from mt5bot.engine.indicators import swing_levels, fib_extension_targets
 

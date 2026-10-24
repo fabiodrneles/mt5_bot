@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import pytest
 
 from mt5bot.core import config
 from mt5bot.data import tracker
@@ -115,7 +113,6 @@ def _external_position(ticket=777, position_type=None, magic=0, price_open=1.100
 
 
 def test_register_external_position_records_manual(monkeypatch):
-    import MetaTrader5 as mt5
     from mt5bot.execution.execution_manager import _register_external_position
 
     assert tracker.get_open_trades() == []

@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 import pandas as pd
 import MetaTrader5 as mt5
 

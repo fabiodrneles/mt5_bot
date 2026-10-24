@@ -366,7 +366,7 @@ def print_report():
     trades = get_closed_trades()
 
     print(f"\n{'=' * 60}")
-    print(f"  RELATORIO DE PERFORMANCE — MT5Bot")
+    print("  RELATORIO DE PERFORMANCE — MT5Bot")
     print(f"{'=' * 60}\n")
 
     if summary["total_trades"] == 0:
@@ -398,7 +398,7 @@ def print_report():
 
     if summary["by_symbol"]:
         print(f"\n  {'─' * 50}")
-        print(f"  POR ATIVO:")
+        print("  POR ATIVO:")
         for sym, data in summary["by_symbol"].items():
             total = data["wins"] + data["losses"]
             wr = round((data["wins"] / total) * 100, 1) if total > 0 else 0
@@ -407,7 +407,7 @@ def print_report():
 
     if summary["by_setup"]:
         print(f"\n  {'─' * 50}")
-        print(f"  POR SETUP:")
+        print("  POR SETUP:")
         for setup, data in summary["by_setup"].items():
             total = data["wins"] + data["losses"]
             wr = round((data["wins"] / total) * 100, 1) if total > 0 else 0
@@ -416,7 +416,7 @@ def print_report():
 
     if trades:
         print(f"\n  {'─' * 50}")
-        print(f"  ULTIMAS 10 OPERACOES:")
+        print("  ULTIMAS 10 OPERACOES:")
         print(f"    {'#':<4} {'Ativo':<8} {'Lado':<5} {'Setup':<6} {'PnL':<12} {'Resultado'}")
         print(f"    {'─'*4} {'─'*8} {'─'*5} {'─'*6} {'─'*12} {'─'*9}")
         for t in trades[-10:]:

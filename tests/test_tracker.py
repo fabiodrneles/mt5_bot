@@ -1,6 +1,5 @@
 import os
 import json
-import types
 from datetime import datetime, timezone
 from mt5bot.data import tracker
 

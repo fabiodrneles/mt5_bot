@@ -325,7 +325,6 @@ def check_setup_93_buy(all_rates, ema9_values):
     if not check_apontando_para_cima(ema9_values):
         return False
 
-    max_pullback = getattr(config, "SETUP_93_MAX_PULLBACK_CANDLES", 2)
     # Verificar se as N velas anteriores tiveram fechamentos recuando
     # ex: candle[-2] close < candle[-3] close
     prev_close = all_rates[-2][4]
