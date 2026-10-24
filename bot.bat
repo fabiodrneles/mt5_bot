@@ -24,6 +24,7 @@ if "%CMD%"=="" (
     echo   train       - Roda o script de treinamento de IA localmente
     echo   backtest    - Roda backtest ^(ex: bot backtest HK50 1^)
     echo   test        - Roda os testes unitarios
+    echo   ci          - Roda localmente os mesmos passos do CI ^(lint, testes, Maestro^)
     echo   quant       - Liga as rotas quant ^(HK50 H4 PULLB / US500 D1 RSI2MR^)
     echo   dashboard   - Abre o painel web ao vivo no navegador
     echo ==============================================
@@ -105,6 +106,11 @@ if /i "%CMD%"=="quant" (
 
 if /i "%CMD%"=="dashboard" (
     python -m interfaces.dashboard
+    goto :fim
+)
+
+if /i "%CMD%"=="ci" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\ci.ps1"
     goto :fim
 )
 
