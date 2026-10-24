@@ -4,6 +4,21 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-10-24
+
+Fase 2 do SDD — "confiável" (épico #22, specs 001/002/005).
+
+### Adicionado
+- **Instalador Windows** `MT5Bot-Setup-<versão>.exe` (Inno Setup): Python 3.12 embutido com as dependências, Maestro compilado, instalação por usuário sem administrador, atalhos (Quant, Maestro, Dashboard, Diagnóstico) e desinstalador que preserva os dados do usuário (#33).
+- Smoke test do instalado no CI (instala, roda, desinstala) (#33).
+- **Workflow de release** por tag: CI completo → instalador → smoke → GitHub Release com `SHA256SUMS` e notas do CHANGELOG; ensaio em PRs (#34).
+- Maestro e `bot.bat` usam o Python embutido (`MT5BOT_PYTHON` → `<app>\python` → PATH); `bot.bat` funciona de qualquer pasta (#32).
+- `CONTRIBUTING.md`, templates de issue/PR, `CODEOWNERS` e o arquivo `LICENSE` (MIT) (#31).
+
+### Alterado
+- **Setups não validados não operam ao vivo por padrão** (D5): só com `allow_unvalidated_live = true` no `config.toml`; o Maestro mostra "experimental · só simulação" (#30).
+- Treino de ML só sob demanda, sem permissão de escrita, com os modelos como artefato (#29).
+
 ## [2.13.0] - 2026-10-24
 
 Fase 1 do SDD — "funcionar de verdade" (épico #2, specs 001/002/003/004).
