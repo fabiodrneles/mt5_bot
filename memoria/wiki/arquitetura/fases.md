@@ -1,6 +1,6 @@
 # Fases do Projeto
 
-Fonte: `raw/design-spec.md`, `ROADMAP_IMPROVEMENTS.md` · Status: mapa de implementação
+Fonte: `raw/design-spec.md`, `docs/ROADMAP_IMPROVEMENTS.md` · Status: mapa de implementação
 
 ## Fase 1 — Infraestrutura (ROADMAP: concluída)
 - Logger rotativo (5MB × 3), timestamps UTC.
@@ -22,7 +22,7 @@ Fonte: `raw/design-spec.md`, `ROADMAP_IMPROVEMENTS.md` · Status: mapa de implem
 - Supervisão (reinício, heartbeat), graceful shutdown.
 - Build: `go build -ldflags "-s -w -H=windowsgui" -o mt5bot.exe`.
 
-## ROADMAP_IMPROVEMENTS.md (estado)
+## docs/ROADMAP_IMPROVEMENTS.md (estado)
 - Fases 1, 2, 3, 5 concluídas conforme CHANGELOG (Fase 3 "finalizada" em 2025-02-07).
 - Fase 4 (desagregada) — ver detalhes no arquivo.
 - **Obs.**: há sobreposição de nomenclatura — o spec de multi-setup (Fase 2) referencia fases do ROADMAP de forma diferente. Confirmar mapeamento real ao implementar.

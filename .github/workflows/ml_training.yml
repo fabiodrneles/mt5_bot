@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "dataset_live_experience_*.csv"
+      - "data/dataset_live_experience_*.csv"
       - "data/dataset_massive*.csv"
       - "tools/train_xgboost.py"
   workflow_dispatch:
@@ -44,7 +44,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           
           # Adiciona os arquivos JSON atualizados
-          git add mt5bot_xgboost_*.json
+          git add models/mt5bot_xgboost_*.json
           
           # Checa se houve alguma alteração real nos modelos (para evitar commits vazios que dariam erro)
           if git diff --staged --quiet; then

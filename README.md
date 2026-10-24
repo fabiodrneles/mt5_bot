@@ -66,7 +66,7 @@ O projeto tem dois modos de operação:
 - **Windows 10/11.** A biblioteca `MetaTrader5` do Python só existe para Windows.
 - **MetaTrader 5** instalado, logado na corretora e **aberto** enquanto o bot roda.
 - **Python 3.10+** (testado no 3.13).
-- **Go 1.21+** *(opcional)*: só é preciso para recompilar o Maestro. Já existe um `maestro/maestro.exe` pronto.
+- **Go 1.21+**: para compilar o Maestro na primeira vez (o `mt5bot.bat` faz isso sozinho, ou use `bot.bat build`). Os binários prontos ficam nas [Releases](https://github.com/fabiodrneles/mt5_bot/releases).
 - O hardware pode ser modesto: o projeto roda em um i3 de 4ª geração com 4 GB de RAM.
 
 ---
@@ -198,7 +198,7 @@ O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado h�
 ## 🎛 Modo Maestro (interativo)
 
 ```powershell
-mt5bot.bat          # usa o maestro.exe pronto
+mt5bot.bat          # compila o Maestro na primeira vez, depois só abre
 # ou: run.bat        # compila e roda via "go run" (exige Go)
 ```
 
@@ -324,6 +324,8 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | `bot.bat train` | Retreina o modelo XGBoost |
 | `bot.bat ask "pergunta"` | Consulta a memória do projeto (RAG) |
 | `bot.bat test` | Roda a suíte de testes |
+| `bot.bat ci` | Roda localmente os mesmos passos do CI (lint, testes, pacote e Maestro) |
+| `bot.bat build` | Compila o Maestro (`maestro\maestro.exe`) |
 | `bot.bat panic` | 🚨 **Fecha a mercado todas as posições do robô** (as manuais ficam) |
 
 Para ver o log do Modo Quant: `Get-Content logs\quant_runner.log -Tail 20`
@@ -406,7 +408,7 @@ Antes de mudar uma rota, exija: lucro **nos dois períodos**, a maioria das vari
 
 Nos setups clássicos, cada sinal leva um "retrato" do mercado: distâncias das médias, ADX, ATR, IFR, microestrutura do candle, horário e outras variáveis. Um modelo **XGBoost** estima a probabilidade de acerto e **veta** o trade abaixo de `ML_MIN_WIN_PROB`. Os sinais vetados continuam sendo acompanhados como "ordens fantasma" e viram dados de treino.
 
-- Modelos: `mt5bot_xgboost_<ATIVO>_v*.json` na raiz.
+- Modelos: `models/mt5bot_xgboost_<ATIVO>_v*.json`.
 - Retreinar: `bot.bat train`.
 - O Modo Quant **não** usa o XGBoost (não fez parte da validação).
 
@@ -452,7 +454,7 @@ mt5_bot/
 │   ├── data/          tracker.py (trades reais), paper_tracker.py (virtuais/rejeições)
 │   └── mentorship/    ml_xgboost.py, supervisor, optimizer, simulator
 ├── interfaces/        brain_worker.py (worker chamado pelo Maestro)
-├── maestro/           Maestro em Go (TUI) + maestro.exe
+├── maestro/           Maestro em Go (TUI); o maestro.exe é gerado por bot.bat build
 ├── tools/             bot.bat tools, quant_runner.py, quant_research/, backtest.py
 ├── memoria/           memória permanente do projeto (wiki + RAG BM25)
 ├── tests/             suíte pytest (MT5 simulado)
@@ -489,7 +491,7 @@ bot.bat test                       # ou: python -m pytest -q
 - Os testes usam um **MT5 simulado** (`tests/conftest.py`) e não precisam do terminal aberto.
 - Toda mudança de lógica precisa de teste (`tests/test_*.py`).
 - Logue com `logging`, nunca com `print()` no caminho de produção.
-- Histórico de versões: [`CHANGELOG.md`](CHANGELOG.md) · Arquitetura detalhada: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+- Histórico de versões: [`CHANGELOG.md`](CHANGELOG.md) · Arquitetura detalhada: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 > [!NOTE]
 > **Desenvolvendo com IA?** Leia primeiro o [`AGENTS.md`](AGENTS.md). O projeto tem uma **memória permanente RAG** (`memoria/`) com os livros-fonte das estratégias e todas as decisões de arquitetura. Consulte com `bot.bat ask "sua pergunta"`.

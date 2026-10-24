@@ -42,10 +42,10 @@ mt5_bot-main/
 1. **`memoria/README.md`** — entenda o sistema de memória/RAG e como consultá-lo. Ele resume o projeto inteiro.
 2. **`memoria/wiki/`** — conhecimento destilado: setups 9.1–9.4, Ponto Contínuo, FFFD, DiNapoli, IFR2, SAR, expectativa matemática, plano de trade, gestão de risco, arquitetura (maestro Go + cérebro Python).
 3. **`README.md`** — visão do usuário: instalação, comandos, funcionalidades.
-4. **`ARCHITECTURE.md`** — documentação técnica completa.
+4. **`docs/ARCHITECTURE.md`** — documentação técnica completa.
 5. **`docs/superpowers/specs/2026-08-11-mt5-multi-setup-maestro-design.md`** — spec do motor multi-setup e do maestro Go (Fase 2/3).
 6. **`strategy.py` + `indicators.py` + `config.py`** — o coração do código.
-7. **`ROADMAP_IMPROVEMENTS.md`** — fases do projeto e status.
+7. **`docs/ROADMAP_IMPROVEMENTS.md`** — fases do projeto e status.
 8. **`CHANGELOG.md`** — histórico de versões.
 
 ---

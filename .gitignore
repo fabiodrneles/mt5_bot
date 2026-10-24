@@ -20,3 +20,11 @@ memoria/index/
 
 .worktrees/
 tools/quant_research/data/
+
+# Binarios e saidas de build: vem do CI/Releases (spec 004, D8)
+*.exe
+*.bak
+dist/
+maestro/bin/
+temp/
+*.log

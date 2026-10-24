@@ -14,7 +14,8 @@ class MLSupervisor:
     """
     _models = {} # dict mapping symbol to model
     _loaded_symbols = set()
-    _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Modelos treinados ficam em <raiz>/models (spec 004: raiz so com arquivos de entrada).
+    _base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "models")
 
     @classmethod
     def load_model(cls, symbol: str):
