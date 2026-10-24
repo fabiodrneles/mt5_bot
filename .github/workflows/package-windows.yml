@@ -60,9 +60,8 @@ jobs:
     name: Smoke Linux (Wine, experimental)
     needs: installer
     runs-on: ubuntu-latest
-    # Experimental e ainda nao verificado: o import no Wine estoura o tempo (issue #47).
-    # Roda e reporta, mas nao bloqueia o merge/release ate a investigacao.
-    continue-on-error: true
+    # Experimental (decisao D1). O Wine 9.0 do Ubuntu nao implementa
+    # ucrtbase.crealf, que o numpy usa (issue #47); por isso o Wine vem do WineHQ.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -72,11 +71,15 @@ jobs:
           name: mt5bot-windows-installer
           path: dist
 
-      - name: Install Wine
+      - name: Install Wine (WineHQ stable)
         run: |
           sudo dpkg --add-architecture i386
+          sudo mkdir -pm755 /etc/apt/keyrings
+          sudo wget -qO /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          sudo wget -qNP /etc/apt/sources.list.d/ "https://dl.winehq.org/wine-builds/ubuntu/dists/$(lsb_release -cs)/winehq-$(lsb_release -cs).sources"
           sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends wine64 wine xvfb
+          sudo apt-get install -y -qq --install-recommends winehq-stable xvfb
+          wine --version
 
       - name: Smoke test (install.sh, Python, Quant, bot.bat, Maestro)
         run: xvfb-run -a bash packaging/wine/smoke.sh
