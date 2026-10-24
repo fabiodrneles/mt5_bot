@@ -76,3 +76,12 @@ def test_strategies_have_no_lookahead():
     alt = R.strategies(mkd(c2, h2, l2, o), "H1")
     for a, b in zip(base, alt):
         assert np.array_equal(a[2][:599], b[2][:599]), (a[0], a[1])
+
+
+def test_entry_pays_rollover_spread_of_previous_candle():
+    """Candle anterior com spread de rollover (5): a compra na abertura seguinte paga 5, nao 0."""
+    d = frame([100, 100, 100], [100, 100, 100], [100, 100, 100], [100, 100, 100], day0=8)
+    d["spr"] = np.array([5.0, 0.0, 0.0])
+    sig = np.array([1, 0, 0])
+    tr = R.simulate("X", d, sig, np.full(3, 50.0), np.full(3, np.nan), None, None, 1, False)
+    assert tr[0, 2] == pytest.approx(-5.0)

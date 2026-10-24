@@ -5,6 +5,7 @@ Grava data/<SYM>_H1.npy e data/<SYM>_D1.npy e data/meta2.json (custos e valor do
 """
 import json
 import os
+import sys
 import time
 
 import MetaTrader5 as m
@@ -37,15 +38,22 @@ def main():
         m.symbol_select(s, True)
         info = m.symbol_info(s)
         group = r["path"].split("\\")[0]
-        # Sem deal real: indices/cripto pagam ~$1/lote na entrada (observado); acoes assumem
-        # o mesmo por cautela; FX e petroleo sem comissao (spread embutido).
+        # Sem deal real: indices/cripto pagam ~$1/lote na entrada (observado); FX e petroleo sem
+        # comissao (spread embutido). Acoes: lote = 1 acao, entao $1/lote seria irreal; usa o modelo
+        # comum de CFD de acoes, 0,1% do valor por lado (ESTIMADO: a API nao informa a comissao).
         default = 0.0 if group.startswith(("FX", "EURUSD", "USOIL", "UKOIL", "Metals")) else 1.0
+        if group.startswith("CFD Stocks") and s not in comm:
+            info_c = info.trade_contract_size if info else 1.0
+            comm[s] = 2 * 0.001 * r["price"] * info_c
         meta[s] = dict(point=r["point"], vmin=r["vmin"], price=r["price"], usd_per_unit=r["usd_per_unit"],
                        margin=r["margin"], swapL=r["swapL"], swapS=r["swapS"], swap_mode=r["swap_mode"],
                        swap3=getattr(info, "swap_rollover3days", 3), group=group,
                        comm_rt=comm.get(s, default) * r["vmin"])
     # Metadados gravados antes do download: a pesquisa pode rodar sobre o que ja baixou.
     json.dump(meta, open("data/meta2.json", "w"), indent=1)
+    if "--meta-only" in sys.argv:
+        print("ok meta", len(meta))
+        return
     for r in uni:
         s = r["sym"]
         for name, (tf, cnt) in TFS.items():

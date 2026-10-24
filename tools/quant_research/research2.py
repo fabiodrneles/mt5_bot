@@ -54,9 +54,17 @@ def load(sym, tf):
         r = np.load(os.path.join(DATA, f"{sym}_{tf}.npy"))
     spr = r["spread"].astype(float)
     if tf == "D1" or np.median(spr) == 0:
-        h1 = np.load(os.path.join(DATA, f"{sym}_H1.npy"))["spread"]
+        h1r = np.load(os.path.join(DATA, f"{sym}_H1.npy"))
+        h1 = h1r["spread"]
         pos = h1[h1 > 0]
         spr[:] = np.median(pos) if len(pos) else 0.0
+        if tf == "D1":
+            # O D1 abre no rollover, quando o spread dispara: entrada paga o spread tipico daquela hora.
+            hr = (h1r["time"] % 86400) // 3600
+            open_hr = int(np.median((r["time"] % 86400) // 3600))
+            at_open = h1[(hr == open_hr) & (h1 > 0)]
+            if len(at_open):
+                spr[:] = max(spr[0], float(np.median(at_open)))
     else:
         pos = spr[spr > 0]
         spr[spr <= 0] = np.median(pos) if len(pos) else 0.0
@@ -205,7 +213,10 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
     """
     m = _meta()[sym]
     o, h, l, c, day, t = d["o"], d["h"], d["l"], d["c"], d["day"], d["t"]
-    spr = d["spr"] * cost
+    # Conservador: o spread na abertura de um candle e o maior entre o do candle anterior e o dele
+    # (os candles sao de bid e o campo spread do MT5 subestima o pico do rollover).
+    spr = np.maximum(d["spr"], np.r_[d["spr"][:1], d["spr"][:-1]]) * cost
+    spr_close = np.maximum(d["spr"], np.r_[d["spr"][1:], d["spr"][-1:]]) * cost
     n = len(c)
     upu = m["usd_per_unit"]
     comm = m["comm_rt"] * cost
@@ -251,10 +262,10 @@ def simulate(sym, d, sig, stop, tgt, ex_long, ex_short, max_bars, intraday, cost
                     exit_p = tp - spr[j]
                     break
                 if ex_short is not None and ex_short[j]:
-                    exit_p = c[j]
+                    exit_p = c[j] + spr_close[j] - spr[e]  # compra de volta no ask do fechamento
                     break
             if j - e + 1 >= max_bars or (intraday and last_of_day[j]):
-                exit_p = c[j]
+                exit_p = c[j] + (spr_close[j] - spr[e] if dr < 0 else 0.0)
                 break
             j += 1
         if exit_p is None:
