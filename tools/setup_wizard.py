@@ -41,8 +41,9 @@ def check_environment():
     acc = telemetry.account_snapshot()
     report["account"] = acc
     balance = (acc or {}).get("balance", 0.0)
-    for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
-        row = {"symbol": symbol, "tf": route["timeframe"], "setup": route["setup"], "risk": None, "limit": None,
+    for key, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
+        symbol = route.get("symbol", key)
+        row = {"symbol": key, "tf": route["timeframe"], "setup": route["setup"], "risk": None, "limit": None,
                "study": str(route.get("mode", "live")).lower() == "study"}
         if not mt5.symbol_select(symbol, True):
             report["problems"].append(

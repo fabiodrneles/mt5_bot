@@ -204,7 +204,7 @@ def _unvalidated_blocked(symbol, timeframe_name):
         logging.warning(
             f"[{symbol}] {timeframe_name} nao tem estrategia validada: o robo NAO abre posicoes ao vivo. "
             f"Para testar sem risco use /study {symbol} {timeframe_name}. Rotas validadas: "
-            + ", ".join(f"{s} {r['timeframe']}" for s, r in getattr(config, 'QUANT_ROUTES', {}).items())
+            + ", ".join(f"{r.get('symbol', s)} {r['timeframe']}" for s, r in getattr(config, 'QUANT_ROUTES', {}).items())
             + ". Para liberar mesmo assim: allow_unvalidated_live = true no config.toml.")
     return "🔒 SÓ SIMULAÇÃO"
 

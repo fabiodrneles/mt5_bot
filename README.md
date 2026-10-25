@@ -235,6 +235,8 @@ O US500 tem a evidência mais forte: é o efeito RSI2 de Connors, documentado h�
 
 **Rota USDJPY em estudo (📘).** O único sobrevivente da varredura de calendário (cap. 14 §14.6): comprar USDJPY na segunda às 01h do servidor e sair 1 hora depois. Roda virtualmente até acumular pelo menos 30 segundas novas; só então se decide se vira rota real.
 
+**Rota USDJPY IFR2 Stormer em estudo (📘).** No diário, compra o USDJPY quando o IFR2 fecha abaixo de 5; o alvo é a máxima dos dois últimos candles e a saída acontece em até 7 dias. Foi o único par em que o IFR2 do Stormer lucrou nas duas metades do histórico (`docs/validacao-palex.md`). Roda ao lado da rota de horário do USDJPY, sem misturar as operações.
+
 **Rota US100 em estudo (📘).** O US100 RSI2 está configurado em **modo estudo**: o robô calcula os sinais, as entradas e as saídas exatamente como faria ao vivo, mas **não envia nenhuma ordem**. As operações virtuais ficam em `%APPDATA%\mt5bot\quant_study.json`. Motivo: cada stop do US100 custa ~$5,20 no lote mínimo (um terço de $16). Com saldo de ~$52 (10% por stop), dá para operar de verdade com `[routes.US100]` e `mode = "live"` no `config.toml`.
 
 **Expectativa honesta:** é lucro de **centavos por trade**. No HK50, a média histórica é de +$0,036 por operação, cerca de 13% ao ano sobre $16, com quedas de até ~$4 no caminho. Houve anos negativos (2024: −$1,48). Só dá para tirar conclusão depois de dezenas de trades reais.
@@ -369,7 +371,7 @@ Ferramentas rápidas para inspecionar o robô sem abrir arquivos grandes. Cada c
 | Comando | O que faz |
 |---|---|
 | `bot.bat setup` | **Assistente:** confere o MT5, a conta (REAL/DEMO) e o risco de cada rota; libera a conta REAL |
-| `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1 ao vivo; US100 D1 e USDJPY H1 em estudo, sem ordens) |
+| `bot.bat quant` | **Liga o Modo Quant** (HK50 H4 / US500 D1 ao vivo; US100 D1, USDJPY H1 e USDJPY D1 IFR2 em estudo, sem ordens) |
 | `bot.bat dashboard` | **Abre o dashboard web ao vivo** no navegador |
 | `bot.bat diagnose` | Conexão com o MT5, saldo, margem e erros do `bot.log` nas últimas 24h |
 | `bot.bat market` | Preço, spread, valor do tick e margem dos ativos configurados |

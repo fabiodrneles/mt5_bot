@@ -72,7 +72,7 @@ Os motores de decisão (M3, M4, M5, `trailing.py`) são **funções puras**: rec
 
 ```python
 # Listagem 12.1 — mt5bot/engine/quant_setups.py
-SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week}
+SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week, "STORMER": signal_stormer}
 EXITS = {"RSI2MR": exit_rsi2mr}
 
 

@@ -286,6 +286,8 @@ Com US$ 16, o US100 não cabe: um stop custa cerca de um terço da conta. A solu
 
 O plano de crescimento resultante é escalonado: US500 agora; US100 com ≈ US$ 52; US30 com ≈ US$ 72. Ele não aumenta o risco por trade. A mesma vantagem por contrato passa a valer em mais mercados à medida que a conta permite.
 
+**IFR2 do Stormer no USDJPY (rota em estudo).** O IFR2 do Stormer (só compra; IFR2 abaixo de 5, 10 ou 12; alvo na máxima dos dois últimos candles; saída em 7 candles; sem stop) não tem vantagem no forex como um todo: 59 de 238 combinações par × variante lucraram nas duas metades do histórico, o que é o esperado por acaso. O USDJPY no diário é a exceção consistente, com t de 3,5 a 3,95 na primeira metade e de 2,8 a 3,06 na segunda, e com uma explicação econômica (o swap da compra é positivo). Como foi achado numa busca, entrou como rota em **estudo** (`config.QUANT_ROUTES["USDJPY_IFR2"]`, setup `STORMER`, nível 5), com um SL protetor de 3 ATR que o setup original não tem, exigido pela constituição. Para conviver com a rota de horário do mesmo ativo, as rotas passaram a ter uma chave própria e um campo `symbol` opcional: o motor procura a rota por ativo **e** tempo gráfico, e o estudo separa as operações por ativo **e** setup.
+
 ## 14.10 Discussão
 
 **Por que nada sobreviveu?** Três forças se somam:

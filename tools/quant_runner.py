@@ -99,12 +99,13 @@ def collect_snapshot(states, cache_info):
         "routes": [], "positions": [], "events": list(_EVENTS),
     }
     now = telemetry.server_now()
-    for symbol, route in config.QUANT_ROUTES.items():
-        df, forming = cache_info.get(symbol, (None, None))
+    for key, route in config.QUANT_ROUTES.items():
+        symbol = quant_manager.route_symbol(key, route)
+        df, forming = cache_info.get(key, (None, None))
         tick = mt5.symbol_info_tick(symbol)
         risk, limit = telemetry.route_risk(symbol, route, df, snap["balance"]) if df is not None else (None, None)
-        snap["routes"].append({"symbol": symbol, "tf": route["timeframe"], "setup": route["setup"],
-                               "state": states.get(symbol, "…"),
+        snap["routes"].append({"symbol": key, "tf": route["timeframe"], "setup": route["setup"],
+                               "state": states.get(key, "…"),
                                "next_close": telemetry.next_close_text(forming, TF_SECS[route["timeframe"]],
                                                                        int(getattr(tick, "time", 0) or 0), now),
                                "risk": risk, "limit": limit,
@@ -225,7 +226,7 @@ def run(once=False, interval=5, plain=False):
     acc = mt5.account_info()
     logging.info(f"Quant runner conectado: conta {acc.login} ({'REAL' if acc.trade_mode == 2 else 'DEMO'}) "
                  f"saldo ${acc.balance:.2f} | rotas: "
-                 + ", ".join(f"{s} {r['timeframe']} {r['setup']}" for s, r in config.QUANT_ROUTES.items()))
+                 + ", ".join(f"{quant_manager.route_symbol(s, r)} {r['timeframe']} {r['setup']}" for s, r in config.QUANT_ROUTES.items()))
     if not plain:
         os.system("")  # liga as cores ANSI no console do Windows
         sys.stdout.write("\x1b[?25l")  # esconde o cursor enquanto o painel roda
@@ -234,20 +235,21 @@ def run(once=False, interval=5, plain=False):
     try:
         while True:
             cache_info = {}
-            for symbol, route in config.QUANT_ROUTES.items():
+            for key, route in config.QUANT_ROUTES.items():
+                symbol = quant_manager.route_symbol(key, route)
                 try:
                     mt5.symbol_select(symbol, True)
                     df, forming = cache.get(symbol, route["timeframe"])
-                    cache_info[symbol] = (df, forming)
+                    cache_info[key] = (df, forming)
                     state = "🔴 SEM DADOS" if df is None else execution_manager.manage_cycle(
                         symbol, df, timeframe_name=route["timeframe"])
                 except Exception as e:
                     logging.exception(f"[{symbol}] Erro no ciclo quant: {e}")
                     state = "🔴 ERRO"
-                states[symbol] = state
-                if once or last_logged.get(symbol) != state:
-                    logging.info(f"[{symbol} {route['timeframe']}] {state}")
-                    last_logged[symbol] = state
+                states[key] = state
+                if once or last_logged.get(key) != state:
+                    logging.info(f"[{key} {route['timeframe']}] {state}")
+                    last_logged[key] = state
             if not plain:
                 try:
                     panel = render_panel(collect_snapshot(states, cache_info))

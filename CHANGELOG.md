@@ -5,6 +5,7 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 ## [Unreleased]
 
 ### Adicionado
+- **Rota USDJPY D1 IFR2 Stormer em estudo** (setup `STORMER`, chave `USDJPY_IFR2`): só compra com IFR2 < 5, alvo na máxima dos 2 últimos candles, saída em 7 candles, SL protetor de 3 ATR. Único par consistente nas duas metades do histórico. As rotas quant agora aceitam o campo `symbol`, o que permite várias rotas no mesmo ativo (busca por ativo e tempo gráfico; estudo separado por setup).
 - **Setups do Palex em forex e na B3** (`tools/quant_research/palex_setups.py`, `compare_palex_b3.py`, `docs/validacao-palex.md`): 14 setups mecânicos do livro testados como o livro manda. No forex todos perdem; na B3 o cruzamento MM9 × MM21 rende 16,4% ao ano desde 2005 em carteira, com queda máxima de 15% e Sharpe igual ou maior que uma exposição equivalente às ações.
 
 ### Adicionado

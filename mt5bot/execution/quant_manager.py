@@ -28,11 +28,22 @@ _last_signal_candle = {}
 _last_log = {}
 
 
+def route_symbol(key, route) -> str:
+    """Ativo da rota. A chave de QUANT_ROUTES e o nome da rota; por padrao, o proprio ativo. Para ter mais de
+    uma rota no mesmo ativo (em timeframes diferentes), use uma chave propria e "symbol" (ex.: "USDJPY_IFR2")."""
+    return (route or {}).get("symbol", key)
+
+
 def get_route(symbol, timeframe_name):
-    route = (getattr(config, "QUANT_ROUTES", None) or {}).get(symbol)
-    if route and route.get("timeframe", "").upper() == str(timeframe_name).upper():
-        return route
+    for key, route in (getattr(config, "QUANT_ROUTES", None) or {}).items():
+        if route_symbol(key, route) == symbol and route.get("timeframe", "").upper() == str(timeframe_name).upper():
+            return route
     return None
+
+
+def signal_key(symbol, tf_secs) -> str:
+    """Chave do ultimo candle avaliado: por ativo E timeframe (duas rotas no mesmo ativo nao se atropelam)."""
+    return f"{symbol}:{tf_secs}"
 
 
 def max_risk_pct(route) -> float:
@@ -95,7 +106,7 @@ def entry_window(symbol, setup, last_time, tf_secs):
     if delay < 0:
         return "⏳ AGUARDANDO MERCADO", None, None
     if delay > tf_secs * MAX_ENTRY_DELAY_FRACTION:
-        _last_signal_candle[symbol] = last_time
+        _last_signal_candle[signal_key(symbol, tf_secs)] = last_time
         logging.info(f"[{symbol}] {setup}: sinal de {last_time} expirou (entrada {delay}s apos o fechamento). Ignorado.")
         return "🔵 SINAL EXPIRADO", None, None
     return None, tick, info
@@ -147,6 +158,7 @@ def _manage_quant_position(symbol, position, df, setup, params, tf_secs):
 
 
 def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
+    skey = signal_key(symbol, tf_secs)
     if df is None or len(df) < 200:
         return "🔴 WAIT_DATA"
 
@@ -157,12 +169,12 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
         return UNCONFIRMED_STATE
 
     last_time = df["time"].iloc[-1]
-    if _last_signal_candle.get(symbol) == last_time:
+    if _last_signal_candle.get(skey) == last_time:
         return "🔵 AGUARDANDO PRÓXIMO CANDLE"
 
     sig = quant_setups.evaluate(setup, df, params)
     if sig is None:
-        _last_signal_candle[symbol] = last_time
+        _last_signal_candle[skey] = last_time
         _log_once(f"{symbol}_scan", f"[{symbol}] {setup}: sem sinal no candle {last_time}.")
         return "🔵 SCANNING"
 
@@ -175,7 +187,7 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
         limits = risk_calculator.calculate_risk_limits()
         daily_pnl = tracker.get_daily_pnl()
         if daily_pnl is not None and daily_pnl <= -limits["max_daily_loss_currency"]:
-            _last_signal_candle[symbol] = last_time
+            _last_signal_candle[skey] = last_time
             logging.warning(f"[{symbol}] {setup}: Daily Max Loss atingido ({daily_pnl:.2f}). Sinal ignorado.")
             return "🔴 MAX LOSS DIÁRIO"
     except Exception as e:
@@ -193,7 +205,7 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
 
     min_stop = (info.trade_stops_level or 0) * info.point
     if sig["sl_dist"] <= min_stop:
-        _last_signal_candle[symbol] = last_time
+        _last_signal_candle[skey] = last_time
         logging.warning(f"[{symbol}] {setup}: SL ({sig['sl_dist']:.2f}) menor que o stops level ({min_stop:.2f}). Ignorado.")
         return "🟡 SINAL REJEITADO"
 
@@ -203,7 +215,7 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
     loss = mt5.order_calc_profit(order_type, symbol, volume, price, sl)
     max_loss = balance * risk_pct / 100.0
     if loss is None or abs(loss) > max_loss:
-        _last_signal_candle[symbol] = last_time
+        _last_signal_candle[skey] = last_time
         logging.warning(f"[{symbol}] {setup} {side}: perda no SL ${abs(loss or 0):.2f} > limite ${max_loss:.2f}"
                         f" ({risk_pct}% de ${balance:.2f}). Sinal ignorado para preservar margem.")
         return "🟡 SINAL REJEITADO"
@@ -213,12 +225,12 @@ def _scan_quant(symbol, df, setup, params, tf_secs, risk_pct):
     free = float(getattr(account, "margin_free", 0.0) or 0.0)
     reserve = getattr(config, "QUANT_MARGIN_RESERVE_MULT", 3.0)
     if margin is None or free - margin < margin * reserve:
-        _last_signal_candle[symbol] = last_time
+        _last_signal_candle[skey] = last_time
         logging.warning(f"[{symbol}] {setup}: margem livre ${free:.2f} insuficiente (posicao usa ${margin or 0:.2f},"
                         f" reserva {reserve}x). Sinal ignorado.")
         return "🟡 SEM MARGEM"
 
-    _last_signal_candle[symbol] = last_time
+    _last_signal_candle[skey] = last_time
     comment = f"{getattr(config, 'QUANT_COMMENT_PREFIX', 'Q ')}{setup}"
     logging.info(f"[{symbol}] {setup} {side} @ {price} SL={sl:.2f} TP={tp if tp is None else round(tp, 2)}"
                  f" lote={volume} risco=${abs(loss):.2f}. Enviando a mercado.")

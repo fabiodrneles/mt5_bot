@@ -103,3 +103,42 @@ def test_usdjpy_hour_route_is_study_and_exits_after_one_bar(study, monkeypatch):
     state = quant_manager.quant_cycle("USDJPY", df2, "H1", route)
     assert state == "📘 ESTUDO: SAÍDA VIRTUAL (tempo)"
     assert study["sent"] == []
+
+
+def test_two_routes_on_the_same_symbol_are_independent():
+    routes = config.QUANT_ROUTES
+    assert quant_manager.route_symbol("USDJPY_IFR2", routes["USDJPY_IFR2"]) == "USDJPY"
+    assert quant_manager.get_route("USDJPY", "H1")["setup"] == "HOUR"
+    assert quant_manager.get_route("USDJPY", "D1")["setup"] == "STORMER"
+    assert quant_manager.signal_key("USDJPY", 3600) != quant_manager.signal_key("USDJPY", 86400)
+
+
+def test_stormer_signal_buys_extreme_rsi2_with_target_at_two_bar_high():
+    import numpy as np
+    import pandas as pd
+    from mt5bot.engine import quant_setups
+    n = 60
+    close = np.r_[np.linspace(150, 160, n - 3), [157.0, 154.0, 151.0]]  # tres quedas fortes: IFR2 ~ 0
+    df = pd.DataFrame({"time": pd.date_range("2026-01-01", periods=n, freq="D"), "open": close,
+                       "high": close + 0.5, "low": close - 0.5, "close": close})
+    sig = quant_setups.evaluate("STORMER", df, config.QUANT_ROUTES["USDJPY_IFR2"]["params"])
+    assert sig["action"] == "buy" and sig["sl_dist"] > 0
+    assert sig["tp_dist"] == pytest.approx(max(df["high"].iloc[-2:]) - close[-1])
+    up = df.assign(close=np.linspace(150, 170, n))
+    assert quant_setups.evaluate("STORMER", up, config.QUANT_ROUTES["USDJPY_IFR2"]["params"]) is None
+
+
+def test_stormer_study_route_enters_virtually_on_the_d1_without_touching_the_h1_route(study, monkeypatch):
+    import numpy as np
+    import pandas as pd
+    n = 300
+    close = np.r_[np.linspace(140, 160, n - 3), [157.0, 154.0, 151.0]]
+    t0 = pd.Timestamp("2026-10-16")
+    df = pd.DataFrame({"time": pd.date_range(end=t0, periods=n, freq="D"), "open": close,
+                       "high": close + 0.5, "low": close - 0.5, "close": close})
+    monkeypatch.setattr(mt5, "symbol_info_tick", lambda s: _Obj(bid=151.0, ask=151.01, time=study["tick_time"]))
+    _open_at_next_bar(study, df, tf=86400)
+    state = quant_manager.quant_cycle("USDJPY", df, "D1", config.QUANT_ROUTES["USDJPY_IFR2"])
+    assert state.startswith("📘 ESTUDO: ENTRADA VIRTUAL (STORMER BUY)") and study["sent"] == []
+    trade = quant_study.load()[0]
+    assert trade["setup"] == "STORMER" and trade["tp"] is not None

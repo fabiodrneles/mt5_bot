@@ -31,7 +31,8 @@ def server_now(symbols=()):
     (arredondado a 30 min) e guardado: tick.time de um ativo parado nao serve."""
     global _server_offset
     freshest = None
-    for s in (*symbols, *(getattr(config, "QUANT_ROUTES", {}) or {}), *_CLOCK_SYMBOLS):
+    route_syms = [r.get("symbol", k) for k, r in (getattr(config, "QUANT_ROUTES", {}) or {}).items()]
+    for s in (*symbols, *route_syms, *_CLOCK_SYMBOLS):
         t = mt5.symbol_info_tick(s)
         if t is not None and getattr(t, "time", None):
             freshest = max(freshest or 0, int(t.time))
