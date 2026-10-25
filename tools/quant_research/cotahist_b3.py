@@ -158,7 +158,10 @@ def main():
     ib_c = np.array([ib[day] for day in cal])
     ib_r = np.r_[0.0, ib_c[1:] / ib_c[:-1] - 1]
     # Todos os setups de compra no diario: os 11 do palex_setups.py e a familia 9.x (regras do livro).
-    names = list(CP.SETUPS) + ["9.1 semanal", "9.2 semanal+SMA200", "9.3 semanal+SMA200", "9.4 semanal"]
+    names = list(CP.SETUPS) + ["9.1 semanal", "9.2 semanal+SMA200", "9.3 semanal+SMA200", "9.4 semanal",
+                               "IFR2 Stormer <25", "IFR2 Stormer <25 +MM200", "IFR2 Stormer <10", "IFR2 Stormer <10 +MM200"]
+    if os.environ.get("ONLY"):
+        names = [n for n in names if os.environ["ONLY"] in n]
     bh = np.full((len(stocks), T), np.nan)
     mats = {s: np.full((len(stocks), T), np.nan) for s in names}
     for si, (tk, d) in enumerate(stocks.items()):
@@ -197,7 +200,8 @@ def main():
         print(f"\n== Desde {y0} (universo sem sobrevivencia; sem IR): ao ano | Sharpe acima do CDI | queda maxima")
         for k, v in rows.items():
             print(f"   {k:<46} {v['cagr']:6.2f}%   Sharpe {v['sharpe']:5.2f}   queda {v['maxdd']:6.1f}%")
-    json.dump(dict(stocks=len(stocks), results=results), open(os.path.join(HERE, "data", "cotahist_b3.json"), "w"), indent=1)
+    out = f"cotahist_b3_{os.environ['ONLY'].replace(' ', '_')}.json" if os.environ.get("ONLY") else "cotahist_b3.json"
+    json.dump(dict(stocks=len(stocks), results=results), open(os.path.join(HERE, "data", out), "w"), indent=1)
 
 
 if __name__ == "__main__":

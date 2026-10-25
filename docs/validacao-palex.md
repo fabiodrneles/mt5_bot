@@ -118,6 +118,21 @@ Os setups de curto prazo ficam investidos pouco tempo e, por isso, rendem perto 
 - **Cruz. MM9 × MM21:** melhor que a exposição equivalente às ações, com metade da queda, mas sem vantagem clara sobre o CDI.
 - **Peg Leg** (contra a tendência) perde dinheiro.
 
+### IFR2 do Stormer (adaptação brasileira do IFR2)
+
+Pedido do dono, a partir do vídeo "Setup IFR2 Stormer". O vídeo não pôde ser lido, então foi testada a **descrição mais comum** do setup: IFR2 abaixo de 25 (ou 10) no fechamento; compra no fechamento; alvo na máxima dos 2 últimos candles; saída por tempo depois de 7 candles; sem stop de preço; com e sem o filtro da MM200. Série oficial COTAHIST, universo ponto-no-tempo:
+
+| Variante | Desde 2005: ao ano / Sharpe / queda | Desde 2016: ao ano / Sharpe / queda |
+|---|---|---|
+| CDI | 10,61% / — / 0% | 9,60% / — / 0% |
+| IFR2 Connors (referência acima) | **11,67% / 0,36 / −5,3%** | **10,28% / 0,27 / −4,5%** |
+| Stormer, IFR2 < 10 + MM200 | 10,88% / 0,08 / −8,4% | 8,88% / −0,14 / −8,4% |
+| Stormer, IFR2 < 10 | 10,41% / 0,05 / −32,4% | 8,26% / −0,04 / −32,4% |
+| Stormer, IFR2 < 25 + MM200 | 9,45% / −0,12 / −16,1% | 8,66% / −0,10 / −16,1% |
+| Stormer, IFR2 < 25 | 6,52% / −0,16 / −38,4% | 8,86% / 0,04 / −37,0% |
+
+**Leitura:** a versão do Stormer, com alvo curto na máxima de 2 candles, saída por tempo e sem stop, fica **no nível do CDI ou abaixo**, com quedas maiores sem o filtro da MM200 (a falta de stop pesa nas ações que despencam). A versão original de Connors, que sai quando o fechamento passa da MM5, foi melhor nos dois períodos. Se o vídeo usar parâmetros diferentes, basta ajustá-los em `palex_setups.py` (sinal "IFR2 Stormer") e rodar `ONLY="IFR2" python cotahist_b3.py`.
+
 ## Ressalvas
 
 - **Viés de sobrevivência:** as tabelas com dados do Yahoo incluem só as ações que estão no Ibovespa hoje. A seção COTAHIST acima corrige isso e é a referência.

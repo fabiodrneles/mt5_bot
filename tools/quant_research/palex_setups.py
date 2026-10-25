@@ -91,6 +91,14 @@ def signals(d, x, tf):
         # acima da MM5; sem stop (o livro nao usa)
         if x["rsi2"][i] < 5 and c[i] > m200[i]:
             add((i, "IFR2 sobrevendido", 1, "close", c[i], np.nan, None, ("rsi2",), 1))
+        # IFR2 do Stormer (adaptacao brasileira do IFR2, descricao mais comum): IFR2 abaixo do nivel no fechamento,
+        # compra no fechamento; alvo = maxima dos 2 ultimos candles; sai por tempo apos 7 candles; sem stop de preco.
+        for lvl in (25, 10):
+            if x["rsi2"][i] < lvl:
+                alvo = max(h[i], h[i - 1])
+                add((i, f"IFR2 Stormer <{lvl}", 1, "close", c[i], np.nan, None, ("stormer", alvo, 7), 1))
+                if c[i] > m200[i]:
+                    add((i, f"IFR2 Stormer <{lvl} +MM200", 1, "close", c[i], np.nan, None, ("stormer", alvo, 7), 1))
         # Rompimento de topo historico (p. 70): compra 1 tick acima da maior maxima ja feita; stop largo
         th = x["hmax"][i - 1]
         if h[i] < th and i > 260:
@@ -197,6 +205,13 @@ def walk(d, x, sig, cost):
                 break
         elif rule == "rsi2":
             if c[j] > x["m5"][j]:
+                px = c[j]
+                break
+        elif rule == "stormer":
+            if h[j] >= exit_rule[1]:
+                px = max(o[j], exit_rule[1])
+                break
+            if j - e >= exit_rule[2]:
                 px = c[j]
                 break
         elif rule == "rsi14":
