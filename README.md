@@ -408,6 +408,16 @@ enabled = true                    # false desliga a rota
 
 Valores com tipo errado ou fora da faixa são **recusados com aviso** (citando o arquivo e a chave), e o padrão é mantido. Nada derruba o robô.
 
+### Mais de uma corretora no mesmo computador (ex.: Hantec e Clear)
+
+Não é preciso deslogar uma conta para usar outra. Instale o MetaTrader 5 de **cada corretora pelo instalador dela**: cada um cria o seu terminal, em pasta própria, com o login salvo. Para o robô usar um terminal específico, indique o caminho no `config.toml`:
+
+```toml
+mt5_path = "C:/Program Files/Clear MetaTrader 5/terminal64.exe"
+```
+
+Sem essa linha, o robô usa o último terminal aberto. Um caminho que não existe é recusado com aviso, e o robô continua com o padrão. Dica: antes de testar outra corretora, confirme que você sabe recuperar o acesso da conta atual (número da conta e redefinição de senha no portal da corretora).
+
 Os padrões mais importantes do `config.py`:
 
 ```python

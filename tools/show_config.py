@@ -6,13 +6,14 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from mt5bot.core import config
+from mt5bot.core import terminal
 
 
 def _balance():
     """Saldo atual do MT5 (None se o terminal nao estiver disponivel)."""
     try:
         import MetaTrader5 as mt5
-        if not mt5.initialize():
+        if not terminal.initialize():
             return None
         acc = mt5.account_info()
         return float(acc.balance) if acc else None
@@ -104,11 +105,16 @@ def config_template():
         "",
         "# Confirmacao de conta REAL (prefira gravar pelo assistente: bot.bat setup).",
         f"# live_confirmed = {str(getattr(config, 'LIVE_CONFIRMED', False)).lower()}",
+        "",
+        "# Terminal MT5 da corretora (quando ha mais de um instalado, ex.: Hantec e Clear). Apague os dois '#'",
+        "# e troque pelo caminho do terminal64.exe da corretora desejada; o login salvo nele e usado.",
+        '## mt5_path = "C:/Program Files/MetaTrader 5/terminal64.exe"',
     ]
     for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
         lines += ["", f"# Rota {symbol} {route['timeframe']} {route['setup']}",
                   f"# [routes.{symbol}]",
                   f"# max_risk_pct = {route.get('max_risk_pct', config.QUANT_MAX_RISK_PCT)}",
+                  f'# mode = "{route.get("mode", "live")}"   # "study" = ordens virtuais; "live" = opera de verdade',
                   "# enabled = true"]
     return "\n".join(lines) + "\n"
 

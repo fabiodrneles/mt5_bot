@@ -3,6 +3,7 @@
 Exemplo (<pasta de dados>/config.toml):
 
     quant_max_risk_pct = 2.0          # perda maxima no SL, % do saldo (padrao das rotas)
+    mt5_path = "C:/Program Files/Clear MetaTrader 5/terminal64.exe"   # terminal da corretora (opcional)
     max_daily_loss_percent = 2.0
 
     [routes.US500]
@@ -34,6 +35,7 @@ GLOBAL_KEYS = {
     "ml_filter_enabled": ("ML_FILTER_ENABLED", bool, None, None),
     "allow_unvalidated_live": ("ALLOW_UNVALIDATED_LIVE", bool, None, None),
     "live_confirmed": ("LIVE_CONFIRMED", bool, None, None),
+    "mt5_path": ("MT5_PATH", "path", None, None),
 }
 ROUTE_KEYS = {
     "max_risk_pct": (float, 0.1, 50.0),
@@ -49,6 +51,8 @@ def _check(value, kind, lo, hi):
         return value if isinstance(value, bool) else None
     if kind is str:
         return value.lower() if isinstance(value, str) and value.lower() in ROUTE_MODES else None
+    if kind == "path":
+        return value if isinstance(value, str) and os.path.isfile(value) else None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     value = float(value)
@@ -58,6 +62,8 @@ def _check(value, kind, lo, hi):
 def _fmt_range(kind, lo, hi):
     if kind is str:
         return " ou ".join(f'"{m}"' for m in ROUTE_MODES)
+    if kind == "path":
+        return "caminho de um arquivo existente (o terminal64.exe da corretora)"
     return "true/false" if kind is bool else f"numero entre {lo:g} e {hi:g}"
 
 

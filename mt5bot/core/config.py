@@ -211,6 +211,9 @@ ALLOW_UNVALIDATED_LIVE = False
 # Conta REAL so opera depois da confirmacao explicita no assistente
 # (bot.bat setup), que grava live_confirmed = true no config.toml (spec 006).
 LIVE_CONFIRMED = False
+# Terminal MT5 a usar (varias corretoras instaladas): no config.toml, mt5_path = "C:/.../terminal64.exe".
+# None = ultimo terminal aberto (comportamento da biblioteca MetaTrader5).
+MT5_PATH = None
 
 MIN_RISK_REWARD = 1.0
 SCORE_WEIGHTS = {

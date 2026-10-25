@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import MetaTrader5 as mt5  # noqa: E402
 
 from mt5bot.data import signal_journal as J  # noqa: E402
+from mt5bot.core import terminal  # noqa: E402
 
 TFS = {"M1": "TIMEFRAME_M1", "M5": "TIMEFRAME_M5", "M15": "TIMEFRAME_M15", "M30": "TIMEFRAME_M30",
        "H1": "TIMEFRAME_H1", "H4": "TIMEFRAME_H4", "D1": "TIMEFRAME_D1"}
@@ -25,7 +26,7 @@ MAX_QUOTE_AGE = 600  # segundos
 
 
 def connect():
-    if not mt5.initialize():
+    if not terminal.initialize():
         raise SystemExit(f"MT5 indisponivel: {mt5.last_error()}. Abra o terminal e faca login.")
 
 

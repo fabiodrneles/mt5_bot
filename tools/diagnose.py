@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mt5bot.core import paths  # noqa: E402
+from mt5bot.core import terminal  # noqa: E402
 
 def count_recent_errors(hours=24):
     """Conta linhas ERROR/CRITICAL dos logs modificados nas ultimas `hours` horas."""
@@ -28,7 +29,7 @@ def run_diagnose():
     # 1. Tentar conectar ao MT5
     try:
         import MetaTrader5 as mt5
-        if not mt5.initialize():
+        if not terminal.initialize():
             print("MT5: DESCONECTADO (Erro de inicializacao)")
         else:
             acc = mt5.account_info()

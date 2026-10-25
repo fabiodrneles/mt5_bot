@@ -20,6 +20,7 @@ import MetaTrader5 as mt5  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from mt5bot.core import config, telemetry, user_config  # noqa: E402
+from mt5bot.core import terminal  # noqa: E402
 
 TF = {"M15": mt5.TIMEFRAME_M15, "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4, "D1": mt5.TIMEFRAME_D1}
 CONFIRM_WORD = "CONFIRMO"
@@ -28,7 +29,7 @@ CONFIRM_WORD = "CONFIRMO"
 def check_environment():
     """Diagnostico sem efeitos colaterais. Devolve dict com problemas e rotas."""
     report = {"connected": False, "problems": [], "routes": [], "account": None}
-    if not mt5.initialize():
+    if not terminal.initialize():
         report["problems"].append(
             "Nao consegui conectar no MetaTrader 5. Abra o terminal, faca login na corretora e rode de novo.")
         return report

@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from mt5bot.core import config
+from mt5bot.core import terminal
 
 def close_position(pos):
     import MetaTrader5 as mt5
@@ -39,7 +40,7 @@ def run_panic():
     
     try:
         import MetaTrader5 as mt5
-        if not mt5.initialize():
+        if not terminal.initialize():
             print("Erro critico: Nao foi possivel conectar ao MT5 para fechar ordens!")
             return
             

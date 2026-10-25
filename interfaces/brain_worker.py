@@ -12,6 +12,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from mt5bot.engine.indicators import add_all_indicators
+from mt5bot.core import terminal
 
 # Configuracao de log para escrever no stderr (para não sujar o stdout que é usado para IPC)
 logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -35,7 +36,7 @@ def process_payload(payload_str: str):
 
         if not candles:
             # Hydration: O Brain puxa as velas da fonte da verdade (MT5)
-            if not mt5.initialize():
+            if not terminal.initialize():
                 sys.stdout.write(json.dumps({"error": "Falha ao inicializar MT5", "symbol": symbol}) + '\n')
                 sys.stdout.flush()
                 return

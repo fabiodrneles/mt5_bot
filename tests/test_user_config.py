@@ -102,3 +102,25 @@ def test_diagnose_counts_recent_errors_in_user_logs():
     with open(os.path.join(paths.logs_dir(), "bot_20991231.log"), "w", encoding="utf-8") as f:
         f.write("10:00 [INFO] ok\n10:01 [ERROR] falhou\n10:02 [CRITICAL] parou\n")
     assert diagnose.count_recent_errors() >= 2
+
+
+def test_mt5_path_accepts_existing_file_and_refuses_missing(tmp_path):
+    exe = tmp_path / "terminal64.exe"
+    exe.write_text("x", encoding="utf-8")
+    ns = _ns()
+    assert user_config.apply(ns, _toml(tmp_path, f'mt5_path = "{exe.as_posix()}"\n')) == []
+    assert ns["MT5_PATH"] == exe.as_posix()
+    ns = _ns()
+    errors = user_config.apply(ns, _toml(tmp_path, 'mt5_path = "C:/nao/existe/terminal64.exe"\n'))
+    assert errors and "mt5_path" in errors[0] and "MT5_PATH" not in ns
+
+
+def test_terminal_initialize_passes_configured_path(monkeypatch):
+    import MetaTrader5 as mt5
+    from mt5bot.core import terminal
+    calls = []
+    monkeypatch.setattr(mt5, "initialize", lambda *a, **k: calls.append(a) or True)
+    monkeypatch.setattr(config, "MT5_PATH", None, raising=False)
+    assert terminal.initialize() and calls[-1] == ()
+    monkeypatch.setattr(config, "MT5_PATH", "C:/Clear/terminal64.exe", raising=False)
+    assert terminal.initialize() and calls[-1] == ("C:/Clear/terminal64.exe",)
