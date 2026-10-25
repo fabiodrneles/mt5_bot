@@ -157,7 +157,8 @@ def main():
     cdi_r = np.array([cdi[day] for day in cal])
     ib_c = np.array([ib[day] for day in cal])
     ib_r = np.r_[0.0, ib_c[1:] / ib_c[:-1] - 1]
-    names = ["Cruz MM9xMM21", "Cruz MM5xMM21", "MM200"]
+    # Todos os setups de compra no diario: os 11 do palex_setups.py e a familia 9.x (regras do livro).
+    names = list(CP.SETUPS) + ["9.1 semanal", "9.2 semanal+SMA200", "9.3 semanal+SMA200", "9.4 semanal"]
     bh = np.full((len(stocks), T), np.nan)
     mats = {s: np.full((len(stocks), T), np.nan) for s in names}
     for si, (tk, d) in enumerate(stocks.items()):
@@ -168,7 +169,11 @@ def main():
         cdi_days = np.array([cdi.get(int(day), 0.0) for day in d["day"]])
         bh[si, cols[ok]] = np.where(member, r[ok], np.nan)
         for s in names:
-            pr = CP.daily_returns(d, s)
+            if s.startswith("9."):
+                setup, filt = s.split(" ", 1)
+                pr = C.positions(d, setup, filt)
+            else:
+                pr = CP.daily_returns(d, s)
             daily = np.where(np.isfinite(pr), pr, np.where(np.isfinite(r), cdi_days, np.nan))
             mats[s][si, cols[ok]] = np.where(member, daily[ok], np.nan)
 

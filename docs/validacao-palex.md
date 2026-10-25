@@ -92,6 +92,32 @@ Arquivos anuais oficiais de 2004 a 2026 (mercado à vista, lote padrão), com **
 3. **Contra a renda fixa, não há vantagem clara.** Somando os proventos que faltam (cerca de 2% ao ano para quem fica 55% investido), o cruzamento fica perto do CDI desde 2005 e um pouco acima desde 2016. O valor real dele é **reduzir as quedas de quem quer estar em ações**, não superar o CDI.
 4. As médias MM5 × MM21 e MM200 ficam abaixo da exposição equivalente.
 
+### Todos os setups de compra do livro na série oficial (sem IR, sem proventos)
+
+| Setup | Desde 2005: ao ano / Sharpe / queda | Desde 2016: ao ano / Sharpe / queda |
+|---|---|---|
+| CDI | 10,61% / — / 0% | 9,60% / — / 0% |
+| **IFR2 sobrevendido (Connors)** | **11,67% / 0,36 / −5,3%** | **10,28% / 0,27 / −4,5%** |
+| IFR14 + reversão | 9,77% / −0,17 / −13,3% | 9,79% / 0,07 / −10,1% |
+| Key Buy | 9,74% / −0,98 / −0,8% | 8,94% / −0,66 / −0,8% |
+| Topo histórico | 9,69% / −0,52 / −1,9% | 8,71% / −0,59 / −1,9% |
+| 9.4 + semanal | 9,62% / −0,41 / −1,9% | 8,87% / −0,30 / −1,9% |
+| Fura-teto | 8,91% / −0,52 / −2,7% | 8,46% / −0,33 / −2,7% |
+| 9.2 + semanal + SMA200 | 8,80% / −0,86 / −1,5% | 8,98% / −0,25 / −1,4% |
+| Iguana | 8,56% / −1,00 / −4,5% | 7,96% / −0,85 / −3,8% |
+| Cruz. MM9 × MM21 | 8,24% / −0,12 / −24,5% | 12,20% / 0,25 / −22,1% |
+| 9.3 + semanal + SMA200 | 7,52% / −0,96 / −2,6% | 8,73% / −0,23 / −2,6% |
+| Realização frustrada | 6,98% / −0,82 / −5,3% | 6,77% / −0,60 / −5,3% |
+| Cruz. MM5 × MM21 | 6,29% / −0,27 / −27,6% | 9,97% / 0,09 / −25,2% |
+| 9.1 + semanal | 5,65% / −0,91 / −7,5% | 5,75% / −0,69 / −7,5% |
+| MM200 | 5,14% / −0,43 / −21,5% | 5,15% / −0,33 / −21,5% |
+| Peg Leg | −0,39% / −1,48 / −41,8% | −0,97% / −1,35 / −32,6% |
+
+Os setups de curto prazo ficam investidos pouco tempo e, por isso, rendem perto do CDI (que recebem fora da posição) com quedas pequenas. O Sharpe negativo mostra que **a parte investida rende menos que o CDI**. As exceções são:
+- **IFR2 sobrevendido (Connors):** o único setup do livro que **supera o CDI nos dois períodos** sem viés de sobrevivência (11,7% contra 10,6% desde 2005; 10,3% contra 9,6% desde 2016), com Sharpe positivo (0,36 e 0,27) e queda máxima de só 5%. Como fica pouco tempo investido, a falta de proventos quase não o afeta. É o mesmo efeito que sustenta a rota RSI2 do US500: reversão de curto prazo comprando quedas fortes em tendência de alta.
+- **Cruz. MM9 × MM21:** melhor que a exposição equivalente às ações, com metade da queda, mas sem vantagem clara sobre o CDI.
+- **Peg Leg** (contra a tendência) perde dinheiro.
+
 ## Ressalvas
 
 - **Viés de sobrevivência:** as tabelas com dados do Yahoo incluem só as ações que estão no Ibovespa hoje. A seção COTAHIST acima corrige isso e é a referência.
