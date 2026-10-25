@@ -72,9 +72,30 @@ Na B3, as **vendas perdem sempre** e as **compras costumam dar positivo**. É a 
 3. **Os setups de entrada de curto prazo** (Iguana, Key Buy, Realização frustrada, Shark, Inside Day, IFR14) ficam investidos pouco tempo e rendem perto do CDI ou abaixo dele. Os que vão contra a tendência (Peg Leg) perdem.
 4. **A B3 é o mercado da aplicação para os setups do Palex**, mas com a lógica de seguir tendência e controlar quedas, e não a de prever reversões em candles.
 
+## Sem viés de sobrevivência: série oficial COTAHIST da B3 (`tools/quant_research/cotahist_b3.py`)
+
+Arquivos anuais oficiais de 2004 a 2026 (mercado à vista, lote padrão), com **todas** as empresas negociadas, inclusive as que depois saíram da bolsa, faliram ou foram compradas. **Universo ponto-no-tempo:** em cada ano, as 60 ações com maior volume financeiro no ano anterior. Ao todo, 193 ações passaram pelo universo. Os desdobramentos e grupamentos foram detectados e ajustados (202 eventos, incluindo a antiga cotação "por lote de mil"). Dias de negócio único com salto acima de 30% foram descartados, e quedas reais (como a das Americanas em 2023) foram mantidas. **Proventos não foram incluídos:** isso subestima todas as carteiras de ações em cerca de 3% a 5% ao ano no comprar e segurar (proporcionalmente menos nas estratégias que ficam parte do tempo no CDI), enquanto o Ibovespa é um índice de retorno total.
+
+| Carteira (sem IR, sem proventos) | Desde 2005: ao ano / Sharpe / queda | Desde 2016: ao ano / Sharpe / queda |
+|---|---|---|
+| CDI | 10,61% / — / 0% | 9,60% / — / 0% |
+| Ibovespa (com proventos) | 9,89% / 0,10 / −60,0% | 15,39% / 0,34 / −46,8% |
+| Comprar e segurar o universo ponto-no-tempo | 3,86% / −0,12 / −61,9% | 8,58% / 0,09 / −51,6% |
+| Mistura fixa 55% ações + 45% CDI | 7,73% / −0,12 / −35,9% | 9,91% / 0,09 / −31,4% |
+| **Cruz. MM9 × MM21** | **8,24% / −0,12 / −24,5%** | **12,20% / 0,25 / −22,1%** |
+| Cruz. MM5 × MM21 | 6,29% / −0,27 / −27,6% | 9,97% / 0,09 / −25,2% |
+| MM200 | 5,14% / −0,43 / −21,5% | 5,15% / −0,33 / −21,5% |
+
+**Leitura:**
+1. **O viés de sobrevivência inflava muito os números.** Com as empresas que saíram do índice, o comprar e segurar cai de 22,8% para 3,9% ao ano desde 2005 (sem proventos), e o cruzamento MM9 × MM21 de 16,4% para 8,2%.
+2. **O cruzamento MM9 × MM21 continua sendo o melhor setup do livro**, e a vantagem relativa sobrevive. Contra uma exposição equivalente às mesmas ações, ele rende igual ou mais (8,2% contra 7,7% desde 2005; 12,2% contra 9,9% desde 2016), com Sharpe igual ou maior (−0,12 contra −0,12; 0,25 contra 0,09) e **queda máxima bem menor** (−24,5% contra −35,9%; −22,1% contra −31,4%).
+3. **Contra a renda fixa, não há vantagem clara.** Somando os proventos que faltam (cerca de 2% ao ano para quem fica 55% investido), o cruzamento fica perto do CDI desde 2005 e um pouco acima desde 2016. O valor real dele é **reduzir as quedas de quem quer estar em ações**, não superar o CDI.
+4. As médias MM5 × MM21 e MM200 ficam abaixo da exposição equivalente.
+
 ## Ressalvas
 
-- **Viés de sobrevivência:** só entram as ações que estão no Ibovespa hoje. Isso infla todos os números das ações. A comparação entre carteiras do mesmo universo é justa, mas os números absolutos não são. Próximo passo: repetir com a série oficial COTAHIST da B3, que inclui as empresas que saíram do índice.
+- **Viés de sobrevivência:** as tabelas com dados do Yahoo incluem só as ações que estão no Ibovespa hoje. A seção COTAHIST acima corrige isso e é a referência.
+- **Proventos** faltam na série COTAHIST, o que penaliza todas as carteiras de ações em relação ao CDI e ao Ibovespa.
 - **Imposto de renda** (15% sobre ganhos em operações comuns) e o rebalanceamento diário de peso igual não foram modelados.
 - **Vários setups foram testados.** O cruzamento de médias é uma regra conhecida há décadas e documentada fora deste estudo, o que reduz, mas não elimina, o risco de seleção.
 - Antes de operar com dinheiro, o cruzamento MM9 × MM21 na B3 deve rodar em **modo estudo** numa conta demo da Clear ou da Genial (o robô já escolhe o terminal pelo `mt5_path`).

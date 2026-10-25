@@ -5,6 +5,9 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 ## [Unreleased]
 
 ### Adicionado
+- **Teste sem viés de sobrevivência com a série oficial COTAHIST da B3** (`tools/quant_research/cotahist_b3.py`): universo ponto-no-tempo, ajuste de desdobramentos e grupamentos. O cruzamento MM9 × MM21 cai de 16,4% para 8,2% ao ano desde 2005 (sem proventos), mas mantém a vantagem relativa sobre a exposição equivalente às ações, com queda máxima menor. Contra o CDI, não há vantagem clara.
+
+### Adicionado
 - **Setups do Palex em forex e na B3** (`tools/quant_research/palex_setups.py`, `compare_palex_b3.py`, `docs/validacao-palex.md`): 14 setups mecânicos do livro testados como o livro manda. No forex todos perdem; na B3 o cruzamento MM9 × MM21 rende 16,4% ao ano desde 2005 em carteira, com queda máxima de 15% e Sharpe igual ou maior que uma exposição equivalente às ações.
 
 ### Adicionado
