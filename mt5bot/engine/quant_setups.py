@@ -102,7 +102,27 @@ def signal_hour_of_week(df: pd.DataFrame, params: dict) -> Optional[dict]:
     return {"setup": "HOUR", "action": action, "sl_dist": params.get("sl_atr", 3.0) * a, "tp_dist": None}
 
 
-SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week}
+def signal_stormer(df: pd.DataFrame, params: dict) -> Optional[dict]:
+    """STORMER: IFR2 do Stormer, so compra. IFR2 abaixo do nivel (5, 10 ou 12) no fechamento; alvo na maxima
+    dos 2 ultimos candles; saida por tempo (max_bars = 7). O setup original nao tem stop: aqui ha um SL
+    protetor de sl_atr x ATR14, exigido pela constituicao (principio 1). Pesquisa: cap. 14 e
+    docs/validacao-palex.md (USDJPY D1, IFR2 < 5: lucro nas duas metades do historico)."""
+    if len(df) < 20:
+        return None
+    c = df['close']
+    rsi2 = float(_rsi(c, 2).iloc[-1])
+    if rsi2 >= params.get("rsi_level", 5.0):
+        return None
+    a = float(_atr(df).iloc[-1])
+    if not np.isfinite(a) or a <= 0:
+        return None
+    target = float(df['high'].iloc[-2:].max())
+    tp = target - float(c.iloc[-1])
+    return {"setup": "STORMER", "action": "buy", "sl_dist": params.get("sl_atr", 3.0) * a,
+            "tp_dist": tp if tp > 0 else None}
+
+
+SIGNALS = {"PULLB": signal_pullb, "RSI2MR": signal_rsi2mr, "HOUR": signal_hour_of_week, "STORMER": signal_stormer}
 EXITS = {"RSI2MR": exit_rsi2mr}
 
 

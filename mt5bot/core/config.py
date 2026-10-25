@@ -192,6 +192,13 @@ QUANT_ROUTES = {
     "USDJPY": {"timeframe": "H1", "setup": "HOUR",
                "params": {"weekday": 0, "hour": 1, "side": "buy", "sl_atr": 3.0, "max_bars": 1},
                "max_risk_pct": 12.0, "mode": "study"},
+    # Em ESTUDO: IFR2 do Stormer no USDJPY D1 (so compra, IFR2 < 5, alvo na maxima dos 2 ultimos candles, saida
+    # em 7 candles). Na pesquisa (docs/validacao-palex.md), lucrou nas duas metades do historico nos niveis 5, 10 e 12
+    # (t 3,95 e 3,06 no nivel 5), com explicacao economica (swap positivo na compra), mas foi achado entre 238
+    # combinacoes: precisa repetir em trades novos. Chave propria porque o USDJPY ja tem a rota de horario (H1).
+    "USDJPY_IFR2": {"symbol": "USDJPY", "timeframe": "D1", "setup": "STORMER",
+                    "params": {"rsi_level": 5.0, "sl_atr": 3.0, "max_bars": 7},
+                    "max_risk_pct": 12.0, "mode": "study"},
 }
 # Perda maxima no SL (lote minimo) como % do saldo. Acima disso o sinal e
 # ignorado para preservar margem para as proximas tentativas. Com $16 o US500

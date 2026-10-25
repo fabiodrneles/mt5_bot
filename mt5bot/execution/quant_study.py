@@ -51,7 +51,7 @@ def study_cycle(symbol, df, timeframe_name, route):
     setup, params = route["setup"], route.get("params", {})
     tf_secs = Q.TF_SECONDS.get(str(timeframe_name).upper(), 3600)
     trades = load()
-    open_trade = next((t for t in trades if t["symbol"] == symbol and t["status"] == "open"), None)
+    open_trade = next((t for t in trades if t["symbol"] == symbol and t["setup"] == setup and t["status"] == "open"), None)
     if open_trade:
         return _manage(symbol, df, setup, params, tf_secs, trades, open_trade)
     return _scan(symbol, df, setup, params, tf_secs, trades)
@@ -87,19 +87,20 @@ def _manage(symbol, df, setup, params, tf_secs, trades, t):
 
 
 def _scan(symbol, df, setup, params, tf_secs, trades):
+    skey = Q.signal_key(symbol, tf_secs)
     if df is None or len(df) < 200:
         return f"{PREFIX}: AGUARDANDO DADOS"
     last_time = df["time"].iloc[-1]
-    if Q._last_signal_candle.get(symbol) == last_time:
+    if Q._last_signal_candle.get(skey) == last_time:
         return f"{PREFIX}: AGUARDANDO PRÓXIMO CANDLE"
     sig = quant_setups.evaluate(setup, df, params)
     if sig is None:
-        Q._last_signal_candle[symbol] = last_time
+        Q._last_signal_candle[skey] = last_time
         return f"{PREFIX}: SCANNING"
     waiting, tick, _ = Q.entry_window(symbol, setup, last_time, tf_secs)
     if waiting:
         return f"{PREFIX}: {waiting}"
-    Q._last_signal_candle[symbol] = last_time
+    Q._last_signal_candle[skey] = last_time
     is_buy = sig["action"] == "buy"
     price = tick.ask if is_buy else tick.bid
     sl = price - sig["sl_dist"] if is_buy else price + sig["sl_dist"]

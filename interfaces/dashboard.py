@@ -120,9 +120,10 @@ def _ensure_mt5():
 def _route_rows(balance):
     rows = []
     now = telemetry.server_now()
-    for symbol, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
+    for key, route in (getattr(config, "QUANT_ROUTES", {}) or {}).items():
+        symbol = route.get("symbol", key)
         tf = route["timeframe"]
-        row = {"symbol": symbol, "tf": tf, "setup": route["setup"], "risk": None, "limit": None, "next_close": "—",
+        row = {"symbol": key, "tf": tf, "setup": route["setup"], "risk": None, "limit": None, "next_close": "—",
                "study": str(route.get("mode", "live")).lower() == "study"}
         rates = mt5.copy_rates_from_pos(symbol, _TF.get(tf, mt5.TIMEFRAME_H1), 0, 201)
         if rates is not None and len(rates) > 2:
