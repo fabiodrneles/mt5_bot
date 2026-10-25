@@ -5,6 +5,9 @@ Todas as mudanças relevantes. Formato: [Keep a Changelog](https://keepachangelo
 ## [Unreleased]
 
 ### Adicionado
+- **Setups do Palex em forex e na B3** (`tools/quant_research/palex_setups.py`, `compare_palex_b3.py`, `docs/validacao-palex.md`): 14 setups mecânicos do livro testados como o livro manda. No forex todos perdem; na B3 o cruzamento MM9 × MM21 rende 16,4% ao ano desde 2005 em carteira, com queda máxima de 15% e Sharpe igual ou maior que uma exposição equivalente às ações.
+
+### Adicionado
 - **Escolha do terminal MT5** (`mt5_path` no `config.toml`): com várias corretoras instaladas (ex.: Hantec e Clear), o robô conecta ao terminal indicado, sem deslogar os outros. Todos os pontos de entrada usam `mt5bot/core/terminal.py`. O modelo do `config --edit` documenta também o `mode` das rotas.
 
 ### Adicionado
