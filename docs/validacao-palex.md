@@ -120,18 +120,20 @@ Os setups de curto prazo ficam investidos pouco tempo e, por isso, rendem perto 
 
 ### IFR2 do Stormer (adaptação brasileira do IFR2)
 
-Pedido do dono, a partir do vídeo "Setup IFR2 Stormer". O vídeo não pôde ser lido, então foi testada a **descrição mais comum** do setup: IFR2 abaixo de 25 (ou 10) no fechamento; compra no fechamento; alvo na máxima dos 2 últimos candles; saída por tempo depois de 7 candles; sem stop de preço; com e sem o filtro da MM200. Série oficial COTAHIST, universo ponto-no-tempo:
+Pedido do dono, a partir do vídeo "Setup IFR2 Stormer". O vídeo não pôde ser lido. O dono informou que o Stormer **só compra** e entra com o **IFR2 abaixo de 12, 10 ou 5**. O resto segue a descrição mais comum do setup: compra no fechamento, alvo na máxima dos 2 últimos candles, saída por tempo depois de 7 candles, sem stop de preço. Testado com e sem o filtro da MM200, na série oficial COTAHIST (universo ponto-no-tempo):
 
 | Variante | Desde 2005: ao ano / Sharpe / queda | Desde 2016: ao ano / Sharpe / queda |
 |---|---|---|
 | CDI | 10,61% / — / 0% | 9,60% / — / 0% |
-| IFR2 Connors (referência acima) | **11,67% / 0,36 / −5,3%** | **10,28% / 0,27 / −4,5%** |
+| IFR2 Connors (referência) | **11,67% / 0,36 / −5,3%** | **10,28% / 0,27 / −4,5%** |
+| Stormer, IFR2 < 5 + MM200 | 11,48% / 0,28 / −5,8% | 9,74% / 0,06 / −5,7% |
+| Stormer, IFR2 < 5 | 11,36% / 0,12 / −26,4% | 7,95% / −0,12 / −26,4% |
+| Stormer, IFR2 < 12 + MM200 | 10,98% / 0,09 / −9,6% | 9,19% / −0,06 / −9,6% |
 | Stormer, IFR2 < 10 + MM200 | 10,88% / 0,08 / −8,4% | 8,88% / −0,14 / −8,4% |
 | Stormer, IFR2 < 10 | 10,41% / 0,05 / −32,4% | 8,26% / −0,04 / −32,4% |
-| Stormer, IFR2 < 25 + MM200 | 9,45% / −0,12 / −16,1% | 8,66% / −0,10 / −16,1% |
-| Stormer, IFR2 < 25 | 6,52% / −0,16 / −38,4% | 8,86% / 0,04 / −37,0% |
+| Stormer, IFR2 < 12 | 10,18% / 0,03 / −33,0% | 9,21% / 0,04 / −33,0% |
 
-**Leitura:** a versão do Stormer, com alvo curto na máxima de 2 candles, saída por tempo e sem stop, fica **no nível do CDI ou abaixo**, com quedas maiores sem o filtro da MM200 (a falta de stop pesa nas ações que despencam). A versão original de Connors, que sai quando o fechamento passa da MM5, foi melhor nos dois períodos. Se o vídeo usar parâmetros diferentes, basta ajustá-los em `palex_setups.py` (sinal "IFR2 Stormer") e rodar `ONLY="IFR2" python cotahist_b3.py`.
+**Leitura:** a melhor versão do Stormer (IFR2 < 5 com o filtro da MM200) fica **praticamente empatada com o CDI**: um pouco acima desde 2005, um pouco acima desde 2016, com queda máxima de 6%. Sem o filtro, as quedas passam de 26%, porque a falta de stop pesa nas ações que despencam. Quanto mais extremo o nível (5 em vez de 12), melhor o resultado. A versão de Connors, que sai quando o fechamento passa da MM5 em vez de na máxima de 2 candles, foi melhor nos dois períodos: **a saída curta do Stormer realiza o lucro cedo demais**. Para outros parâmetros (alvo, prazo), basta ajustar o sinal "IFR2 Stormer" em `palex_setups.py` e rodar `ONLY="IFR2" python cotahist_b3.py`.
 
 ## Ressalvas
 

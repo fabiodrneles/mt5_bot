@@ -91,9 +91,9 @@ def signals(d, x, tf):
         # acima da MM5; sem stop (o livro nao usa)
         if x["rsi2"][i] < 5 and c[i] > m200[i]:
             add((i, "IFR2 sobrevendido", 1, "close", c[i], np.nan, None, ("rsi2",), 1))
-        # IFR2 do Stormer (adaptacao brasileira do IFR2, descricao mais comum): IFR2 abaixo do nivel no fechamento,
+        # IFR2 do Stormer (adaptacao brasileira do IFR2; so compra, entrada abaixo de 12, 10 ou 5): IFR2 abaixo do nivel no fechamento,
         # compra no fechamento; alvo = maxima dos 2 ultimos candles; sai por tempo apos 7 candles; sem stop de preco.
-        for lvl in (25, 10):
+        for lvl in (12, 10, 5):  # niveis usados pelo Stormer (so compra)
             if x["rsi2"][i] < lvl:
                 alvo = max(h[i], h[i - 1])
                 add((i, f"IFR2 Stormer <{lvl}", 1, "close", c[i], np.nan, None, ("stormer", alvo, 7), 1))

@@ -159,7 +159,8 @@ def main():
     ib_r = np.r_[0.0, ib_c[1:] / ib_c[:-1] - 1]
     # Todos os setups de compra no diario: os 11 do palex_setups.py e a familia 9.x (regras do livro).
     names = list(CP.SETUPS) + ["9.1 semanal", "9.2 semanal+SMA200", "9.3 semanal+SMA200", "9.4 semanal",
-                               "IFR2 Stormer <25", "IFR2 Stormer <25 +MM200", "IFR2 Stormer <10", "IFR2 Stormer <10 +MM200"]
+                               "IFR2 Stormer <12", "IFR2 Stormer <12 +MM200", "IFR2 Stormer <10", "IFR2 Stormer <10 +MM200",
+                               "IFR2 Stormer <5", "IFR2 Stormer <5 +MM200"]
     if os.environ.get("ONLY"):
         names = [n for n in names if os.environ["ONLY"] in n]
     bh = np.full((len(stocks), T), np.nan)
